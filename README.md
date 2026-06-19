@@ -7,10 +7,12 @@ Frontend repository для проекта Autodrome — локального off
 
 Next.js / TypeScript app shell для operator/admin консоли с design
 system baseline, pointer на canonical contracts, typed API client
-baseline и mock adapter + сценарные fixtures. Пока не подключены:
-live backend integration из UI-страниц, common loading/error/empty
-states, auth/session management, формы и таблицы с реальными
-доменными данными, deploy artifacts. Все недостающее будет добавлено
+baseline, mock adapter + сценарные fixtures и единым набором
+loading/empty/error/degraded primitives с rendering canonical
+`ErrorEnvelope` и `Correlation-Id` surface. Пока не подключены: live
+backend integration из UI-страниц, доменные dashboards/workspaces,
+auth/session management, формы и таблицы с реальными доменными
+данными, deploy artifacts. Все недостающее будет добавлено
 последующими фичами согласно документам в `Управление реализацией/`
 корневого репозитория проекта.
 
@@ -53,6 +55,17 @@ App Router с route group `(shell)`:
   (`showModal()`/`close()`, Escape, backdrop-click).
 - `State` / `EmptyState` / `LoadingState` / `ErrorState` — единые
   заготовки пустых, загрузочных и ошибочных состояний.
+- `Skeleton` — анимированный placeholder с регулируемым числом
+  строк, `role="status"` + `aria-busy`, уважает
+  `prefers-reduced-motion`.
+- `ApiErrorView` (client) — рендерит canonical REST `ErrorEnvelope`
+  через `ApiError`: code, message, HTTP status, `Correlation-Id`
+  c кнопкой copy и optional retry action.
+- `DegradedState` — баннер «service degraded» (предполагается для
+  `service-degraded` сценария mock-адаптера и реальных HTTP 503)
+  с optional retry.
+- `ValidationErrors` — список ошибок валидации `{field, message}`,
+  используется как form-level baseline до подключения форм.
 
 Все примитивы используют только CSS custom properties и CSS modules
 без runtime token-системы и без JS-генерации стилей.
