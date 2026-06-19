@@ -5,11 +5,28 @@ Frontend repository для проекта Autodrome — локального off
 
 ## Статус
 
-Next.js / TypeScript app skeleton с минимальным operator console placeholder.
-Доменные страницы, backend API, contracts/generated clients, auth, design
-system и deploy artifacts не подключены — будут добавлены последующими
-фичами согласно документам в `Управление реализацией/` корневого
-репозитория проекта.
+Next.js / TypeScript app shell для operator/admin консоли: sidebar
+navigation, topbar, responsive layout и placeholder-маршруты для
+ключевых доменов. Backend API, contracts/generated clients, auth,
+дизайн-система, формы и таблицы с реальными данными, deploy
+artifacts не подключены — будут добавлены последующими фичами
+согласно документам в `Управление реализацией/` корневого репозитория
+проекта.
+
+## Структура приложения
+
+App Router с route group `(shell)`:
+
+- `src/app/page.tsx` — серверный redirect `/` → `/dashboard`.
+- `src/app/(shell)/layout.tsx` — общий shell layout (sidebar + topbar
+  + content area, light/dark, responsive).
+- `src/app/(shell)/_components/SidebarNav.tsx` — client component
+  навигации с активным маршрутом через `usePathname()`.
+- `src/app/(shell)/_components/RoutePlaceholder.tsx` — серверный
+  компонент для одинаковых placeholder-страниц.
+- `src/app/(shell)/<route>/page.tsx` — 9 placeholder-маршрутов:
+  `dashboard`, `candidates`, `vehicles`, `exams`, `exercises`,
+  `violations`, `rules`, `evidence`, `operations`.
 
 ## Связанные репозитории
 
@@ -22,8 +39,12 @@ system и deploy artifacts не подключены — будут добавл
 - React 19.
 - TypeScript 5.
 - ESLint 9 (flat config, `eslint-config-next`).
-- Vitest 4 для тестов.
+- Vitest 4 с `happy-dom` для component-тестов.
+- `@testing-library/react` 16 для render-тестов компонентов.
 - pnpm 11 как package manager.
+
+Шрифты — системный font stack в `src/app/globals.css`. `next/font/google`
+и любые CDN-шрифты не используются, build/dev работают полностью offline.
 
 ## Команды запуска
 
