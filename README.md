@@ -6,11 +6,10 @@ Frontend repository для проекта Autodrome — локального off
 ## Статус
 
 Next.js / TypeScript app shell для operator/admin консоли с design
-system baseline, pointer на canonical contracts и typed API client
-baseline (auto-generated TypeScript types + общий request wrapper с
-`Correlation-Id`, default timeout и canonical error envelope). Пока
-не подключены: live backend integration из UI-страниц, mock adapter
-и fixtures, auth/session management, формы и таблицы с реальными
+system baseline, pointer на canonical contracts, typed API client
+baseline и mock adapter + сценарные fixtures. Пока не подключены:
+live backend integration из UI-страниц, common loading/error/empty
+states, auth/session management, формы и таблицы с реальными
 доменными данными, deploy artifacts. Все недостающее будет добавлено
 последующими фичами согласно документам в `Управление реализацией/`
 корневого репозитория проекта.
@@ -155,8 +154,49 @@ banner-ом `AUTO-GENERATED FILE — DO NOT EDIT`; редактировать и
 - `index.ts` — barrel для всего slice.
 
 Generated client покрывает 5 сервисов: `candidate`, `vehicle`,
-`exam`, `exercise`, `violation-rule`. Mock-адаптер, fixtures, auth
-tokens и domain-страницы — следующие фичи.
+`exam`, `exercise`, `violation-rule`. Auth tokens и domain-страницы
+— следующие фичи.
+
+### Mock adapter и сценарные fixtures
+
+`src/api/adapter.ts` объявляет `AutodromeApi` интерфейс над 5
+типизированными сервисами и `getApiAdapter(options?)` фабрику:
+
+- `mode: "live"` (default) → `createLiveAdapter()` — текущие
+  `openapi-fetch` клиенты против реального backend baseUrl.
+- `mode: "mock"` → `createMockAdapter(scenario)` — те же
+  типизированные клиенты, но с подменённым `fetch`, который
+  возвращает fixture-данные.
+
+Переключатель управляется env-переменными:
+
+- `NEXT_PUBLIC_API_ADAPTER` = `"mock" | "live"` (default `"live"`).
+- `NEXT_PUBLIC_MOCK_SCENARIO` = одно из `MOCK_SCENARIOS` (default
+  `"normal"`).
+
+Options передаваемые напрямую в `getApiAdapter({mode, scenario})`
+имеют приоритет над env.
+
+Сценарии (`src/api/mock/scenarios.ts`):
+
+- `empty` — пустые списки во всех доменах;
+- `normal` — спокойное состояние локального узла;
+- `exam-in-progress` — активный экзамен;
+- `violations-detected` — экзамен с зафиксированными violations;
+- `service-degraded` — `vehicle-service` отвечает 503 с canonical
+  error envelope, остальные сервисы — нормальные fixtures.
+
+Fixtures (`src/api/mock/fixtures/`) типизированы поверх
+`components["schemas"]["..."]` из сгенерированных контрактов — то
+есть невалидные данные ловит TypeScript компилятор. Mock не
+содержит бизнес-логики: handlers только отдают канонические
+fixtures по URL/method и возвращают `404` с
+`MOCK_HANDLER_NOT_FOUND` для неучтённых маршрутов.
+
+Mock покрывает только list endpoints, нужные для skeleton UI:
+`GET /candidates`, `GET /vehicles`, `GET /exercises`,
+`GET /violations`, `GET /rules`. Остальные методы интегрируются по
+мере появления реальных доменных страниц.
 
 ## Branch policy
 
