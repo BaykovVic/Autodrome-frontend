@@ -5,28 +5,55 @@ Frontend repository для проекта Autodrome — локального off
 
 ## Статус
 
-Next.js / TypeScript app shell для operator/admin консоли: sidebar
-navigation, topbar, responsive layout и placeholder-маршруты для
-ключевых доменов. Backend API, contracts/generated clients, auth,
-дизайн-система, формы и таблицы с реальными данными, deploy
-artifacts не подключены — будут добавлены последующими фичами
-согласно документам в `Управление реализацией/` корневого репозитория
-проекта.
+Next.js / TypeScript app shell для operator/admin консоли с design
+system baseline: semantic CSS-токены, набор базовых UI-примитивов и
+живой dashboard-демонстратор. Backend API, contracts/generated
+clients, auth, формы и таблицы с реальными данными, deploy artifacts
+не подключены — будут добавлены последующими фичами согласно
+документам в `Управление реализацией/` корневого репозитория проекта.
 
 ## Структура приложения
 
 App Router с route group `(shell)`:
 
 - `src/app/page.tsx` — серверный redirect `/` → `/dashboard`.
+- `src/app/tokens.css` — semantic CSS-токены (colors, spacing,
+  typography, borders, focus, density), импортируется в
+  `globals.css`.
 - `src/app/(shell)/layout.tsx` — общий shell layout (sidebar + topbar
-  + content area, light/dark, responsive).
+  + content area, light/dark, responsive). Topbar показывает
+  `StatusBadge` из design system.
 - `src/app/(shell)/_components/SidebarNav.tsx` — client component
   навигации с активным маршрутом через `usePathname()`.
 - `src/app/(shell)/_components/RoutePlaceholder.tsx` — серверный
   компонент для одинаковых placeholder-страниц.
-- `src/app/(shell)/<route>/page.tsx` — 9 placeholder-маршрутов:
-  `dashboard`, `candidates`, `vehicles`, `exams`, `exercises`,
-  `violations`, `rules`, `evidence`, `operations`.
+- `src/app/(shell)/<route>/page.tsx` — 9 маршрутов: `dashboard`,
+  `candidates`, `vehicles`, `exams`, `exercises`, `violations`,
+  `rules`, `evidence`, `operations`. `/dashboard` использует
+  `DashboardConsole` (client component) с Toolbar, Tabs, Table,
+  Button, Modal и StatusBadge как живой демонстратор design system.
+
+## Design system
+
+`src/components/` содержит примитивы, построенные поверх токенов из
+`src/app/tokens.css`:
+
+- `Button` — varianты `primary | secondary | danger | ghost`, sizes
+  `sm | md`, опциональный `iconOnly`.
+- `Input`, `Select`, `Textarea` — поля с label/hint/invalid через
+  общий `Field.module.css`.
+- `Table` — accessible table-обёртка с overflow-wrapper.
+- `Tabs` (client) — управляемые табы с `useState`, ARIA tablist/tab/
+  tabpanel.
+- `StatusBadge` — варианты `neutral | info | success | warning | danger`.
+- `Toolbar` + `ToolbarSection` — горизонтальный action-контейнер.
+- `Modal` (client) — обёртка над нативным `<dialog>`
+  (`showModal()`/`close()`, Escape, backdrop-click).
+- `State` / `EmptyState` / `LoadingState` / `ErrorState` — единые
+  заготовки пустых, загрузочных и ошибочных состояний.
+
+Все примитивы используют только CSS custom properties и CSS modules
+без runtime token-системы и без JS-генерации стилей.
 
 ## Связанные репозитории
 

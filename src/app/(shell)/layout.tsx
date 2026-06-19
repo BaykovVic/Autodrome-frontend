@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components";
 import { SidebarNav } from "./_components/SidebarNav";
 import styles from "./layout.module.css";
 
@@ -16,9 +17,9 @@ export default function ShellLayout({
       <div className={styles.column}>
         <header className={styles.topbar}>
           <div className={styles.topbarTitle}>Operator console</div>
-          <div className={styles.topbarStatus} aria-label="Build status">
+          <StatusBadge variant="neutral" aria-label="Build status">
             skeleton
-          </div>
+          </StatusBadge>
         </header>
         <main className={styles.content}>{children}</main>
       </div>
