@@ -8,10 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "contracts:check": "node scripts/check-contracts.mjs"
+    "contracts:check": "node scripts/check-contracts.mjs",
+    "contracts:generate": "node scripts/generate-contracts.mjs"
   },
   "dependencies": {
     "next": "16.2.9",
+    "openapi-fetch": "^0.17.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -23,6 +25,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "happy-dom": "^20.10.6",
+    "openapi-typescript": "^7.13.0",
     "typescript": "^5",
     "vitest": "^4.1.9"
   }

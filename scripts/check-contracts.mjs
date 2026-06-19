@@ -77,6 +77,30 @@ if (missing.length > 0) {
   );
 }
 
+if (Array.isArray(config.services)) {
+  const missingSpecs = [];
+  for (const service of config.services) {
+    if (
+      !service ||
+      typeof service.name !== "string" ||
+      typeof service.openapi !== "string"
+    ) {
+      fail(
+        `contracts.config.json "services" entries must have string "name" and "openapi" fields`,
+      );
+    }
+    const specPath = path.join(contractsPath, service.openapi);
+    if (!fs.existsSync(specPath) || !fs.statSync(specPath).isFile()) {
+      missingSpecs.push(`${service.name} -> ${service.openapi}`);
+    }
+  }
+  if (missingSpecs.length > 0) {
+    fail(
+      `missing openapi specs for services: ${missingSpecs.join("; ")}`,
+    );
+  }
+}
+
 function countDirectories(target) {
   return fs
     .readdirSync(target, { withFileTypes: true })
@@ -95,3 +119,8 @@ console.log(`[contracts] path             = ${contractsPath}`);
 console.log(`[contracts] openapi services = ${summary.openapiServices}`);
 console.log(`[contracts] event domains    = ${summary.eventDomains}`);
 console.log(`[contracts] proto services   = ${summary.protoServices}`);
+if (Array.isArray(config.services)) {
+  console.log(
+    `[contracts] client services  = ${config.services.length} (${config.services.map((s) => s.name).join(", ")})`,
+  );
+}

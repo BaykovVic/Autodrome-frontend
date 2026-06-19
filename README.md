@@ -6,11 +6,14 @@ Frontend repository для проекта Autodrome — локального off
 ## Статус
 
 Next.js / TypeScript app shell для operator/admin консоли с design
-system baseline и pointer на canonical contracts. Backend API,
-generated API client, формы и таблицы с реальными данными, auth,
-deploy artifacts не подключены — будут добавлены последующими
-фичами согласно документам в `Управление реализацией/` корневого
-репозитория проекта.
+system baseline, pointer на canonical contracts и typed API client
+baseline (auto-generated TypeScript types + общий request wrapper с
+`Correlation-Id`, default timeout и canonical error envelope). Пока
+не подключены: live backend integration из UI-страниц, mock adapter
+и fixtures, auth/session management, формы и таблицы с реальными
+доменными данными, deploy artifacts. Все недостающее будет добавлено
+последующими фичами согласно документам в `Управление реализацией/`
+корневого репозитория проекта.
 
 ## Структура приложения
 
@@ -89,7 +92,11 @@ pnpm install
 - `pnpm lint` — ESLint по проекту.
 - `pnpm test` — Vitest (один прогон).
 - `pnpm contracts:check` — проверка, что canonical contracts из
-  backend monorepo доступны и содержат ожидаемые подпапки.
+  backend monorepo доступны и содержат ожидаемые подпапки и
+  OpenAPI specs для services из `contracts.config.json`.
+- `pnpm contracts:generate` — генерирует TypeScript types из
+  OpenAPI specs в `src/contracts/types/<service>.ts`. Перед запуском
+  внутренне валидирует canonical contracts.
 
 ## Contracts source of truth
 
@@ -124,10 +131,32 @@ Frontend repo **не** хранит собственные DTO, OpenAPI/proto/ev
 - Менять канонические контракты в этом repo запрещено: правки идут
   только в backend monorepo через соответствующие backend-фичи.
 
-В этой фиче (`feature/frontend-contract-source-of-truth`) подключение
-ограничено указанием пути и lightweight presence-check. Generated
-client, типизированные fetcher-ы и schema-driven validation —
-последующие фичи.
+### Typed API client baseline
+
+`src/contracts/types/<service>.ts` — auto-generated TypeScript типы,
+рождаются из соответствующих OpenAPI specs через
+`pnpm contracts:generate` (бинд `openapi-typescript`). Файлы помечены
+banner-ом `AUTO-GENERATED FILE — DO NOT EDIT`; редактировать их
+вручную запрещено. Правки идут в backend monorepo, затем — re-generate.
+
+`src/api/` — request/error baseline поверх сгенерированных типов:
+
+- `correlation.ts` — `newCorrelationId()` через `crypto.randomUUID()`
+  и константа header-имени `Correlation-Id` из
+  `contracts/docs/common-dto-and-error-model.md`.
+- `errors.ts` — типы `ErrorEnvelopeBody`, класс `ApiError` и
+  `parseErrorResponse(response, url)` для канонического envelope.
+- `client.ts` — `createAutodromeClient<Paths>(options)` поверх
+  `openapi-fetch`. Middleware добавляет `Correlation-Id` к каждому
+  запросу, default timeout через `AbortController`, парсит non-2xx
+  в `ApiError`.
+- `services/<name>.ts` — по одному файлу на сервис, инстанцирует
+  типизированный client с `baseUrl: "/api/<name>/v1"`.
+- `index.ts` — barrel для всего slice.
+
+Generated client покрывает 5 сервисов: `candidate`, `vehicle`,
+`exam`, `exercise`, `violation-rule`. Mock-адаптер, fixtures, auth
+tokens и domain-страницы — следующие фичи.
 
 ## Branch policy
 
