@@ -7,10 +7,12 @@ Frontend repository для проекта Autodrome — локального off
 
 Next.js / TypeScript app shell для operator/admin консоли с design
 system baseline, pointer на canonical contracts, typed API client
-baseline, mock adapter + сценарные fixtures и единым набором
-loading/empty/error/degraded primitives с rendering canonical
-`ErrorEnvelope` и `Correlation-Id` surface. Пока не подключены: live
-backend integration из UI-страниц, доменные dashboards/workspaces,
+baseline, mock adapter + сценарные fixtures, единым набором common
+states/errors primitives и первым прикладным экраном —
+`Local node dashboard` (`/dashboard`), который тянет данные через
+`getApiAdapter()` (по умолчанию — live, в dev режиме переключается
+на mock через env). Пока не подключены: live backend integration
+вне dashboard, доменные workspaces под candidate/vehicle/exam/etc.,
 auth/session management, формы и таблицы с реальными доменными
 данными, deploy artifacts. Все недостающее будет добавлено
 последующими фичами согласно документам в `Управление реализацией/`
@@ -34,8 +36,11 @@ App Router с route group `(shell)`:
 - `src/app/(shell)/<route>/page.tsx` — 9 маршрутов: `dashboard`,
   `candidates`, `vehicles`, `exams`, `exercises`, `violations`,
   `rules`, `evidence`, `operations`. `/dashboard` использует
-  `DashboardConsole` (client component) с Toolbar, Tabs, Table,
-  Button, Modal и StatusBadge как живой демонстратор design system.
+  `LocalNodeDashboard` (client component) с местным `useDashboardData`
+  hook'ом, который параллельно тянет данные 5 сервисов через
+  `getApiAdapter()` и единообразно показывает loading/error/degraded
+  состояния. Остальные 8 routes — `RoutePlaceholder` до подключения
+  domain workspaces.
 
 ## Design system
 

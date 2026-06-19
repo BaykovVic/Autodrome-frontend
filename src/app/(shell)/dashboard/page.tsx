@@ -1,5 +1,5 @@
-import { DashboardConsole } from "./_components/DashboardConsole";
+import { LocalNodeDashboard } from "./_components/LocalNodeDashboard";
 
 export default function DashboardPage() {
-  return <DashboardConsole />;
+  return <LocalNodeDashboard />;
 }
