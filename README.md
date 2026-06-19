@@ -6,11 +6,11 @@ Frontend repository для проекта Autodrome — локального off
 ## Статус
 
 Next.js / TypeScript app shell для operator/admin консоли с design
-system baseline: semantic CSS-токены, набор базовых UI-примитивов и
-живой dashboard-демонстратор. Backend API, contracts/generated
-clients, auth, формы и таблицы с реальными данными, deploy artifacts
-не подключены — будут добавлены последующими фичами согласно
-документам в `Управление реализацией/` корневого репозитория проекта.
+system baseline и pointer на canonical contracts. Backend API,
+generated API client, формы и таблицы с реальными данными, auth,
+deploy artifacts не подключены — будут добавлены последующими
+фичами согласно документам в `Управление реализацией/` корневого
+репозитория проекта.
 
 ## Структура приложения
 
@@ -88,6 +88,46 @@ pnpm install
 - `pnpm start` — запуск production build (после `pnpm build`).
 - `pnpm lint` — ESLint по проекту.
 - `pnpm test` — Vitest (один прогон).
+- `pnpm contracts:check` — проверка, что canonical contracts из
+  backend monorepo доступны и содержат ожидаемые подпапки.
+
+## Contracts source of truth
+
+Frontend repo **не** хранит собственные DTO, OpenAPI/proto/event схемы
+и не дублирует канонические контракты. Единым source of truth остаётся
+`contracts/` в backend monorepo:
+
+- абсолютный путь: `../Autodrome/contracts` относительно корня этого
+  repo;
+- canonical layout фиксируется в `Управление реализацией/architecture/`
+  и в `contracts/README.md` backend monorepo.
+
+В этом repo источник правды зафиксирован в `contracts.config.json`:
+
+```json
+{
+  "path": "../Autodrome/contracts",
+  "requiredSubdirectories": ["openapi", "events", "proto", "dto", "docs"]
+}
+```
+
+### Workflow
+
+- Перед запуском любых contract-зависимых работ проверять наличие
+  канонических контрактов: `pnpm contracts:check`.
+- Если backend monorepo не лежит рядом, проверка падает с понятной
+  ошибкой и подсказкой выровнять layout под `contracts.config.json`.
+- DTO, схемы событий, OpenAPI/proto **не** копировать в этот repo
+  локально. Если нужен типизированный API client — он генерируется
+  отдельной фичей (`feature/frontend-api-client-baseline` и далее),
+  а не вручную дублируется.
+- Менять канонические контракты в этом repo запрещено: правки идут
+  только в backend monorepo через соответствующие backend-фичи.
+
+В этой фиче (`feature/frontend-contract-source-of-truth`) подключение
+ограничено указанием пути и lightweight presence-check. Generated
+client, типизированные fetcher-ы и schema-driven validation —
+последующие фичи.
 
 ## Branch policy
 

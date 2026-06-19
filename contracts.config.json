@@ -1,0 +1,5 @@
+{
+  "_comment": "Pointer to canonical contracts source of truth in Autodrome backend monorepo. Do not duplicate DTOs locally. Generated API client is intentionally not produced in this feature.",
+  "path": "../Autodrome/contracts",
+  "requiredSubdirectories": ["openapi", "events", "proto", "dto", "docs"]
+}
