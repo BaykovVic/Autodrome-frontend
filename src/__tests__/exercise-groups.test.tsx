@@ -9,11 +9,10 @@ import {
 
 import { createMockAdapter } from "@/api/mock/adapter";
 import { selectFixtures } from "@/api/mock/fixtures";
+import type { MockScenario } from "@/api/mock/scenarios";
 import { ExerciseGroupsSection } from "@/app/(shell)/exercises/_components/ExerciseGroupsSection";
 
-async function renderSection(
-  scenario: Parameters<typeof createMockAdapter>[0],
-) {
+async function renderSection(scenario: MockScenario) {
   const api = createMockAdapter(scenario);
   const exercises = selectFixtures(scenario).exercises;
   render(<ExerciseGroupsSection api={api} exercises={exercises} />);

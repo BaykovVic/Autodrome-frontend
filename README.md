@@ -192,13 +192,52 @@ pnpm install
 - `pnpm build` — production build.
 - `pnpm start` — запуск production build (после `pnpm build`).
 - `pnpm lint` — ESLint по проекту.
-- `pnpm test` — Vitest (один прогон).
+- `pnpm typecheck` — `tsc --noEmit` по всему проекту (включая
+  тесты и `*.mts`).
+- `pnpm test` — Vitest (один прогон). Покрывает unit, component
+  и release-smoke тесты.
+- `pnpm release-gate` — composite gate для релиза:
+  последовательно `contracts:check && lint && typecheck && test
+  && build`. Exit 0 — релиз готов к hand-off в deploy track.
 - `pnpm contracts:check` — проверка, что canonical contracts из
   backend monorepo доступны и содержат ожидаемые подпапки и
   OpenAPI specs для services из `contracts.config.json`.
 - `pnpm contracts:generate` — генерирует TypeScript types из
   OpenAPI specs в `src/contracts/types/<service>.ts`. Перед запуском
   внутренне валидирует canonical contracts.
+
+## Release gate
+
+Релиз идёт через единственный composite-скрипт `pnpm release-gate`.
+Он чейнит `pnpm contracts:check && pnpm lint && pnpm typecheck &&
+pnpm test && pnpm build` — в указанном порядке, остановка на первой
+ошибке. Каждый шаг — это «жёсткий» гейт, который проверяет один
+аспект:
+
+1. **contracts** — canonical OpenAPI/event/proto доступны, services
+   из `contracts.config.json` присутствуют и сгенерированы.
+2. **lint** — ESLint flat config без warnings.
+3. **typecheck** — `tsc --noEmit` по всему проекту, включая тесты;
+   это шире, чем встроенный TypeScript pipeline в `next build`.
+4. **test** — Vitest one-shot: unit, component и release-smoke
+   тесты. Release smoke (`src/__tests__/release-smoke.test.tsx`)
+   монтирует default-export каждой shell-страницы (`/dashboard`,
+   `/candidates`, `/vehicles`, `/exams`, `/exercises`, `/violations`,
+   `/rules`, `/evidence`, `/operations`) с `NEXT_PUBLIC_API_ADAPTER
+   =mock`/`NEXT_PUBLIC_MOCK_SCENARIO=normal` и убеждается, что
+   level-1 heading появляется (страница смонтировалась без
+   throw'ов).
+5. **build** — Next.js production build (Turbopack). Все shell-
+   роуты должны быть `○ (Static)`.
+
+Полноценный browser e2e (Playwright/Cypress) намеренно не подключён
+этой фичей — release-smoke поверх Vitest + happy-dom закрывает
+требование «shell/navigation/key pages» без нового runner'а.
+Поднимать browser e2e — отдельная инфраструктурная фича.
+
+Пошаговый release checklist (с iCloud sweep, prod-only install,
+hand-off в deploy track) лежит в [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)
+в корне репозитория.
 
 ## Contracts source of truth
 
