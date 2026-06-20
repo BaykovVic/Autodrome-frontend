@@ -63,8 +63,15 @@ App Router с route group `(shell)`:
   (search/severity), detail с active rule version placeholder
   (rule binding editor / rule evaluation намеренно вне scope) и
   create form по `ViolationCreation` через типизированный POST.
-  Остальные 3 routes — `RoutePlaceholder` до подключения domain
-  workspaces.
+  `/rules` использует `RuleWorkspace`: catalog через
+  `api.violationRule.GET("/rules")`, фильтры (search по
+  title/description/ruleId, status `draft|published|archived`,
+  violationId substring), detail с info, condition tree
+  placeholder и publish action (POST `/rules/{ruleId}/publish`
+  с пустым `RulePublishRequest.conditionTree` — визуальный
+  condition editor и rule evaluation намеренно вне scope) и
+  create form по `RuleDraft`. Остальные 2 routes —
+  `RoutePlaceholder` до подключения domain workspaces.
 
 ## Design system
 
@@ -235,10 +242,20 @@ Fixtures (`src/api/mock/fixtures/`) типизированы поверх
 fixtures по URL/method и возвращают `404` с
 `MOCK_HANDLER_NOT_FOUND` для неучтённых маршрутов.
 
-Mock покрывает только list endpoints, нужные для skeleton UI:
-`GET /candidates`, `GET /vehicles`, `GET /exercises`,
-`GET /violations`, `GET /rules`. Остальные методы интегрируются по
-мере появления реальных доменных страниц.
+Mock покрывает list endpoints (`GET /candidates`,
+`GET /vehicles`, `GET /exercises`, `GET /violations`,
+`GET /rules`) и доменные мутации, требуемые активными
+workspace'ами: `POST /candidates`, `POST /vehicles`,
+`POST /exams`, `POST /exams/{id}/{start,finish,abort}`,
+`POST /exercises`, `POST /exercises/{id}/publish`,
+`GET /exercises/{id}/versions/{vid}`, `POST /exercise-groups`,
+`POST /violations`, `POST /rules`,
+`POST /rules/{ruleId}/publish`. Все mock POST/publish handlers
+возвращают full contract-shape по канонической OpenAPI
+(включая required identity fields) — это нужно, чтобы
+workspace mirror cache не терял идентичность после insert
+или patch. Остальные методы интегрируются по мере появления
+новых доменных страниц.
 
 ## Branch policy
 
