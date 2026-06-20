@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { createMockAdapter } from "@/api/mock/adapter";
 import { selectFixtures } from "@/api/mock/fixtures";
+import { RuleDetail } from "@/app/(shell)/rules/_components/RuleDetail";
 import { RuleEditorForm } from "@/app/(shell)/rules/_components/RuleEditorForm";
 import type { RuleDefinition } from "@/app/(shell)/rules/_components/useRulesData";
 
@@ -181,6 +182,78 @@ describe("RuleEditorForm", () => {
     });
     expect(next.inputs).toEqual([{ kind: "telemetry", channel: "speed" }]);
     expect(next.actions).toEqual([{ kind: "raise-violation" }]);
+  });
+
+  it("resets editor state when the selected rule changes (no payload leak across rules)", () => {
+    const api = createMockAdapter("violations-detected");
+    const DRAFT_A: RuleDefinition = {
+      ruleId: "70000000-0000-4000-8000-00000000000a",
+      violationRef: {
+        violationId: "50000000-0000-4000-8000-00000000000a",
+      },
+      title: "Draft A",
+      ruleVersion: 1,
+      status: "draft",
+      createdAt: "2026-06-19T10:00:00Z",
+    };
+    const DRAFT_B: RuleDefinition = {
+      ruleId: "70000000-0000-4000-8000-00000000000b",
+      violationRef: {
+        violationId: "50000000-0000-4000-8000-00000000000b",
+      },
+      title: "Draft B",
+      ruleVersion: 1,
+      status: "draft",
+      conditionTree: { any: [{ signal: "lane", op: "==", value: 1 }] },
+      createdAt: "2026-06-19T10:00:00Z",
+    };
+
+    const { rerender } = render(
+      <RuleDetail
+        api={api}
+        rule={DRAFT_A}
+        onClose={() => undefined}
+        onUpdated={() => undefined}
+      />,
+    );
+
+    const conditionsA = screen.getByRole("textbox", {
+      name: /conditions/i,
+    }) as HTMLTextAreaElement;
+    expect(conditionsA.value).toBe("{}");
+
+    // Operator edits draft A's payload.
+    fireEvent.change(conditionsA, {
+      target: { value: '{"all":[{"signal":"speed","op":">","value":60}]}' },
+    });
+    expect(
+      (
+        screen.getByRole("textbox", {
+          name: /conditions/i,
+        }) as HTMLTextAreaElement
+      ).value,
+    ).toContain('"speed"');
+
+    // Operator selects draft B without closing the detail panel.
+    rerender(
+      <RuleDetail
+        api={api}
+        rule={DRAFT_B}
+        onClose={() => undefined}
+        onUpdated={() => undefined}
+      />,
+    );
+
+    const conditionsB = screen.getByRole("textbox", {
+      name: /conditions/i,
+    }) as HTMLTextAreaElement;
+    // Editor must show draft B's payload, not the edited draft A text.
+    expect(conditionsB.value).toContain('"lane"');
+    expect(conditionsB.value).not.toContain('"speed"');
+
+    const preview = screen.getByLabelText(/payload preview/i);
+    expect(preview.textContent).toContain('"lane"');
+    expect(preview.textContent).not.toContain('"speed"');
   });
 
   it("locks the editor for already-published rules", () => {

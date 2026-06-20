@@ -88,7 +88,12 @@ export function RuleDetail({ api, rule, onClose, onUpdated }: Props) {
       </Section>
 
       <Section title="Editor">
-        <RuleEditorForm api={api} rule={rule} onPublished={onUpdated} />
+        <RuleEditorForm
+          key={rule.ruleId}
+          api={api}
+          rule={rule}
+          onPublished={onUpdated}
+        />
       </Section>
     </aside>
   );
