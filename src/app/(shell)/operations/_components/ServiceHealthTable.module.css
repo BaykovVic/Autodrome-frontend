@@ -1,0 +1,38 @@
+.row {
+  cursor: pointer;
+  letter-spacing: 0;
+}
+
+.row:hover {
+  background: var(--color-surface-muted);
+}
+
+.rowActive {
+  background: var(--color-surface-muted);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+.nameButton {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 0;
+}
+
+.nameButton:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.mono {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}

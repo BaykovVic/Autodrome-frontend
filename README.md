@@ -91,8 +91,22 @@ App Router с route group `(shell)`:
   recording плюс biometry/telemetry бейджи как пометки про
   связь экзамена с другими evidence workspaces). Actual video
   streaming/playback, RTSP/WebRTC/HLS player и большие
-  media-загрузки не реализованы. Остальной 1 route —
-  `RoutePlaceholder` до подключения domain workspaces.
+  media-загрузки не реализованы. `/operations` использует
+  `ServiceHealthDashboard`: дашборд liveness/readiness для
+  backend/edge/deploy сервисов локального узла через
+  fixture-based loader (`defaultServiceHealthLoader`). Тип
+  `ServiceHealth` локальный (canonical aggregator endpoint в
+  backend OpenAPI пока отсутствует; loader переключится на
+  typed adapter call, когда endpoint появится). Дашборд
+  показывает фильтры (search, kind `backend|edge|deploy`,
+  liveness `healthy|degraded|down|unknown`), таблицу с
+  liveness/readiness/lastCheck бейджами и detail panel с
+  Latest-incident секцией (errorMessage + correlationId
+  показываются для не-healthy сервисов через canonical
+  `Correlation-Id` форму). Reload action триггерит повторный
+  загрузчик. Polling/WebSocket/SSE/Prometheus/Grafana
+  intentionally не реализованы. Все 8 route'ов теперь —
+  domain workspaces, RoutePlaceholder больше не используется.
 
 ## Design system
 
