@@ -50,9 +50,16 @@ App Router с route group `(shell)`:
   `GET /exams` отсутствует в MVP API), фильтры (search/status/
   exam type), detail panel с timeline placeholder + lifecycle
   actions (Start/Finish/Abort через типизированный
-  `api.exam.POST(...)`) и create form по `ExamCreation`.
-  Остальные 5 routes — `RoutePlaceholder` до подключения domain
-  workspaces.
+  `api.exam.POST(...)`) и create form по `ExamCreation`. `/exercises`
+  использует `ExerciseWorkspace`: list через типизированный
+  `api.exercise.GET("/exercises")`, фильтры (search/code/status),
+  detail с current version detail (через `GET
+  /exercises/{id}/versions/{vid}`), publish action (POST publish с
+  пустым `ExerciseVersionDraft` — rule/geometry editors намеренно
+  вне scope), create form по `ExerciseCreation` и sub-section
+  «Exercise groups» с списком и create form (multi-select published
+  exercises). Остальные 4 routes — `RoutePlaceholder` до подключения
+  domain workspaces.
 
 ## Design system
 

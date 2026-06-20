@@ -1,10 +1,5 @@
-import { RoutePlaceholder } from "../_components/RoutePlaceholder";
+import { ExerciseWorkspace } from "./_components/ExerciseWorkspace";
 
 export default function ExercisesPage() {
-  return (
-    <RoutePlaceholder
-      title="Exercises"
-      hint="Exercise catalog, geometry references and conditions."
-    />
-  );
+  return <ExerciseWorkspace />;
 }

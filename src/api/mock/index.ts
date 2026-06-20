@@ -11,6 +11,7 @@ export {
   vehiclesFor,
   examsFor,
   exercisesFor,
+  exerciseGroupsFor,
   violationsFor,
   rulesFor,
   selectFixtures,

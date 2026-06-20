@@ -59,6 +59,39 @@ function mockExamId(): string {
   return `99000000-0000-4000-8002-${hex}`;
 }
 
+let mockExerciseCounter = 0;
+function mockExerciseId(): string {
+  mockExerciseCounter += 1;
+  const hex = mockExerciseCounter.toString(16).padStart(12, "0");
+  return `99000000-0000-4000-8003-${hex}`;
+}
+
+let mockExerciseVersionCounter = 0;
+function mockExerciseVersionId(): string {
+  mockExerciseVersionCounter += 1;
+  const hex = mockExerciseVersionCounter.toString(16).padStart(12, "0");
+  return `99000000-0000-4000-8004-${hex}`;
+}
+
+let mockExerciseGroupCounter = 0;
+function mockExerciseGroupId(): string {
+  mockExerciseGroupCounter += 1;
+  const hex = mockExerciseGroupCounter.toString(16).padStart(12, "0");
+  return `99000000-0000-4000-8005-${hex}`;
+}
+
+function extractExerciseId(path: string): string | null {
+  const match = path.match(/\/api\/exercise\/v1\/exercises\/([^/]+)/);
+  return match ? match[1] : null;
+}
+
+function extractExerciseVersionId(path: string): string | null {
+  const match = path.match(
+    /\/api\/exercise\/v1\/exercises\/[^/]+\/versions\/([^/]+)/,
+  );
+  return match ? match[1] : null;
+}
+
 const MOCK_EXAM_TIMESTAMPS = {
   startedAt: "2026-06-19T10:30:00Z",
   finishedAt: "2026-06-19T11:15:00Z",
@@ -245,6 +278,136 @@ const HANDLERS: MockHandler[] = [
     pathPattern: /\/api\/exercise\/v1\/exercises\/?$/,
     respond: ({ fixtures }) =>
       json(200, { items: fixtures.exercises, nextPageToken: undefined }),
+  },
+  {
+    method: "POST",
+    pathPattern: /\/api\/exercise\/v1\/exercises\/?$/,
+    respond: async (_ctx, request) => {
+      let body: Record<string, unknown> = {};
+      try {
+        body = (await request.clone().json()) as Record<string, unknown>;
+      } catch {
+        return errorEnvelope(
+          400,
+          "MOCK_INVALID_BODY",
+          "Mock exercise creation expects JSON body",
+        );
+      }
+      return json(201, {
+        exerciseId: mockExerciseId(),
+        code: body.code,
+        title: body.title,
+        description: body.description,
+        status: "draft",
+        createdAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      });
+    },
+  },
+  {
+    method: "POST",
+    pathPattern: /\/api\/exercise\/v1\/exercises\/[^/]+\/publish\/?$/,
+    respond: async ({ fixtures }, request) => {
+      const exerciseId =
+        extractExerciseId(new URL(request.url).pathname) ?? "";
+      try {
+        // Validate body parses as JSON per ExerciseVersionDraft contract.
+        // We do not forward draft fields into the response; canonical
+        // OpenAPI publish returns Exercise, not the draft itself.
+        await request.clone().json();
+      } catch {
+        return errorEnvelope(
+          400,
+          "MOCK_INVALID_BODY",
+          "Mock exercise publish expects JSON body",
+        );
+      }
+      // Canonical OpenAPI says this endpoint returns a full `Exercise`
+      // (required: exerciseId, code, title, status, createdAt). The mock
+      // must mirror that shape so the workspace `patchExercise` merge
+      // never loses required fields after publish. We look up the
+      // previous fixture by id and preserve its identity fields.
+      const previous = fixtures.exercises.find(
+        (e) => e.exerciseId === exerciseId,
+      );
+      const nextVersion = {
+        versionId: mockExerciseVersionId(),
+        versionNumber: previous?.currentVersion?.versionNumber
+          ? previous.currentVersion.versionNumber + 1
+          : 1,
+        publishedAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      };
+      if (previous) {
+        return json(200, {
+          ...previous,
+          status: "published",
+          currentVersion: nextVersion,
+          updatedAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+        });
+      }
+      // Fallback for ids not in fixtures (e.g. an exercise created in
+      // the same session via mock POST). Still emit all required
+      // `Exercise` fields with synthesized placeholders.
+      return json(200, {
+        exerciseId,
+        code: `MOCK-${exerciseId.slice(-6).toUpperCase()}`,
+        title: "Mock exercise",
+        status: "published",
+        currentVersion: nextVersion,
+        createdAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+        updatedAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      });
+    },
+  },
+  {
+    method: "GET",
+    pathPattern:
+      /\/api\/exercise\/v1\/exercises\/[^/]+\/versions\/[^/]+\/?$/,
+    respond: async (_ctx, request) => {
+      const url = new URL(request.url);
+      const exerciseId = extractExerciseId(url.pathname) ?? "";
+      const versionId = extractExerciseVersionId(url.pathname) ?? "";
+      return json(200, {
+        exerciseId,
+        versionId,
+        versionNumber: 1,
+        rulesRefs: [],
+        geometryRefs: [],
+        errors: [],
+        publishedAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      });
+    },
+  },
+  {
+    method: "GET",
+    pathPattern: /\/api\/exercise\/v1\/exercise-groups\/?$/,
+    respond: ({ fixtures }) =>
+      json(200, {
+        items: fixtures.exerciseGroups,
+        nextPageToken: undefined,
+      }),
+  },
+  {
+    method: "POST",
+    pathPattern: /\/api\/exercise\/v1\/exercise-groups\/?$/,
+    respond: async (_ctx, request) => {
+      let body: Record<string, unknown> = {};
+      try {
+        body = (await request.clone().json()) as Record<string, unknown>;
+      } catch {
+        return errorEnvelope(
+          400,
+          "MOCK_INVALID_BODY",
+          "Mock exercise group creation expects JSON body",
+        );
+      }
+      return json(201, {
+        groupId: mockExerciseGroupId(),
+        title: body.title,
+        exerciseOrder: body.exerciseOrder ?? [],
+        categoryRefs: body.categoryRefs ?? [],
+        createdAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      });
+    },
   },
   {
     method: "GET",
