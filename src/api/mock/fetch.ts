@@ -80,6 +80,13 @@ function mockExerciseGroupId(): string {
   return `99000000-0000-4000-8005-${hex}`;
 }
 
+let mockViolationCounter = 0;
+function mockViolationId(): string {
+  mockViolationCounter += 1;
+  const hex = mockViolationCounter.toString(16).padStart(12, "0");
+  return `99000000-0000-4000-8006-${hex}`;
+}
+
 function extractExerciseId(path: string): string | null {
   const match = path.match(/\/api\/exercise\/v1\/exercises\/([^/]+)/);
   return match ? match[1] : null;
@@ -414,6 +421,35 @@ const HANDLERS: MockHandler[] = [
     pathPattern: /\/api\/violation-rule\/v1\/violations\/?$/,
     respond: ({ fixtures }) =>
       json(200, { items: fixtures.violations, nextPageToken: undefined }),
+  },
+  {
+    method: "POST",
+    pathPattern: /\/api\/violation-rule\/v1\/violations\/?$/,
+    respond: async (_ctx, request) => {
+      let body: Record<string, unknown> = {};
+      try {
+        body = (await request.clone().json()) as Record<string, unknown>;
+      } catch {
+        return errorEnvelope(
+          400,
+          "MOCK_INVALID_BODY",
+          "Mock violation creation expects JSON body",
+        );
+      }
+      // Canonical OpenAPI says POST /violations returns full `Violation`
+      // (required: violationId, code, title, severity, createdAt).
+      // The mock must mirror that shape so the workspace cannot drop
+      // identity fields after submit — same lesson as the exercise R1
+      // review (mock_full_contract_shape).
+      return json(201, {
+        violationId: mockViolationId(),
+        code: body.code,
+        title: body.title,
+        description: body.description,
+        severity: body.severity,
+        createdAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      });
+    },
   },
   {
     method: "GET",

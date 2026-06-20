@@ -1,10 +1,5 @@
-import { RoutePlaceholder } from "../_components/RoutePlaceholder";
+import { ViolationWorkspace } from "./_components/ViolationWorkspace";
 
 export default function ViolationsPage() {
-  return (
-    <RoutePlaceholder
-      title="Violations"
-      hint="Violations registered during exam sessions."
-    />
-  );
+  return <ViolationWorkspace />;
 }

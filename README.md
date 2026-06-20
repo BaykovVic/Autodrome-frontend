@@ -58,8 +58,13 @@ App Router с route group `(shell)`:
   пустым `ExerciseVersionDraft` — rule/geometry editors намеренно
   вне scope), create form по `ExerciseCreation` и sub-section
   «Exercise groups» с списком и create form (multi-select published
-  exercises). Остальные 4 routes — `RoutePlaceholder` до подключения
-  domain workspaces.
+  exercises). `/violations` использует `ViolationWorkspace`:
+  catalog через `api.violationRule.GET("/violations")`, фильтры
+  (search/severity), detail с active rule version placeholder
+  (rule binding editor / rule evaluation намеренно вне scope) и
+  create form по `ViolationCreation` через типизированный POST.
+  Остальные 3 routes — `RoutePlaceholder` до подключения domain
+  workspaces.
 
 ## Design system
 
