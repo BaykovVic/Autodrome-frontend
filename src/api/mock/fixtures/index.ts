@@ -2,6 +2,7 @@ import { candidatesFor } from "./candidates";
 import { examsFor } from "./exams";
 import { exerciseGroupsFor } from "./exerciseGroups";
 import { exercisesFor } from "./exercises";
+import { recordingsFor } from "./recordings";
 import { rulesFor } from "./rules";
 import { vehiclesFor } from "./vehicles";
 import { violationsFor } from "./violations";
@@ -15,6 +16,7 @@ export {
   exerciseGroupsFor,
   violationsFor,
   rulesFor,
+  recordingsFor,
 };
 
 export type LocalNodeFixtures = {
@@ -25,6 +27,7 @@ export type LocalNodeFixtures = {
   exerciseGroups: ReturnType<typeof exerciseGroupsFor>;
   violations: ReturnType<typeof violationsFor>;
   rules: ReturnType<typeof rulesFor>;
+  recordings: ReturnType<typeof recordingsFor>;
 };
 
 export function selectFixtures(scenario: MockScenario): LocalNodeFixtures {
@@ -36,5 +39,6 @@ export function selectFixtures(scenario: MockScenario): LocalNodeFixtures {
     exerciseGroups: exerciseGroupsFor(scenario),
     violations: violationsFor(scenario),
     rules: rulesFor(scenario),
+    recordings: recordingsFor(scenario),
   };
 }

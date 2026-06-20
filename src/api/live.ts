@@ -2,6 +2,7 @@ import type { AutodromeApi } from "./adapter";
 import { candidateApi } from "./services/candidate";
 import { examApi } from "./services/exam";
 import { exerciseApi } from "./services/exercise";
+import { mediaArchiveApi } from "./services/media-archive";
 import { vehicleApi } from "./services/vehicle";
 import { violationRuleApi } from "./services/violation-rule";
 
@@ -12,5 +13,6 @@ export function createLiveAdapter(): AutodromeApi {
     exam: examApi,
     exercise: exerciseApi,
     violationRule: violationRuleApi,
+    mediaArchive: mediaArchiveApi,
   };
 }

@@ -1,10 +1,5 @@
-import { RoutePlaceholder } from "../_components/RoutePlaceholder";
+import { EvidenceWorkspace } from "./_components/EvidenceWorkspace";
 
 export default function EvidencePage() {
-  return (
-    <RoutePlaceholder
-      title="Evidence"
-      hint="Media archive, biometry and audio-trigger evidence per exam."
-    />
-  );
+  return <EvidenceWorkspace />;
 }

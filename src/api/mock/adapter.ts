@@ -5,6 +5,7 @@ import { DEFAULT_SCENARIO, type MockScenario } from "./scenarios";
 import type { CandidatePaths } from "../services/candidate";
 import type { ExamPaths } from "../services/exam";
 import type { ExercisePaths } from "../services/exercise";
+import type { MediaArchivePaths } from "../services/media-archive";
 import type { VehiclePaths } from "../services/vehicle";
 import type { ViolationRulePaths } from "../services/violation-rule";
 
@@ -32,6 +33,10 @@ export function createMockAdapter(
     }),
     violationRule: createAutodromeClient<ViolationRulePaths>({
       baseUrl: "/api/violation-rule/v1",
+      fetch: mockFetch,
+    }),
+    mediaArchive: createAutodromeClient<MediaArchivePaths>({
+      baseUrl: "/api/media-archive/v1",
       fetch: mockFetch,
     }),
   };

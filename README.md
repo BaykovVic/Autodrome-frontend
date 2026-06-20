@@ -76,8 +76,23 @@ App Router с route group `(shell)`:
   rules; для остальных показывает locked-state. Rule evaluation
   на frontend намеренно не реализован — это задача backend
   `violation-rule-service`. Create form идет по `RuleDraft`.
-  Остальные 2 routes — `RoutePlaceholder` до подключения domain
-  workspaces.
+  `/evidence` использует `EvidenceWorkspace`: media recordings,
+  привязанные к экзаменам, через fixture-based loader
+  (`defaultRecordingsLoader`) поверх `MediaRecording` контракта
+  media-archive (`GET /media/recordings` в OpenAPI пока
+  отсутствует; loader переключится на typed
+  `api.mediaArchive.GET(...)` когда endpoint появится).
+  Workspace показывает фильтры (search по recording/exam/source,
+  status `active|finalized|failed`, modality `video|audio`),
+  таблицу с modality-бейджами и detail panel с recording info,
+  списком sources с domain-friendly labels (Cabin/Exterior
+  cameras + Cabin microphone), media-segments placeholder
+  без playback и секцией linked-evidence (video/audio из
+  recording плюс biometry/telemetry бейджи как пометки про
+  связь экзамена с другими evidence workspaces). Actual video
+  streaming/playback, RTSP/WebRTC/HLS player и большие
+  media-загрузки не реализованы. Остальной 1 route —
+  `RoutePlaceholder` до подключения domain workspaces.
 
 ## Design system
 
@@ -208,13 +223,13 @@ banner-ом `AUTO-GENERATED FILE — DO NOT EDIT`; редактировать и
   типизированный client с `baseUrl: "/api/<name>/v1"`.
 - `index.ts` — barrel для всего slice.
 
-Generated client покрывает 5 сервисов: `candidate`, `vehicle`,
-`exam`, `exercise`, `violation-rule`. Auth tokens и domain-страницы
-— следующие фичи.
+Generated client покрывает 6 сервисов: `candidate`, `vehicle`,
+`exam`, `exercise`, `violation-rule`, `media-archive`. Auth
+tokens и оставшиеся domain-страницы — следующие фичи.
 
 ### Mock adapter и сценарные fixtures
 
-`src/api/adapter.ts` объявляет `AutodromeApi` интерфейс над 5
+`src/api/adapter.ts` объявляет `AutodromeApi` интерфейс над 6
 типизированными сервисами и `getApiAdapter(options?)` фабрику:
 
 - `mode: "live"` (default) → `createLiveAdapter()` — текущие

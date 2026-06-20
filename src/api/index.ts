@@ -25,6 +25,7 @@ export {
   exerciseGroupsFor,
   violationsFor,
   rulesFor,
+  recordingsFor,
   selectFixtures,
   type LocalNodeFixtures,
 } from "./mock/fixtures";
@@ -40,3 +41,5 @@ export { exerciseApi } from "./services/exercise";
 export type { ExercisePaths } from "./services/exercise";
 export { violationRuleApi } from "./services/violation-rule";
 export type { ViolationRulePaths } from "./services/violation-rule";
+export { mediaArchiveApi } from "./services/media-archive";
+export type { MediaArchivePaths } from "./services/media-archive";
