@@ -66,12 +66,18 @@ App Router с route group `(shell)`:
   `/rules` использует `RuleWorkspace`: catalog через
   `api.violationRule.GET("/rules")`, фильтры (search по
   title/description/ruleId, status `draft|published|archived`,
-  violationId substring), detail с info, condition tree
-  placeholder и publish action (POST `/rules/{ruleId}/publish`
-  с пустым `RulePublishRequest.conditionTree` — визуальный
-  condition editor и rule evaluation намеренно вне scope) и
-  create form по `RuleDraft`. Остальные 2 routes —
-  `RoutePlaceholder` до подключения domain workspaces.
+  violationId substring), detail с info, секцией Conditions и
+  встроенным rule editor baseline (`RuleEditorForm`) — три
+  JSON-textarea для `conditionTree` / `inputs` / `actions`,
+  per-field validation (не падает на невалидном JSON и
+  отключает publish), live payload preview и publish action
+  через `POST /rules/{ruleId}/publish` отредактированным
+  `RulePublishRequest`. Editor работает только для draft
+  rules; для остальных показывает locked-state. Rule evaluation
+  на frontend намеренно не реализован — это задача backend
+  `violation-rule-service`. Create form идет по `RuleDraft`.
+  Остальные 2 routes — `RoutePlaceholder` до подключения domain
+  workspaces.
 
 ## Design system
 
