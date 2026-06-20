@@ -11,7 +11,10 @@
     "test": "vitest run",
     "contracts:check": "node scripts/check-contracts.mjs",
     "contracts:generate": "node scripts/generate-contracts.mjs",
-    "release-gate": "pnpm contracts:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "release-gate": "pnpm contracts:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "e2e:install": "playwright install chromium",
+    "e2e:build": "NEXT_PUBLIC_API_ADAPTER=mock NEXT_PUBLIC_MOCK_SCENARIO=normal next build",
+    "e2e": "pnpm e2e:build && playwright test"
   },
   "dependencies": {
     "next": "16.2.9",
@@ -20,6 +23,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/react": "^19",

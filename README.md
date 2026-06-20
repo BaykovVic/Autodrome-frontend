@@ -205,6 +205,17 @@ pnpm install
 - `pnpm contracts:generate` — генерирует TypeScript types из
   OpenAPI specs в `src/contracts/types/<service>.ts`. Перед запуском
   внутренне валидирует canonical contracts.
+- `pnpm e2e:install` — one-shot: качает Chromium для Playwright
+  (~170 MB → `~/Library/Caches/ms-playwright`). Нужно один раз
+  на машине.
+- `pnpm e2e:build` — `next build` с
+  `NEXT_PUBLIC_API_ADAPTER=mock` и
+  `NEXT_PUBLIC_MOCK_SCENARIO=normal` (env baked into build, так
+  что `next start` будет работать через mock adapter).
+- `pnpm e2e` — `e2e:build` + `playwright test`. Поднимает
+  `next start` на порту 3100, прогоняет `e2e/smoke.spec.ts` в
+  chromium-only project (single worker, retain trace on
+  failure).
 
 ## Release gate
 
@@ -230,14 +241,28 @@ pnpm test && pnpm build` — в указанном порядке, остано�
 5. **build** — Next.js production build (Turbopack). Все shell-
    роуты должны быть `○ (Static)`.
 
-Полноценный browser e2e (Playwright/Cypress) намеренно не подключён
-этой фичей — release-smoke поверх Vitest + happy-dom закрывает
-требование «shell/navigation/key pages» без нового runner'а.
-Поднимать browser e2e — отдельная инфраструктурная фича.
+Browser smoke (`pnpm e2e`) — отдельный, opt-in гейт поверх
+Playwright + Chromium. В composite `release-gate` он намеренно
+**не** включён, потому что требует one-shot `pnpm e2e:install`
+(~170 MB Chromium-бинарь). Запуск browser smoke документирован
+как отдельный шаг в release checklist; оператор запускает его
+после `release-gate`, если Playwright уже установлен на машине.
+Spec файл — `e2e/smoke.spec.ts`:
 
-Пошаговый release checklist (с iCloud sweep, prod-only install,
-hand-off в deploy track) лежит в [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)
-в корне репозитория.
+- `/` redirect → `/dashboard` + рендер heading;
+- `/dashboard`, `/candidates`, `/vehicles`, `/exams`,
+  `/operations` — каждый рендерит level-1 heading;
+- shell sidebar: `aria-current="page"` следует за активным
+  маршрутом (dashboard → candidates переход).
+
+Vitest release-smoke (`src/__tests__/release-smoke.test.tsx`)
+остаётся в composite `release-gate` как лёгкий jsdom-уровневый
+mount-signal — он не заменяет browser smoke, но даёт быстрый
+сигнал без зависимости от Chromium.
+
+Пошаговый release checklist (с iCloud preview, prod-only install,
+optional browser smoke и hand-off в deploy track) лежит в
+[RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md) в корне репозитория.
 
 ## Contracts source of truth
 

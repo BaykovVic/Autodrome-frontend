@@ -65,6 +65,33 @@ Verify:
 If a gate fails, stop here, fix the underlying issue on a fresh
 feature branch, and restart this checklist from step 1.
 
+## 3a. Browser smoke (optional, opt-in)
+
+The composite release gate runs a jsdom-level smoke
+(`src/__tests__/release-smoke.test.tsx`) but does **not** launch
+a real browser, because Playwright requires a one-shot Chromium
+download. If you want to verify the production-like Next.js app
+in real Chromium before tagging, run the browser smoke
+separately:
+
+```bash
+# One-shot per machine (downloads Chromium to ~/Library/Caches).
+pnpm e2e:install
+
+# Build with mock adapter env baked in, then run the spec.
+pnpm e2e
+```
+
+Verify:
+
+- [ ] `pnpm e2e` exits 0.
+- [ ] Report shows 7 passed tests (root redirect, 5 key routes,
+  sidebar `aria-current`).
+
+This step is optional. Skip it if Chromium cannot be installed
+on the release machine — the jsdom-level smoke inside step 3
+still covers the page mount signal.
+
 ## 4. Capture the build artifact
 
 The Next.js build leaves output under `.next/`. For the deploy
