@@ -1,10 +1,5 @@
-import { RoutePlaceholder } from "../_components/RoutePlaceholder";
+import { CandidateWorkspace } from "./_components/CandidateWorkspace";
 
 export default function CandidatesPage() {
-  return (
-    <RoutePlaceholder
-      title="Candidates"
-      hint="Candidate registry and biometric enrollment status."
-    />
-  );
+  return <CandidateWorkspace />;
 }

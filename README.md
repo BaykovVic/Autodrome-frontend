@@ -39,8 +39,11 @@ App Router с route group `(shell)`:
   `LocalNodeDashboard` (client component) с местным `useDashboardData`
   hook'ом, который параллельно тянет данные 5 сервисов через
   `getApiAdapter()` и единообразно показывает loading/error/degraded
-  состояния. Остальные 8 routes — `RoutePlaceholder` до подключения
-  domain workspaces.
+  состояния. `/candidates` использует `CandidateWorkspace` — list
+  с фильтрами, detail panel и register form по
+  `CandidateRegistration` контракту, тоже через
+  `getApiAdapter()`. Остальные 7 routes — `RoutePlaceholder` до
+  подключения domain workspaces.
 
 ## Design system
 

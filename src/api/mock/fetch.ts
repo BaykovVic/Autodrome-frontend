@@ -7,9 +7,12 @@ type HandlerContext = {
 };
 
 type MockHandler = {
-  method: "GET";
+  method: "GET" | "POST";
   pathPattern: RegExp;
-  respond: (ctx: HandlerContext) => Response | Promise<Response>;
+  respond: (
+    ctx: HandlerContext,
+    request: Request,
+  ) => Response | Promise<Response>;
 };
 
 function json(status: number, body: unknown): Response {
@@ -34,12 +37,47 @@ function errorEnvelope(
   });
 }
 
+const MOCK_REGISTER_RESPONSE_CREATED_AT = "2026-06-19T10:00:00Z";
+let mockCandidateCounter = 0;
+function mockCandidateId(): string {
+  mockCandidateCounter += 1;
+  const hex = mockCandidateCounter.toString(16).padStart(12, "0");
+  return `99000000-0000-4000-8000-${hex}`;
+}
+
 const HANDLERS: MockHandler[] = [
   {
     method: "GET",
     pathPattern: /\/api\/candidate\/v1\/candidates\/?$/,
     respond: ({ fixtures }) =>
       json(200, { items: fixtures.candidates, nextPageToken: undefined }),
+  },
+  {
+    method: "POST",
+    pathPattern: /\/api\/candidate\/v1\/candidates\/?$/,
+    respond: async (_ctx, request) => {
+      let body: Record<string, unknown> = {};
+      try {
+        body = (await request.clone().json()) as Record<string, unknown>;
+      } catch {
+        return errorEnvelope(
+          400,
+          "MOCK_INVALID_BODY",
+          "Mock candidate registration expects JSON body",
+        );
+      }
+      return json(201, {
+        candidateId: mockCandidateId(),
+        firstName: body.firstName,
+        lastName: body.lastName,
+        middleName: body.middleName,
+        birthDate: body.birthDate,
+        identityDocument: body.identityDocument,
+        externalRegistryId: body.externalRegistryId,
+        status: "registered",
+        createdAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      });
+    },
   },
   {
     method: "GET",
@@ -78,17 +116,12 @@ const HANDLERS: MockHandler[] = [
   },
 ];
 
-function extractRequest(
-  input: RequestInfo | URL,
-  init?: RequestInit,
-): { url: string; method: string } {
-  if (input instanceof Request) {
-    return { url: input.url, method: input.method.toUpperCase() };
-  }
-  const url =
-    typeof input === "string" ? input : (input as URL).toString();
-  const method = (init?.method ?? "GET").toUpperCase();
-  return { url, method };
+function toRequest(input: RequestInfo | URL, init?: RequestInit): Request {
+  if (input instanceof Request) return input;
+  return new Request(
+    typeof input === "string" ? input : (input as URL).toString(),
+    init,
+  );
 }
 
 function pathOf(rawUrl: string): string {
@@ -106,13 +139,14 @@ export function createMockFetch(scenario: MockScenario): typeof fetch {
   };
 
   const mockFetch: typeof fetch = async (input, init) => {
-    const { url, method } = extractRequest(input, init);
-    const path = pathOf(url);
+    const request = toRequest(input, init);
+    const method = request.method.toUpperCase();
+    const path = pathOf(request.url);
 
     for (const handler of HANDLERS) {
       if (handler.method !== method) continue;
       if (handler.pathPattern.test(path)) {
-        return handler.respond(ctx);
+        return handler.respond(ctx, request);
       }
     }
 
