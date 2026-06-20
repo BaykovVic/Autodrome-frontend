@@ -1,10 +1,5 @@
-import { RoutePlaceholder } from "../_components/RoutePlaceholder";
+import { RuleWorkspace } from "./_components/RuleWorkspace";
 
 export default function RulesPage() {
-  return (
-    <RoutePlaceholder
-      title="Rules"
-      hint="Rule editor, condition trees and rule versions."
-    />
-  );
+  return <RuleWorkspace />;
 }

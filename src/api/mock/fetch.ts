@@ -87,6 +87,18 @@ function mockViolationId(): string {
   return `99000000-0000-4000-8006-${hex}`;
 }
 
+let mockRuleCounter = 0;
+function mockRuleId(): string {
+  mockRuleCounter += 1;
+  const hex = mockRuleCounter.toString(16).padStart(12, "0");
+  return `99000000-0000-4000-8007-${hex}`;
+}
+
+function extractRuleId(path: string): string | null {
+  const match = path.match(/\/api\/violation-rule\/v1\/rules\/([^/]+)/);
+  return match ? match[1] : null;
+}
+
 function extractExerciseId(path: string): string | null {
   const match = path.match(/\/api\/exercise\/v1\/exercises\/([^/]+)/);
   return match ? match[1] : null;
@@ -456,6 +468,89 @@ const HANDLERS: MockHandler[] = [
     pathPattern: /\/api\/violation-rule\/v1\/rules\/?$/,
     respond: ({ fixtures }) =>
       json(200, { items: fixtures.rules, nextPageToken: undefined }),
+  },
+  {
+    method: "POST",
+    pathPattern: /\/api\/violation-rule\/v1\/rules\/?$/,
+    respond: async (_ctx, request) => {
+      let body: Record<string, unknown> = {};
+      try {
+        body = (await request.clone().json()) as Record<string, unknown>;
+      } catch {
+        return errorEnvelope(
+          400,
+          "MOCK_INVALID_BODY",
+          "Mock rule draft creation expects JSON body",
+        );
+      }
+      // Canonical OpenAPI says POST /rules returns full `RuleDefinition`.
+      // Mock honours required fields: ruleId, violationRef, ruleVersion,
+      // status, createdAt. Optional title/description/inputs/conditionTree/
+      // actions echo through. Lesson applied from R1 exercise review
+      // (mock_full_contract_shape).
+      return json(201, {
+        ruleId: mockRuleId(),
+        violationRef: body.violationRef,
+        title: body.title,
+        description: body.description,
+        ruleVersion: 1,
+        status: "draft",
+        inputs: body.inputs,
+        conditionTree: body.conditionTree,
+        actions: body.actions,
+        createdAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      });
+    },
+  },
+  {
+    method: "POST",
+    pathPattern: /\/api\/violation-rule\/v1\/rules\/[^/]+\/publish\/?$/,
+    respond: async ({ fixtures }, request) => {
+      const ruleId = extractRuleId(new URL(request.url).pathname) ?? "";
+      let body: Record<string, unknown> = {};
+      try {
+        body = (await request.clone().json()) as Record<string, unknown>;
+      } catch {
+        return errorEnvelope(
+          400,
+          "MOCK_INVALID_BODY",
+          "Mock rule publish expects JSON body",
+        );
+      }
+      // Look up previous rule in fixtures and return a full contract-
+      // shaped `RuleDefinition` with required fields preserved
+      // (ruleId, violationRef, ruleVersion, status, createdAt). The
+      // publish increments ruleVersion. Optional condition/inputs/
+      // actions come from the publish body.
+      const previous = fixtures.rules.find((r) => r.ruleId === ruleId);
+      if (previous) {
+        return json(200, {
+          ...previous,
+          status: "published",
+          ruleVersion: (previous.ruleVersion ?? 0) + 1,
+          conditionTree: body.conditionTree,
+          inputs: body.inputs ?? previous.inputs,
+          actions: body.actions ?? previous.actions,
+          publishedAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+          updatedAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+        });
+      }
+      // Fallback: rule not in fixtures (e.g. newly-created in the same
+      // session via POST /rules). Still emit required fields.
+      return json(200, {
+        ruleId,
+        violationRef: {
+          violationId: "50000000-0000-4000-8000-000000000001",
+        },
+        ruleVersion: 1,
+        status: "published",
+        conditionTree: body.conditionTree,
+        inputs: body.inputs,
+        actions: body.actions,
+        publishedAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+        createdAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
+      });
+    },
   },
 ];
 
