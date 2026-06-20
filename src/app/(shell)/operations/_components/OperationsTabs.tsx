@@ -1,0 +1,38 @@
+"use client";
+
+import { Tabs } from "@/components";
+import { BackupsPanel } from "./BackupsPanel";
+import { DiagnosticsPanel } from "./DiagnosticsPanel";
+import { LogsPanel } from "./LogsPanel";
+import { ServiceHealthDashboard } from "./ServiceHealthDashboard";
+
+export function OperationsTabs() {
+  return (
+    <Tabs
+      ariaLabel="Operations sections"
+      defaultActiveId="service-health"
+      items={[
+        {
+          id: "service-health",
+          label: "Service health",
+          content: <ServiceHealthDashboard />,
+        },
+        {
+          id: "diagnostics",
+          label: "Diagnostics",
+          content: <DiagnosticsPanel />,
+        },
+        {
+          id: "backups",
+          label: "Backups",
+          content: <BackupsPanel />,
+        },
+        {
+          id: "logs",
+          label: "Logs",
+          content: <LogsPanel />,
+        },
+      ]}
+    />
+  );
+}

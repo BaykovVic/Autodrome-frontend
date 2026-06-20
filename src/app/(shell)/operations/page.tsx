@@ -1,5 +1,5 @@
-import { ServiceHealthDashboard } from "./_components/ServiceHealthDashboard";
+import { OperationsTabs } from "./_components/OperationsTabs";
 
 export default function OperationsPage() {
-  return <ServiceHealthDashboard />;
+  return <OperationsTabs />;
 }

@@ -105,7 +105,26 @@ App Router с route group `(shell)`:
   показываются для не-healthy сервисов через canonical
   `Correlation-Id` форму). Reload action триггерит повторный
   загрузчик. Polling/WebSocket/SSE/Prometheus/Grafana
-  intentionally не реализованы. Все 8 route'ов теперь —
+  intentionally не реализованы.
+
+  Поверх `ServiceHealthDashboard` `/operations` использует
+  `OperationsTabs` с четырьмя вкладками: Service health,
+  Diagnostics, Backups, Logs. `DiagnosticsPanel` показывает
+  идентификацию локального узла (nodeId/build/runtime/
+  storage) и preview-кнопку «Record a diagnostics request»;
+  кнопка «Run diagnostics check» disabled до подключения
+  backend. `BackupsPanel` показывает snapshots
+  (fixtures-based, нет canonical backup DTO), Create backup
+  (preview) и Restore (preview) для completed-snapshots
+  через единый `ConfirmDestructiveDialog` (Modal с warning
+  баннером, Cancel-by-default фокус, danger Confirm). После
+  Confirm в activity log записывается «pending wiring» запись
+  — никакого реального backup/restore выполнения не
+  происходит, никаких API calls. `LogsPanel` — placeholder
+  для будущего log viewer + preview Export-запрос с тем же
+  паттерном. Actual backup/restore engine и log export
+  endpoint intentionally не реализованы. Все 8 route'ов
+  теперь —
   domain workspaces, RoutePlaceholder больше не используется.
 
 ## Design system
