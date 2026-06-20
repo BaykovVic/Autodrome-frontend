@@ -1,6 +1,6 @@
 import type { AutodromeApi } from "@/api/adapter";
 import { Button, EmptyState, StatusBadge } from "@/components";
-import { RulePublishForm } from "./RulePublishForm";
+import { RuleEditorForm } from "./RuleEditorForm";
 import type { RuleDefinition } from "./useRulesData";
 import styles from "./RuleDetail.module.css";
 
@@ -87,8 +87,8 @@ export function RuleDetail({ api, rule, onClose, onUpdated }: Props) {
         )}
       </Section>
 
-      <Section title="Publish">
-        <RulePublishForm api={api} rule={rule} onPublished={onUpdated} />
+      <Section title="Editor">
+        <RuleEditorForm api={api} rule={rule} onPublished={onUpdated} />
       </Section>
     </aside>
   );
