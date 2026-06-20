@@ -1,10 +1,5 @@
-import { RoutePlaceholder } from "../_components/RoutePlaceholder";
+import { ExamWorkspace } from "./_components/ExamWorkspace";
 
 export default function ExamsPage() {
-  return (
-    <RoutePlaceholder
-      title="Exams"
-      hint="Exam sessions, schedule and inspector workspace."
-    />
-  );
+  return <ExamWorkspace />;
 }

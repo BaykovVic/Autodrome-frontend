@@ -1,0 +1,31 @@
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  letter-spacing: 0;
+}
+
+.buttonRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  letter-spacing: 0;
+}
+
+.subForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  letter-spacing: 0;
+}
+
+.subFormFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

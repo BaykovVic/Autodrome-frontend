@@ -45,8 +45,14 @@ App Router с route group `(shell)`:
   `getApiAdapter()`. `/vehicles` использует `VehicleWorkspace`
   с тем же паттерном по `VehicleRegistration`: фильтры (search/
   status/type), detail panel с equipment/telemetry placeholders
-  и register form через mock POST. Остальные 6 routes —
-  `RoutePlaceholder` до подключения domain workspaces.
+  и register form через mock POST. `/exams` использует
+  `ExamWorkspace`: list через fixture-based loader (потому что
+  `GET /exams` отсутствует в MVP API), фильтры (search/status/
+  exam type), detail panel с timeline placeholder + lifecycle
+  actions (Start/Finish/Abort через типизированный
+  `api.exam.POST(...)`) и create form по `ExamCreation`.
+  Остальные 5 routes — `RoutePlaceholder` до подключения domain
+  workspaces.
 
 ## Design system
 
