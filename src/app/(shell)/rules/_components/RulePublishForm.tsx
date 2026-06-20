@@ -88,12 +88,8 @@ export function RulePublishForm({ api, rule, onPublished }: Props) {
       ) : (
         <div className={styles.subForm}>
           <p className={styles.note}>
-            Publishing sends a contract-shaped
-            <span className={styles.mono}> RulePublishRequest</span>
-            {" "}with an empty
-            <span className={styles.mono}> conditionTree</span>. Visual
-            condition editor and rule evaluation are intentionally out of
-            scope for this baseline.
+            Publishing creates a new version of this rule. Add a
+            note for the change log if needed.
           </p>
           <Input
             id="rule-publish-notes"

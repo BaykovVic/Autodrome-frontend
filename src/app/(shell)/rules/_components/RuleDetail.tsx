@@ -72,19 +72,19 @@ export function RuleDetail({ api, rule, onClose, onUpdated }: Props) {
         </dl>
       </Section>
 
-      <Section title="Condition tree">
-        <EmptyState
-          title="Condition tree placeholder"
-          description="Visual condition editor is intentionally out of scope. Baseline only surfaces presence/absence via canonical ConditionTree schema."
-          action={
-            <span className={styles.conditionMeta}>
-              {rule.conditionTree &&
-              Object.keys(rule.conditionTree).length > 0
-                ? `${Object.keys(rule.conditionTree).length} top-level keys`
-                : "no condition tree set"}
-            </span>
-          }
-        />
+      <Section title="Conditions">
+        {rule.conditionTree &&
+        Object.keys(rule.conditionTree).length > 0 ? (
+          <p className={styles.conditionMeta}>
+            {Object.keys(rule.conditionTree).length} parameter
+            group(s) defined
+          </p>
+        ) : (
+          <EmptyState
+            title="No conditions defined"
+            description="This rule has no condition parameters."
+          />
+        )}
       </Section>
 
       <Section title="Publish">

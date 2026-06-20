@@ -130,12 +130,8 @@ export function RuleDraftCreateForm({
         <header className={styles.header}>
           <h2 className={styles.title}>Create rule draft</h2>
           <p className={styles.subtitle}>
-            Payload shape follows
-            <span className={styles.mono}> RuleDraft</span>
-            from violation-rule-service OpenAPI contract. Visual
-            condition editor is intentionally out of scope for this
-            baseline — draft is created with an empty
-            <span className={styles.mono}> conditionTree</span>.
+            Start a new draft rule for the selected violation. You
+            can add condition parameters later before publishing.
           </p>
         </header>
 

@@ -56,7 +56,7 @@ describe("RuleWorkspace", () => {
     expect(screen.getByText(/Showing 1 of 3/i)).toBeDefined();
   });
 
-  it("opens detail panel with status, version and condition placeholder", async () => {
+  it("opens detail panel with status, version and conditions section", async () => {
     await renderWorkspace("normal");
     const idButtons = await screen.findAllByRole("button", {
       name: /60000000…/,
@@ -68,10 +68,10 @@ describe("RuleWorkspace", () => {
         name: /Rule 60000000-/i,
       }),
     ).toBeDefined();
+    // Fixture rules have no conditionTree → empty state copy.
     expect(
-      screen.getByText(/Condition tree placeholder/i),
+      screen.getByText(/No conditions defined/i),
     ).toBeDefined();
-    expect(screen.getByText(/no condition tree set/i)).toBeDefined();
   });
 
   it("renders empty state for empty scenario", async () => {

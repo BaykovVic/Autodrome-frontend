@@ -73,13 +73,8 @@ export function RuleWorkspace({ api }: Props) {
         <div>
           <h1 className={styles.title}>Rules</h1>
           <p className={styles.subtitle}>
-            Catalog through
-            <span className={styles.mono}>
-              {' api.violationRule.GET("/rules")'}
-            </span>
-            . Draft create + publish go through typed POST. Visual
-            condition editor and rule evaluation are intentionally out
-            of scope for this baseline.
+            Review existing rules, create drafts for violations and
+            publish new versions.
           </p>
         </div>
         <div className={styles.actions}>
