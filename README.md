@@ -42,8 +42,11 @@ App Router с route group `(shell)`:
   состояния. `/candidates` использует `CandidateWorkspace` — list
   с фильтрами, detail panel и register form по
   `CandidateRegistration` контракту, тоже через
-  `getApiAdapter()`. Остальные 7 routes — `RoutePlaceholder` до
-  подключения domain workspaces.
+  `getApiAdapter()`. `/vehicles` использует `VehicleWorkspace`
+  с тем же паттерном по `VehicleRegistration`: фильтры (search/
+  status/type), detail panel с equipment/telemetry placeholders
+  и register form через mock POST. Остальные 6 routes —
+  `RoutePlaceholder` до подключения domain workspaces.
 
 ## Design system
 

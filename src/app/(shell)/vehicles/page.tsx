@@ -1,10 +1,5 @@
-import { RoutePlaceholder } from "../_components/RoutePlaceholder";
+import { VehicleWorkspace } from "./_components/VehicleWorkspace";
 
 export default function VehiclesPage() {
-  return (
-    <RoutePlaceholder
-      title="Vehicles"
-      hint="Vehicle fleet, edge gateway and telemetry availability."
-    />
-  );
+  return <VehicleWorkspace />;
 }

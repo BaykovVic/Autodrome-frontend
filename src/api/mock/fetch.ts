@@ -45,6 +45,13 @@ function mockCandidateId(): string {
   return `99000000-0000-4000-8000-${hex}`;
 }
 
+let mockVehicleCounter = 0;
+function mockVehicleId(): string {
+  mockVehicleCounter += 1;
+  const hex = mockVehicleCounter.toString(16).padStart(12, "0");
+  return `99000000-0000-4000-8001-${hex}`;
+}
+
 const HANDLERS: MockHandler[] = [
   {
     method: "GET",
@@ -93,6 +100,32 @@ const HANDLERS: MockHandler[] = [
       return json(200, {
         items: fixtures.vehicles,
         nextPageToken: undefined,
+      });
+    },
+  },
+  {
+    method: "POST",
+    pathPattern: /\/api\/vehicle\/v1\/vehicles\/?$/,
+    respond: async (_ctx, request) => {
+      let body: Record<string, unknown> = {};
+      try {
+        body = (await request.clone().json()) as Record<string, unknown>;
+      } catch {
+        return errorEnvelope(
+          400,
+          "MOCK_INVALID_BODY",
+          "Mock vehicle registration expects JSON body",
+        );
+      }
+      return json(201, {
+        vehicleId: mockVehicleId(),
+        plateNumber: body.plateNumber,
+        type: body.type,
+        model: body.model,
+        manufactureYear: body.manufactureYear,
+        vin: body.vin,
+        status: "registered",
+        createdAt: MOCK_REGISTER_RESPONSE_CREATED_AT,
       });
     },
   },
