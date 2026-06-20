@@ -85,22 +85,44 @@ Verify:
 - [ ] `node_modules/` matches `pnpm-lock.yaml` content hashes after
   the prod install.
 
-## 5. iCloud / macOS file duplication sweep
+## 5. iCloud / macOS file duplication preview
 
 This repo lives under iCloud Drive. Duplicates like `* 2.tsx`
 silently break the SDK-style backend project and confuse the
-operator. Clean them before tagging.
+operator. The release gate must not silently delete files —
+this step previews any duplicates so the operator can review
+them before deciding what to do.
+
+### 5a. Preview only (non-destructive)
 
 ```bash
 find /Users/baykov/Documents/Autodrome/Projects/Autodrome-frontend \
-  -name "* 2.*" -type f -delete
-find /Users/baykov/Documents/Autodrome/Projects/Autodrome-frontend \
-  -name "* 3.*" -type f -delete
+  \( -name "* 2.*" -o -name "* 3.*" \) -type f -print
 ```
 
 Verify:
 
-- [ ] Both `find` commands return without printing any path.
+- [ ] The preview command finishes and prints **no paths**.
+
+### 5b. If duplicates appeared
+
+Do **not** run a blanket `-delete`. Instead:
+
+1. Read every printed path and confirm it is genuinely an
+   iCloud sync duplicate (e.g. `Foo 2.tsx` next to `Foo.tsx`
+   with identical content), not in-progress work.
+2. Remove the confirmed duplicates one at a time with explicit
+   paths, e.g.:
+
+   ```bash
+   rm "/Users/baykov/Documents/Autodrome/Projects/Autodrome-frontend/path/to/Foo 2.tsx"
+   ```
+
+3. Re-run the preview from 5a and confirm the output is empty
+   before continuing to step 6.
+
+If you are unsure about a file, stop the release and resolve
+the ambiguity with the author — do not delete.
 
 ## 6. Hand-off to the deploy track
 
