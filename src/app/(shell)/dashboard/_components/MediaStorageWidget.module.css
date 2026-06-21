@@ -1,0 +1,86 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  letter-spacing: 0;
+}
+
+.headline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  letter-spacing: 0;
+}
+
+.value {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.totalNote {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  letter-spacing: 0;
+}
+
+.summaryOk {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success-strong);
+  letter-spacing: 0;
+}
+
+.summaryWatch {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-warning-strong);
+  letter-spacing: 0;
+}
+
+.summaryDegraded {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-danger-strong);
+  letter-spacing: 0;
+}
+
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #eceae3;
+  overflow: hidden;
+  display: flex;
+  letter-spacing: 0;
+}
+
+.barSegment {
+  height: 100%;
+  letter-spacing: 0;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+  letter-spacing: 0;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: 0;
+}
+
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 5px;
+}

@@ -1,64 +1,83 @@
 import { describe, expect, it } from "vitest";
-import {
-  render,
-  screen,
-  waitForElementToBeRemoved,
-} from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 
-import { createMockAdapter } from "@/api/mock/adapter";
+import { consoleDashboardFor } from "@/app/(shell)/dashboard/_components/consoleDashboardFixtures";
 import { LocalNodeDashboard } from "@/app/(shell)/dashboard/_components/LocalNodeDashboard";
+import type { MockScenario } from "@/api/mock/scenarios";
 
-async function renderDashboard(
-  scenario: Parameters<typeof createMockAdapter>[0],
-) {
-  const api = createMockAdapter(scenario);
-  render(<LocalNodeDashboard api={api} nodeId="node-test" />);
-  await waitForElementToBeRemoved(
-    () => screen.queryByRole("status", { name: /loading/i }),
-    { timeout: 2000 },
-  );
+function renderDashboard(scenario: MockScenario) {
+  const loader = () => consoleDashboardFor(scenario);
+  render(<LocalNodeDashboard loader={loader} />);
 }
 
 describe("LocalNodeDashboard", () => {
-  it("renders local node title and aggregate cards for the normal scenario", async () => {
-    await renderDashboard("normal");
+  it("renders the Autodrome console dashboard header and all six widgets for the normal scenario", async () => {
+    renderDashboard("normal");
+
+    // Service Health header arrives only after the loader effect
+    // resolves; awaiting it confirms the snapshot is mounted.
+    expect(await screen.findByText("Service health")).toBeDefined();
+
     expect(
-      screen.getByRole("heading", { level: 1, name: /local node/i }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: /local node dashboard/i,
+      }),
     ).toBeDefined();
+    expect(screen.getByText(/NODE-A2/)).toBeDefined();
+    expect(screen.getByText(/Autodrome test site/)).toBeDefined();
 
-    const cardHeadings = screen
-      .getAllByRole("heading", { level: 3 })
-      .map((node) => node.textContent);
-    expect(cardHeadings).toEqual(
-      expect.arrayContaining([
-        "Services",
-        "Exams",
-        "Vehicles",
-        "Candidates",
-        "Violations",
-        "Configuration",
-        "Media archive",
-        "Offline / local",
-      ]),
-    );
+    expect(screen.getByText("Database readiness")).toBeDefined();
+    expect(screen.getByText("Media storage")).toBeDefined();
+    expect(screen.getByText("Vehicle telemetry")).toBeDefined();
+    expect(screen.getByText("Outbox / event backlog")).toBeDefined();
+    expect(screen.getByText("Node operations")).toBeDefined();
 
-    expect(screen.getByText(/all services ok/i)).toBeDefined();
+    // No degraded notice in the normal scenario.
+    expect(
+      screen.queryByRole("alert", {
+        name: /dashboard degraded notice/i,
+      }),
+    ).toBeNull();
   });
 
-  it("shows DegradedState for vehicle-service in the service-degraded scenario", async () => {
-    await renderDashboard("service-degraded");
-    const alerts = screen.getAllByRole("alert");
-    const degradedAlert = alerts.find((node) =>
-      node.textContent?.includes("vehicle-service"),
-    );
-    expect(degradedAlert).toBeDefined();
-    expect(screen.getByText(/1 degraded/i)).toBeDefined();
+  it("renders the degraded notice and Paused outbox status for the service-degraded scenario", async () => {
+    renderDashboard("service-degraded");
+    const alert = await screen.findByRole("alert", {
+      name: /dashboard degraded notice/i,
+    });
+    expect(
+      within(alert).getByText(/Vehicle telemetry broker degraded/i),
+    ).toBeDefined();
+    expect(within(alert).getByText(/Retry sync/i)).toBeDefined();
+
+    expect(screen.getByText(/^Paused$/)).toBeDefined();
   });
 
-  it("shows zero counters across the empty scenario", async () => {
-    await renderDashboard("empty");
-    const zeros = screen.getAllByText("0");
-    expect(zeros.length).toBeGreaterThan(0);
-    expect(screen.getByText(/all services ok/i)).toBeDefined();
+  it("renders zeroed telemetry tiles for the empty scenario", async () => {
+    renderDashboard("empty");
+    const telemetryHeader = await screen.findByText("Vehicle telemetry");
+    const telemetryCard = telemetryHeader.closest("section");
+    expect(telemetryCard).not.toBeNull();
+    const zeros = within(telemetryCard as HTMLElement).getAllByText("0");
+    expect(zeros.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("renders fallback skeleton when the loader has not produced a snapshot yet", () => {
+    // A loader returning an unresolved Promise keeps the hook in
+    // loading state.
+    const pending = new Promise<never>(() => {});
+    render(
+      <LocalNodeDashboard
+        loader={() =>
+          pending as unknown as ReturnType<typeof consoleDashboardFor>
+        }
+      />,
+    );
+    expect(
+      screen.getByRole("status", {
+        name: /loading local node dashboard/i,
+      }),
+    ).toBeDefined();
   });
 });

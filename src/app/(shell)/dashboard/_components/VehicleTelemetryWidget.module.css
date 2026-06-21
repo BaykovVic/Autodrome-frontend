@@ -1,0 +1,67 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  letter-spacing: 0;
+}
+
+.tiles {
+  display: flex;
+  gap: 9px;
+  letter-spacing: 0;
+}
+
+.tile {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: var(--radius-md);
+  letter-spacing: 0;
+}
+
+.tileValue {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xl);
+  letter-spacing: 0;
+}
+
+.tileLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.tileOnline {
+  background: var(--color-success-soft);
+}
+.tileOnline .tileValue {
+  color: var(--color-success-strong);
+}
+
+.tileDegraded {
+  background: var(--color-warning-soft);
+}
+.tileDegraded .tileValue {
+  color: var(--color-warning-strong);
+}
+
+.tileOffline {
+  background: var(--color-danger-soft);
+}
+.tileOffline .tileValue {
+  color: var(--color-danger-strong);
+}
+
+.tileStandby {
+  background: var(--color-neutral-soft);
+}
+.tileStandby .tileValue {
+  color: var(--color-text-muted);
+}
+
+.staleNote {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-warning-strong);
+  letter-spacing: 0;
+}

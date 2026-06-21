@@ -36,10 +36,22 @@ App Router с route group `(shell)`:
 - `src/app/(shell)/<route>/page.tsx` — 9 маршрутов: `dashboard`,
   `candidates`, `vehicles`, `exams`, `exercises`, `violations`,
   `rules`, `evidence`, `operations`. `/dashboard` использует
-  `LocalNodeDashboard` (client component) с местным `useDashboardData`
-  hook'ом, который параллельно тянет данные 5 сервисов через
-  `getApiAdapter()` и единообразно показывает loading/error/degraded
-  состояния. `/candidates` использует `CandidateWorkspace` — list
+  `LocalNodeDashboard` — Autodrome Console dashboard поверх
+  `useConsoleDashboard` hook'а и mock/data-adapter layer'а
+  (`defaultConsoleDashboardLoader` читает scenario-keyed
+  fixtures из `consoleDashboardFixtures.ts`). На странице
+  шесть widgets: Service health (per-service status badges),
+  Database readiness (schema state + WAL/sessions/vacuum),
+  Media storage (used/total + segmented bar + healthy/watch/
+  degraded summary), Vehicle telemetry (4 tiles + stale note),
+  Outbox / event backlog (counter + sparkline + live/paused
+  status), Node operations (uptime/backup/sync/env). Перед
+  гридом — DashboardHeader (Local Node Dashboard + node/site/
+  last-refresh + Refresh кнопка) и опциональный
+  DegradedNoticeBanner (warm yellow alert с preview-only
+  Retry/View actions, появляется только когда в snapshot
+  есть `degradedNotice`). Live API binding intentionally не
+  включён — это design implementation фича. `/candidates` использует `CandidateWorkspace` — list
   с фильтрами, detail panel и register form по
   `CandidateRegistration` контракту, тоже через
   `getApiAdapter()`. `/vehicles` использует `VehicleWorkspace`
