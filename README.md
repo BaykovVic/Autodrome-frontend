@@ -128,22 +128,27 @@ App Router с route group `(shell)`:
   condition tree editor намеренно не реализован сверх approved
   baseline. Rule evaluation на frontend намеренно не реализован
   — это задача backend `violation-rule-service`.
-  `/evidence` использует `EvidenceWorkspace`: media recordings,
-  привязанные к экзаменам, через fixture-based loader
-  (`defaultRecordingsLoader`) поверх `MediaRecording` контракта
-  media-archive (`GET /media/recordings` в OpenAPI пока
-  отсутствует; loader переключится на typed
-  `api.mediaArchive.GET(...)` когда endpoint появится).
-  Workspace показывает фильтры (search по recording/exam/source,
-  status `active|finalized|failed`, modality `video|audio`),
-  таблицу с modality-бейджами и detail panel с recording info,
-  списком sources с domain-friendly labels (Cabin/Exterior
-  cameras + Cabin microphone), media-segments placeholder
-  без playback и секцией linked-evidence (video/audio из
-  recording плюс biometry/telemetry бейджи как пометки про
-  связь экзамена с другими evidence workspaces). Actual video
-  streaming/playback, RTSP/WebRTC/HLS player и большие
-  media-загрузки не реализованы. `/operations` использует
+  `/evidence` использует `EvidenceScreen` — Autodrome Console
+  evidence inspector surface поверх `useConsoleEvidence` hook'а и
+  scenario-driven fixtures (`consoleEvidenceFixtures.ts`): header
+  с subtitle «Sealed references · biometry, audio, telemetry,
+  media» + disabled `Export selected` CTA, optional
+  `DegradedState` banner для `service-degraded` сценария поверх
+  таблицы, двухколоночная table (Reference — id+exam mono /
+  Type chip / Captured mono / Size right-aligned mono / Status
+  badge, primary-cell `<button>` с `:focus-visible` outline и
+  `aria-current`) / detail aside `<aside aria-label="Evidence
+  {id}">` с id+status row, type chip, секцией **Media preview**
+  (тёмный 150px box с inline camera SVG и моно-caption
+  «{type} · preview unavailable offline» — оффлайн-placeholder,
+  никакого RTSP/WebRTC/HLS player'а), секцией **Reference** dl
+  (Source exam / Captured / Size on node / SHA-256 short form
+  `a1f4…9c20`) и action row Verify hash + Export (оба disabled
+  с title-объяснениями). Canonical media-archive-service
+  OpenAPI пока не содержит `GET /evidence` list operation —
+  данные fixture-driven; loader переключится на typed
+  adapter call когда endpoint появится. Actual video
+  streaming/playback и большие media-выгрузки не реализованы. `/operations` использует
   `ServiceHealthDashboard`: дашборд liveness/readiness для
   backend/edge/deploy сервисов локального узла через
   fixture-based loader (`defaultServiceHealthLoader`). Тип

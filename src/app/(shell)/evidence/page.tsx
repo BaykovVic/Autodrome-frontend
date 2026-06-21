@@ -1,5 +1,5 @@
-import { EvidenceWorkspace } from "./_components/EvidenceWorkspace";
+import { EvidenceScreen } from "./_components/EvidenceScreen";
 
 export default function EvidencePage() {
-  return <EvidenceWorkspace />;
+  return <EvidenceScreen />;
 }
