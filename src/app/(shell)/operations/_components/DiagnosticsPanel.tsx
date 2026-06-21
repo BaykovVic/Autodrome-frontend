@@ -10,6 +10,7 @@ import {
 } from "@/api/runtime-config";
 import { Button, StatusBadge, type StatusBadgeVariant } from "@/components";
 import { defaultDiagnostics, type DiagnosticsInfo } from "./diagnostics";
+import { EndpointDiagnostics } from "./EndpointDiagnostics";
 import styles from "./DiagnosticsPanel.module.css";
 
 type Props = {
@@ -171,6 +172,8 @@ export function DiagnosticsPanel({ info, runtime }: Props) {
           </ul>
         ) : null}
       </section>
+
+      <EndpointDiagnostics runtime={runtimeData} />
 
       <section className={styles.action}>
         <h3 className={styles.actionTitle}>Recent diagnostics run</h3>
