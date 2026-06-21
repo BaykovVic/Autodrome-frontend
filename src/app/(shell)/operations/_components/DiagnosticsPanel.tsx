@@ -8,6 +8,7 @@ import {
   type RuntimeDiagnostics,
   type ServiceName,
 } from "@/api/runtime-config";
+import { sanitizeBaseUrl } from "@/api/sanitize-base-url";
 import { Button, StatusBadge, type StatusBadgeVariant } from "@/components";
 import { defaultDiagnostics, type DiagnosticsInfo } from "./diagnostics";
 import { EndpointDiagnostics } from "./EndpointDiagnostics";
@@ -141,7 +142,9 @@ export function DiagnosticsPanel({ info, runtime }: Props) {
                 <dt className={styles.runtimeListLabel}>
                   {SERVICE_LABELS[service]}
                 </dt>
-                <dd className={styles.runtimeListValue}>{url}</dd>
+                <dd className={styles.runtimeListValue}>
+                  {sanitizeBaseUrl(url)}
+                </dd>
               </div>
             ))}
           </dl>
