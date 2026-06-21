@@ -1,5 +1,5 @@
-import { ExamWorkspace } from "./_components/ExamWorkspace";
+import { ExamsScreen } from "./_components/ExamsScreen";
 
 export default function ExamsPage() {
-  return <ExamWorkspace />;
+  return <ExamsScreen />;
 }

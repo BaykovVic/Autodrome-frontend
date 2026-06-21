@@ -76,12 +76,24 @@ App Router с route group `(shell)`:
   объясняющим `title`. Live API binding не реализован — это
   design implementation; реальные endpoints + register
   forms вернутся в отдельных фичах после завершения
-  спринта. `/exams` использует
-  `ExamWorkspace`: list через fixture-based loader (потому что
-  `GET /exams` отсутствует в MVP API), фильтры (search/status/
-  exam type), detail panel с timeline placeholder + lifecycle
-  actions (Start/Finish/Abort через типизированный
-  `api.exam.POST(...)`) и create form по `ExamCreation`. `/exercises`
+  спринта. `/exams` использует `ExamsScreen` — Autodrome
+  Console exam operations surface поверх `useConsoleExams`
+  hook'а + scenario-driven fixtures
+  (`consoleExamsFixtures.ts`): header с totals (in-progress
+  + scheduled today) + disabled Create-exam, 5 filter tabs
+  (`All|In progress|Scheduled|Finished|Aborted`) через
+  `role="tablist"`, dense sticky-header table (Exam ID
+  mono + route/vehicle / Candidate / State badge / Score)
+  с keyboard-accessible `<button>` в primary cell, detail
+  aside с header (exam ID mono + state badge), 2×2 metadata
+  grid (Candidate / Vehicle / Exercise route / Started ·
+  duration), **Lifecycle** action row (Start/Finish/Abort
+  — все disabled до lifecycle-integration фичи) и
+  **Timeline** rail с per-event `StatusDot` + label +
+  monospace timestamp + detail. Loading → Skeleton,
+  fatalError → ApiErrorView с retry (R1 pattern из
+  registry-фичи). Live API binding не реализован — это
+  design implementation. `/exercises`
   использует `ExerciseWorkspace`: list через типизированный
   `api.exercise.GET("/exercises")`, фильтры (search/code/status),
   detail с current version detail (через `GET
