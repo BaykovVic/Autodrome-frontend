@@ -126,4 +126,29 @@ describe("DiagnosticsPanel", () => {
       within(section).getByText("/api/exam/v1"),
     ).toBeDefined();
   });
+
+  it("does not leak raw credentials anywhere in the panel when live URLs contain userinfo or credential-like query params", () => {
+    const runtime: RuntimeDiagnostics = {
+      mode: "live",
+      ok: true,
+      baseUrls: {
+        ...DEFAULT_LIVE_BASE_URLS,
+        candidate:
+          "https://alice:s3cret@api.example.local/api/candidate/v1?token=abc",
+      },
+    };
+    const { container } = render(
+      <DiagnosticsPanel info={FIXTURE} runtime={runtime} />,
+    );
+    const html = container.innerHTML;
+    // None of the raw credentials must appear in the rendered DOM,
+    // including the existing Runtime API mode URL list and the new
+    // Service endpoints table.
+    expect(html.includes("alice")).toBe(false);
+    expect(html.includes("s3cret")).toBe(false);
+    expect(html.includes("token=abc")).toBe(false);
+    // Redaction markers must be present.
+    expect(html).toMatch(/\*\*\*@api\.example\.local/);
+    expect(html).toMatch(/token=\*\*\*/);
+  });
 });

@@ -374,6 +374,34 @@ degraded-live). Никаких секретов. Этот snapshot выводи�
 ok-live, warning для degraded-live), сценарий или список base
 URLs, и diagnostic-сообщение об ошибочных env, если они есть.
 
+Под секцией `Runtime API mode` идёт `Service endpoints` —
+таблица из 6 строк (по одной на typed frontend client).
+Поля: `Service` (label + соответствующий env-ключ
+`NEXT_PUBLIC_API_<SERVICE>_BASE_URL`), `Mode` (mock|live),
+`Configured` (`configured`/`default` для live, `n/a` для mock),
+`Base URL` (через `sanitizeBaseUrl()` — userinfo `user:pass@`
+замаскирован как `***@`, query-параметры с `token`/`key`/
+`secret`/`password`/`auth` в имени получают значение `***`),
+`Last check` (результат последнего probe или `not checked`),
+`Reachability` (кнопка `Check reachability`).
+
+Reachability — opt-in, user-triggered и не делает destructive
+вызовов. Кнопка disabled в mock-режиме. В live-режиме клик
+делает idempotent `GET` к base URL с `credentials: "omit"`,
+`cache: "no-store"` и `AbortSignal.timeout(3000)`.
+Интерпретация ответа:
+
+- `2xx` / `3xx` / `4xx` → `reachable` (success badge + HTTP
+  статус). 4xx тоже считается reachable: сервер ответил, просто
+  у root path нет совпадения.
+- `5xx` → `degraded` (warning badge).
+- сетевая ошибка → `error`; abort по таймауту → `unreachable`
+  (danger badge).
+
+Probe вызывается ровно один раз на клик, никаких background
+polling/SSE/WebSocket. См. `src/api/probe-endpoint.ts` и
+`src/api/sanitize-base-url.ts` для подробностей.
+
 Сценарии (`src/api/mock/scenarios.ts`):
 
 - `empty` — пустые списки во всех доменах;
