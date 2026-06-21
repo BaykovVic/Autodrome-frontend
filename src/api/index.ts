@@ -29,7 +29,21 @@ export {
   selectFixtures,
   type LocalNodeFixtures,
 } from "./mock/fixtures";
-export { getApiAdapter } from "./get-api-adapter";
+export { getApiAdapter, getRuntimeDiagnostics } from "./get-api-adapter";
+export {
+  resolveLiveBaseUrls,
+  resolveRuntimeConfig,
+  resolveRuntimeMode,
+  summarizeRuntimeConfig,
+  DEFAULT_LIVE_BASE_URLS,
+  SERVICE_ENV_KEYS,
+  SERVICE_NAMES,
+  type RuntimeConfig,
+  type RuntimeConfigIssue,
+  type RuntimeDiagnostics,
+  type RuntimeMode,
+  type ServiceName,
+} from "./runtime-config";
 
 export { candidateApi } from "./services/candidate";
 export type { CandidatePaths } from "./services/candidate";

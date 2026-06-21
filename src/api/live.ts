@@ -1,18 +1,37 @@
 import type { AutodromeApi } from "./adapter";
-import { candidateApi } from "./services/candidate";
-import { examApi } from "./services/exam";
-import { exerciseApi } from "./services/exercise";
-import { mediaArchiveApi } from "./services/media-archive";
-import { vehicleApi } from "./services/vehicle";
-import { violationRuleApi } from "./services/violation-rule";
+import { createAutodromeClient } from "./client";
+import {
+  DEFAULT_LIVE_BASE_URLS,
+  type ServiceName,
+} from "./runtime-config";
+import type { CandidatePaths } from "./services/candidate";
+import type { ExamPaths } from "./services/exam";
+import type { ExercisePaths } from "./services/exercise";
+import type { MediaArchivePaths } from "./services/media-archive";
+import type { VehiclePaths } from "./services/vehicle";
+import type { ViolationRulePaths } from "./services/violation-rule";
 
-export function createLiveAdapter(): AutodromeApi {
+export function createLiveAdapter(
+  baseUrls: Record<ServiceName, string> = DEFAULT_LIVE_BASE_URLS,
+): AutodromeApi {
   return {
-    candidate: candidateApi,
-    vehicle: vehicleApi,
-    exam: examApi,
-    exercise: exerciseApi,
-    violationRule: violationRuleApi,
-    mediaArchive: mediaArchiveApi,
+    candidate: createAutodromeClient<CandidatePaths>({
+      baseUrl: baseUrls.candidate,
+    }),
+    vehicle: createAutodromeClient<VehiclePaths>({
+      baseUrl: baseUrls.vehicle,
+    }),
+    exam: createAutodromeClient<ExamPaths>({
+      baseUrl: baseUrls.exam,
+    }),
+    exercise: createAutodromeClient<ExercisePaths>({
+      baseUrl: baseUrls.exercise,
+    }),
+    violationRule: createAutodromeClient<ViolationRulePaths>({
+      baseUrl: baseUrls.violationRule,
+    }),
+    mediaArchive: createAutodromeClient<MediaArchivePaths>({
+      baseUrl: baseUrls.mediaArchive,
+    }),
   };
 }

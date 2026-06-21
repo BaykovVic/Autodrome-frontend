@@ -324,25 +324,55 @@ Generated client покрывает 6 сервисов: `candidate`, `vehicle`,
 `exam`, `exercise`, `violation-rule`, `media-archive`. Auth
 tokens и оставшиеся domain-страницы — следующие фичи.
 
-### Mock adapter и сценарные fixtures
+### Runtime API mode (mock / live)
 
 `src/api/adapter.ts` объявляет `AutodromeApi` интерфейс над 6
-типизированными сервисами и `getApiAdapter(options?)` фабрику:
+типизированными сервисами; `src/api/get-api-adapter.ts` собирает
+адаптер на основе runtime-конфига, который выбирается через
+`src/api/runtime-config.ts`.
 
-- `mode: "live"` (default) → `createLiveAdapter()` — текущие
-  `openapi-fetch` клиенты против реального backend baseUrl.
-- `mode: "mock"` → `createMockAdapter(scenario)` — те же
-  типизированные клиенты, но с подменённым `fetch`, который
-  возвращает fixture-данные.
+- `mode: "mock"` (default) → `createMockAdapter(scenario)` — те
+  же типизированные клиенты, но с подменённым `fetch`, который
+  возвращает fixture-данные. Это development-safe режим: на
+  свежей машине без env переменных `pnpm dev` стартует именно
+  здесь и ни в один реальный сервис не ходит.
+- `mode: "live"` → `createLiveAdapter(baseUrls)` —
+  `openapi-fetch` клиенты против настроенных base URLs.
 
-Переключатель управляется env-переменными:
+Переключатель управляется env-переменными (`NEXT_PUBLIC_*`,
+читаются на build-time для статического экспорта):
 
-- `NEXT_PUBLIC_API_ADAPTER` = `"mock" | "live"` (default `"live"`).
-- `NEXT_PUBLIC_MOCK_SCENARIO` = одно из `MOCK_SCENARIOS` (default
-  `"normal"`).
+- `NEXT_PUBLIC_API_ADAPTER` = `"mock" | "live"`. Любое значение,
+  отличное от `"live"` (включая отсутствие), резолвится в
+  `"mock"`. Так у разработчика по дефолту нет случайного выхода
+  в неконфигурированный backend.
+- `NEXT_PUBLIC_MOCK_SCENARIO` (только для mock) = одно из
+  `MOCK_SCENARIOS` (default `"normal"`).
+- `NEXT_PUBLIC_API_<SERVICE>_BASE_URL` (только для live) —
+  per-service base URL, опциональный override относительно
+  дефолтного `/api/<service>/v1`. Действующие ключи:
+  - `NEXT_PUBLIC_API_CANDIDATE_BASE_URL`,
+  - `NEXT_PUBLIC_API_VEHICLE_BASE_URL`,
+  - `NEXT_PUBLIC_API_EXAM_BASE_URL`,
+  - `NEXT_PUBLIC_API_EXERCISE_BASE_URL`,
+  - `NEXT_PUBLIC_API_VIOLATION_RULE_BASE_URL`,
+  - `NEXT_PUBLIC_API_MEDIA_ARCHIVE_BASE_URL`.
+  Допустимы абсолютные URL (`https://...`) или path с лидирующим
+  `/`. Невалидное значение не валит UI: сервис откатывается на
+  свой дефолтный base URL, а в diagnostics отображается
+  degraded-state.
 
 Options передаваемые напрямую в `getApiAdapter({mode, scenario})`
 имеют приоритет над env.
+
+Diagnostics. `getRuntimeDiagnostics()` (экспортируется из
+`@/api`) возвращает UI-безопасный snapshot текущего конфига —
+только `mode`, `scenario` или `baseUrls` (+ список `issues` для
+degraded-live). Никаких секретов. Этот snapshot выводится
+в `/operations` → вкладка `Diagnostics`, секция
+`Runtime API mode`: бейдж режима (info для mock, success для
+ok-live, warning для degraded-live), сценарий или список base
+URLs, и diagnostic-сообщение об ошибочных env, если они есть.
 
 Сценарии (`src/api/mock/scenarios.ts`):
 

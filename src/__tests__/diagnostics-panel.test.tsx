@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 
+import {
+  DEFAULT_LIVE_BASE_URLS,
+  type RuntimeDiagnostics,
+} from "@/api/runtime-config";
 import { DiagnosticsPanel } from "@/app/(shell)/operations/_components/DiagnosticsPanel";
 import type { DiagnosticsInfo } from "@/app/(shell)/operations/_components/diagnostics";
 
@@ -52,6 +56,74 @@ describe("DiagnosticsPanel", () => {
     expect(screen.getByText(/pending wiring/i)).toBeDefined();
     expect(
       screen.getByText(/not yet connected to the local node/i),
+    ).toBeDefined();
+  });
+
+  it("shows mock mode and scenario in the runtime section", () => {
+    const runtime: RuntimeDiagnostics = {
+      mode: "mock",
+      scenario: "violations-detected",
+    };
+    render(<DiagnosticsPanel info={FIXTURE} runtime={runtime} />);
+    const section = screen.getByRole("region", {
+      name: /runtime api mode/i,
+    });
+    expect(within(section).getByText(/^mock$/i)).toBeDefined();
+    expect(
+      within(section).getByText(/violations-detected/i),
+    ).toBeDefined();
+    expect(
+      within(section).getByText(/No real backend is contacted/i),
+    ).toBeDefined();
+  });
+
+  it("shows live mode with all configured base URLs", () => {
+    const runtime: RuntimeDiagnostics = {
+      mode: "live",
+      ok: true,
+      baseUrls: DEFAULT_LIVE_BASE_URLS,
+    };
+    render(<DiagnosticsPanel info={FIXTURE} runtime={runtime} />);
+    const section = screen.getByRole("region", {
+      name: /runtime api mode/i,
+    });
+    expect(within(section).getByText(/^live$/i)).toBeDefined();
+    expect(
+      within(section).getByText("/api/candidate/v1"),
+    ).toBeDefined();
+    expect(
+      within(section).getByText("/api/media-archive/v1"),
+    ).toBeDefined();
+  });
+
+  it("shows degraded live mode with issues and fallback URLs", () => {
+    const runtime: RuntimeDiagnostics = {
+      mode: "live",
+      ok: false,
+      baseUrls: DEFAULT_LIVE_BASE_URLS,
+      issues: [
+        {
+          field: "NEXT_PUBLIC_API_EXAM_BASE_URL",
+          message: "Invalid base URL for exam-service.",
+        },
+      ],
+    };
+    render(<DiagnosticsPanel info={FIXTURE} runtime={runtime} />);
+    const section = screen.getByRole("region", {
+      name: /runtime api mode/i,
+    });
+    expect(within(section).getByText(/^live$/i)).toBeDefined();
+    expect(
+      within(section).getByText(/Live mode is degraded/i),
+    ).toBeDefined();
+    expect(
+      within(section).getAllByText(/NEXT_PUBLIC_API_EXAM_BASE_URL/)
+        .length,
+    ).toBeGreaterThan(0);
+    // The defaults are still shown so the operator sees the
+    // actual URL that will be used after the fallback.
+    expect(
+      within(section).getByText("/api/exam/v1"),
     ).toBeDefined();
   });
 });

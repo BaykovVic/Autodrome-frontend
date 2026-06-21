@@ -1,14 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { Button, StatusBadge } from "@/components";
+import { getRuntimeDiagnostics } from "@/api/get-api-adapter";
+import {
+  SERVICE_ENV_KEYS,
+  type RuntimeDiagnostics,
+  type ServiceName,
+} from "@/api/runtime-config";
+import { Button, StatusBadge, type StatusBadgeVariant } from "@/components";
 import { defaultDiagnostics, type DiagnosticsInfo } from "./diagnostics";
 import styles from "./DiagnosticsPanel.module.css";
 
 type Props = {
   info?: DiagnosticsInfo;
+  runtime?: RuntimeDiagnostics;
 };
+
+const SERVICE_LABELS: Record<ServiceName, string> = {
+  candidate: "Candidate",
+  vehicle: "Vehicle",
+  exam: "Exam",
+  exercise: "Exercise",
+  violationRule: "Violation & rule",
+  mediaArchive: "Media archive",
+};
+
+function modeVariant(
+  runtime: RuntimeDiagnostics,
+): StatusBadgeVariant {
+  if (runtime.mode === "mock") return "info";
+  if (runtime.ok) return "success";
+  return "warning";
+}
 
 function formatUptime(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -16,9 +40,13 @@ function formatUptime(seconds: number): string {
   return `${hours}h ${minutes}m`;
 }
 
-export function DiagnosticsPanel({ info }: Props) {
+export function DiagnosticsPanel({ info, runtime }: Props) {
   const data = info ?? defaultDiagnostics();
   const diskFreeGb = data.storage.diskTotalGb - data.storage.diskUsedGb;
+  const runtimeData = useMemo(
+    () => runtime ?? getRuntimeDiagnostics(),
+    [runtime],
+  );
   const [runRequestedAt, setRunRequestedAt] = useState<string | null>(
     null,
   );
@@ -73,6 +101,76 @@ export function DiagnosticsPanel({ info }: Props) {
           mono
         />
       </dl>
+
+      <section
+        className={styles.runtime}
+        aria-label="Runtime API mode"
+      >
+        <h3 className={styles.actionTitle}>Runtime API mode</h3>
+        <p className={styles.runtimeRow}>
+          <StatusBadge variant={modeVariant(runtimeData)}>
+            {runtimeData.mode}
+          </StatusBadge>
+          {runtimeData.mode === "mock" ? (
+            <span>
+              Workspaces read fixtures from scenario{" "}
+              <span className={styles.mono}>
+                {runtimeData.scenario}
+              </span>
+              . No real backend is contacted.
+            </span>
+          ) : runtimeData.ok ? (
+            <span>
+              Workspaces talk to the configured live services.
+            </span>
+          ) : (
+            <span>
+              Live mode is degraded: some service base URLs are
+              invalid and fall back to defaults.
+            </span>
+          )}
+        </p>
+
+        {runtimeData.mode === "live" ? (
+          <dl className={styles.runtimeList}>
+            {(Object.entries(runtimeData.baseUrls) as Array<
+              [ServiceName, string]
+            >).map(([service, url]) => (
+              <div key={service} className={styles.runtimeListRow}>
+                <dt className={styles.runtimeListLabel}>
+                  {SERVICE_LABELS[service]}
+                </dt>
+                <dd className={styles.runtimeListValue}>{url}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+
+        {runtimeData.mode === "live" && !runtimeData.ok ? (
+          <ul className={styles.runtimeIssues}>
+            {runtimeData.issues.map((issue) => (
+              <li key={issue.field} className={styles.runtimeIssue}>
+                <span className={styles.mono}>{issue.field}</span>:{" "}
+                {issue.message}
+              </li>
+            ))}
+            <li className={styles.runtimeIssueHint}>
+              Fix the values for{" "}
+              {runtimeData.issues
+                .map((i) => i.field)
+                .join(", ")}{" "}
+              and reload to pick them up. See{" "}
+              <span className={styles.mono}>
+                {SERVICE_ENV_KEYS.candidate.replace(
+                  "CANDIDATE",
+                  "<SERVICE>",
+                )}
+              </span>{" "}
+              naming.
+            </li>
+          </ul>
+        ) : null}
+      </section>
 
       <section className={styles.action}>
         <h3 className={styles.actionTitle}>Recent diagnostics run</h3>
