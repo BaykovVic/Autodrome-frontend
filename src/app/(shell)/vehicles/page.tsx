@@ -1,5 +1,5 @@
-import { VehicleWorkspace } from "./_components/VehicleWorkspace";
+import { VehiclesScreen } from "./_components/VehiclesScreen";
 
 export default function VehiclesPage() {
-  return <VehicleWorkspace />;
+  return <VehiclesScreen />;
 }
