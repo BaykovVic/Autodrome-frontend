@@ -51,13 +51,32 @@ App Router с route group `(shell)`:
   DegradedNoticeBanner (warm yellow alert с preview-only
   Retry/View actions, появляется только когда в snapshot
   есть `degradedNotice`). Live API binding intentionally не
-  включён — это design implementation фича. `/candidates` использует `CandidateWorkspace` — list
-  с фильтрами, detail panel и register form по
-  `CandidateRegistration` контракту, тоже через
-  `getApiAdapter()`. `/vehicles` использует `VehicleWorkspace`
-  с тем же паттерном по `VehicleRegistration`: фильтры (search/
-  status/type), detail panel с equipment/telemetry placeholders
-  и register form через mock POST. `/exams` использует
+  включён — это design implementation фича. `/candidates`
+  использует `CandidatesScreen` — registry visual surface
+  поверх `useConsoleCandidates` hook'а + scenario-driven
+  fixtures (`consoleRegistryFixtures.ts`): compact header
+  с totals (records + awaiting face verification), filters
+  bar (search / category / registration status), dense
+  sticky-header table (Candidate / Cat / Registration /
+  Face verify / Exams) с tinted active row и detail pane
+  с avatar (инициалы), reg badge, **Face verification**
+  block (frame + dot + badge + confidence), Details list
+  (Cat / DoB / Phone / Last activity) и disabled actions
+  (Start exam / Capture face / Edit — service-specific
+  workflows вне scope design implementation). `/vehicles`
+  использует `VehiclesScreen` — тот же visual pattern
+  поверх `useConsoleVehicles`: header с totals (vehicles +
+  degraded + offline), filters (search / device state),
+  table (Vehicle / Plate / Cat / Onboard device / Last
+  seen) и detail pane с device badge, **Equipment health**
+  block (per-row dot+badge: front/side cameras, GNSS,
+  telemetry uplink), Device (Firmware / Last telemetry) и
+  disabled actions (Diagnostics / Take offline).
+  Register/Re-poll-devices buttons в header'ах disabled с
+  объясняющим `title`. Live API binding не реализован — это
+  design implementation; реальные endpoints + register
+  forms вернутся в отдельных фичах после завершения
+  спринта. `/exams` использует
   `ExamWorkspace`: list через fixture-based loader (потому что
   `GET /exams` отсутствует в MVP API), фильтры (search/status/
   exam type), detail panel с timeline placeholder + lifecycle

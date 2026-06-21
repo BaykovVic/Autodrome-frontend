@@ -1,5 +1,5 @@
-import { CandidateWorkspace } from "./_components/CandidateWorkspace";
+import { CandidatesScreen } from "./_components/CandidatesScreen";
 
 export default function CandidatesPage() {
-  return <CandidateWorkspace />;
+  return <CandidatesScreen />;
 }
