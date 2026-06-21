@@ -1,5 +1,5 @@
-import { ViolationWorkspace } from "./_components/ViolationWorkspace";
+import { ViolationsScreen } from "./_components/ViolationsScreen";
 
 export default function ViolationsPage() {
-  return <ViolationWorkspace />;
+  return <ViolationsScreen />;
 }

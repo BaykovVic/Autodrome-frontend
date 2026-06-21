@@ -1,5 +1,5 @@
-import { RuleWorkspace } from "./_components/RuleWorkspace";
+import { RulesScreen } from "./_components/RulesScreen";
 
 export default function RulesPage() {
-  return <RuleWorkspace />;
+  return <RulesScreen />;
 }

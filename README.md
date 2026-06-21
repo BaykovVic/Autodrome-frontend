@@ -93,32 +93,41 @@ App Router с route group `(shell)`:
   monospace timestamp + detail. Loading → Skeleton,
   fatalError → ApiErrorView с retry (R1 pattern из
   registry-фичи). Live API binding не реализован — это
-  design implementation. `/exercises`
-  использует `ExerciseWorkspace`: list через типизированный
-  `api.exercise.GET("/exercises")`, фильтры (search/code/status),
-  detail с current version detail (через `GET
-  /exercises/{id}/versions/{vid}`), publish action (POST publish с
-  пустым `ExerciseVersionDraft` — rule/geometry editors намеренно
-  вне scope), create form по `ExerciseCreation` и sub-section
-  «Exercise groups» с списком и create form (multi-select published
-  exercises). `/violations` использует `ViolationWorkspace`:
-  catalog через `api.violationRule.GET("/violations")`, фильтры
-  (search/severity), detail с active rule version placeholder
-  (rule binding editor / rule evaluation намеренно вне scope) и
-  create form по `ViolationCreation` через типизированный POST.
-  `/rules` использует `RuleWorkspace`: catalog через
-  `api.violationRule.GET("/rules")`, фильтры (search по
-  title/description/ruleId, status `draft|published|archived`,
-  violationId substring), detail с info, секцией Conditions и
-  встроенным rule editor baseline (`RuleEditorForm`) — три
-  JSON-textarea для `conditionTree` / `inputs` / `actions`,
-  per-field validation (не падает на невалидном JSON и
-  отключает publish), live payload preview и publish action
-  через `POST /rules/{ruleId}/publish` отредактированным
-  `RulePublishRequest`. Editor работает только для draft
-  rules; для остальных показывает locked-state. Rule evaluation
-  на frontend намеренно не реализован — это задача backend
-  `violation-rule-service`. Create form идет по `RuleDraft`.
+  design implementation. `/exercises` использует
+  `ExercisesScreen` — Autodrome Console configuration surface
+  поверх `useConsoleExercises` hook'а и scenario-driven
+  fixtures (`consoleExercisesFixtures.ts`): header с totals
+  (groups · drafts) + disabled `New exercise` CTA, трёхколоночная
+  раскладка groups nav (`<button>` per group с count, R2 keyboard
+  accessibility через `aria-current`) / catalog table (Code mono /
+  Exercise / Ver mono / Status badge, primary-cell `<button>` с
+  `:focus-visible` outline) / detail aside с code/name/status,
+  Parameters dl (Version / Difficulty / Max duration / Linked rule)
+  и Publish + Edit draft action row (оба disabled до publish
+  integration фичи). Loading → Skeleton, fatalError →
+  ApiErrorView с retry (R1 pattern). `/violations` использует
+  `ViolationsScreen` — `useConsoleViolations` поверх
+  `consoleViolationsFixtures.ts`: header с активной rule version
+  badge (mono `RULE-014 · v6`) и severity legend
+  (Critical/Major/Minor), двухколоночная table (Code mono /
+  Violation / Severity badge / Penalty right-aligned mono / Status
+  badge, primary-cell `<button>`) / detail aside с code+name+
+  severity+status, Scoring dl (Penalty + Active rule) и Required
+  evidence chips (Telemetry/Video/Photo/Audio с per-kind dot
+  swatch). Loading/error через R1. `/rules` использует
+  `RulesScreen` — `useConsoleRules` поверх
+  `consoleRulesFixtures.ts`: header (Scoring rule sets · draft &
+  published versions) + disabled `New rule` CTA, table (Rule
+  name+id / Ver mono / Status / Updated right-aligned mono) /
+  detail aside с rule id+ver mono, name+status badge, секцией
+  **Condition tree** с `EDITOR · PLANNED` tag и read-only mono
+  `<pre>` preview условий (IF/AND/OR/THEN), явной note «Visual
+  condition tree editor ships in a later milestone», секцией
+  **Version history** (current + archived версии) и action row
+  Publish version / Save draft (оба disabled). Визуальный
+  condition tree editor намеренно не реализован сверх approved
+  baseline. Rule evaluation на frontend намеренно не реализован
+  — это задача backend `violation-rule-service`.
   `/evidence` использует `EvidenceWorkspace`: media recordings,
   привязанные к экзаменам, через fixture-based loader
   (`defaultRecordingsLoader`) поверх `MediaRecording` контракта

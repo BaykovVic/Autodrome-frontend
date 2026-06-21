@@ -1,5 +1,5 @@
-import { ExerciseWorkspace } from "./_components/ExerciseWorkspace";
+import { ExercisesScreen } from "./_components/ExercisesScreen";
 
 export default function ExercisesPage() {
-  return <ExerciseWorkspace />;
+  return <ExercisesScreen />;
 }
