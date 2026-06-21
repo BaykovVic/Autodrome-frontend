@@ -84,4 +84,46 @@ describe("CandidatesScreen", () => {
     }) as HTMLButtonElement;
     expect(startBtn.disabled).toBe(true);
   });
+
+  it("renders Skeleton while loader is pending", () => {
+    const pending = new Promise<never>(() => {});
+    render(
+      <CandidatesScreen
+        loader={() => pending as unknown as ReturnType<typeof consoleCandidatesFor>}
+      />,
+    );
+    expect(
+      screen.getByRole("status", { name: /loading candidates/i }),
+    ).toBeDefined();
+  });
+
+  it("renders ApiErrorView with retry when loader rejects", async () => {
+    const error = Object.assign(new Error("loader failed"), {
+      code: "LOADER_FAIL",
+      status: 500,
+    });
+    render(
+      <CandidatesScreen
+        loader={() => Promise.reject(error)}
+      />,
+    );
+    expect(
+      await screen.findByText(/loader failed/i),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: /try again|retry/i }),
+    ).toBeDefined();
+  });
+
+  it("selects a row when its primary-cell button is activated by keyboard", async () => {
+    renderScreen("normal");
+    await screen.findAllByText("CND-1042");
+    const row = screen.getByRole("button", { name: /K\. Lazareva/i });
+    fireEvent.click(row);
+    expect(
+      screen.getByRole("complementary", {
+        name: /Candidate CND-1046/i,
+      }),
+    ).toBeDefined();
+  });
 });

@@ -6,6 +6,34 @@
   min-height: 0;
 }
 
+.loadingPad {
+  padding: 24px 20px;
+  letter-spacing: 0;
+}
+
+.vehicleModelBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  letter-spacing: 0;
+  width: 100%;
+}
+
+.vehicleModelBtn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
 .header {
   padding: 16px 20px 13px;
   border-bottom: var(--border-width) solid var(--color-border);

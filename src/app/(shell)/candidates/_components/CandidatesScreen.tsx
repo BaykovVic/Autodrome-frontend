@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 
 import {
+  ApiErrorView,
   Button,
   EmptyState,
+  Skeleton,
   StatusBadge,
   type StatusBadgeVariant,
   StatusDot,
@@ -111,6 +113,35 @@ export function CandidatesScreen({ loader }: Props) {
     return visible[0] ?? candidates[0];
   }, [candidates, visible, selectedId]);
 
+  if (state.loading) {
+    return (
+      <section
+        className={styles.screen}
+        aria-label="Candidates registry"
+      >
+        <div className={styles.loadingPad}>
+          <Skeleton lines={6} label="Loading candidates" />
+        </div>
+      </section>
+    );
+  }
+
+  if (state.fatalError) {
+    return (
+      <section
+        className={styles.screen}
+        aria-label="Candidates registry"
+      >
+        <div className={styles.loadingPad}>
+          <ApiErrorView
+            error={state.fatalError}
+            onRetry={state.reload}
+          />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       className={styles.screen}
@@ -214,12 +245,20 @@ export function CandidatesScreen({ loader }: Props) {
                           ? `${styles.row} ${styles.rowActive}`
                           : styles.row
                       }
-                      onClick={() => setSelectedId(c.id)}
                       aria-selected={isSelected}
                     >
                       <td className={styles.td}>
-                        <div className={styles.candidateName}>{c.name}</div>
-                        <div className={styles.mono}>{c.id}</div>
+                        <button
+                          type="button"
+                          className={styles.candidateNameBtn}
+                          onClick={() => setSelectedId(c.id)}
+                          aria-current={isSelected ? "true" : undefined}
+                        >
+                          <span className={styles.candidateName}>
+                            {c.name}
+                          </span>
+                          <span className={styles.mono}>{c.id}</span>
+                        </button>
                       </td>
                       <td className={`${styles.td} ${styles.mono}`}>
                         {c.category}

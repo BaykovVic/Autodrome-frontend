@@ -83,4 +83,42 @@ describe("VehiclesScreen", () => {
     }) as HTMLButtonElement;
     expect(diagBtn.disabled).toBe(true);
   });
+
+  it("renders Skeleton while loader is pending", () => {
+    const pending = new Promise<never>(() => {});
+    render(
+      <VehiclesScreen
+        loader={() => pending as unknown as ReturnType<typeof consoleVehiclesFor>}
+      />,
+    );
+    expect(
+      screen.getByRole("status", { name: /loading vehicles/i }),
+    ).toBeDefined();
+  });
+
+  it("renders ApiErrorView with retry when loader rejects", async () => {
+    const error = Object.assign(new Error("loader failed"), {
+      code: "LOADER_FAIL",
+      status: 500,
+    });
+    render(
+      <VehiclesScreen loader={() => Promise.reject(error)} />,
+    );
+    expect(
+      await screen.findByText(/loader failed/i),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: /try again|retry/i }),
+    ).toBeDefined();
+  });
+
+  it("selects a row when its primary-cell button is activated", async () => {
+    renderScreen("normal");
+    await screen.findAllByText("VEH-01");
+    const row = screen.getByRole("button", { name: /VEH-07/i });
+    fireEvent.click(row);
+    expect(
+      screen.getByRole("complementary", { name: /Vehicle VEH-07/i }),
+    ).toBeDefined();
+  });
 });
