@@ -15,7 +15,7 @@
 .groupHeading {
   font-size: 10px;
   font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-section);
+  letter-spacing: 0;
   color: var(--color-text-subtle);
   padding: 13px 11px 5px;
   text-transform: uppercase;

@@ -9,6 +9,8 @@
   color: var(--color-text-inverse);
   border-bottom: var(--border-width) solid #000;
   letter-spacing: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .left {
@@ -16,6 +18,7 @@
   align-items: center;
   gap: 14px;
   letter-spacing: 0;
+  min-width: 0;
 }
 
 .brand {
@@ -40,18 +43,19 @@
 .brandName {
   font-size: 13px;
   font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-tracked);
+  letter-spacing: 0;
 }
 
 .localChip {
   font-size: 10px;
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
   color: var(--color-accent-on-dark);
   border: var(--border-width) solid var(--color-accent-on-dark-border);
   background: var(--color-accent-on-dark-bg);
   padding: 2px 7px;
   border-radius: var(--radius-sm);
+  text-transform: uppercase;
 }
 
 .right {
@@ -59,6 +63,7 @@
   align-items: center;
   gap: 0;
   letter-spacing: 0;
+  min-width: 0;
 }
 
 .nodeCluster {
@@ -153,18 +158,28 @@
   letter-spacing: 0;
 }
 
+/*
+ * Narrow viewport rule: collapse non-essential clusters so the
+ * topbar fits within ~375px. Brand stays on the left, operator
+ * avatar (without meta) stays on the right; everything else is
+ * hidden until horizontal space allows it.
+ */
 @media (max-width: 768px) {
   .topbar {
     padding: 0 10px;
   }
+  .localChip {
+    display: none;
+  }
   .nodeCluster {
-    padding: 0 10px;
+    display: none;
   }
   .servicesCluster {
-    padding: 0 10px;
+    display: none;
   }
   .operator {
     padding: 0 4px 0 10px;
+    border-left: none;
   }
   .operatorMeta {
     display: none;
