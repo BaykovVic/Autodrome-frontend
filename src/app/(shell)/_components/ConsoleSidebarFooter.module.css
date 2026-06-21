@@ -1,0 +1,55 @@
+.footer {
+  border-top: var(--border-width) solid var(--color-sidebar-footer-border);
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  letter-spacing: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  letter-spacing: 0;
+}
+
+.muted {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.smallMuted {
+  font-size: 10px;
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.mono {
+  font-family: var(--font-family-mono);
+  font-size: 10.5px;
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.monoSmall {
+  font-family: var(--font-family-mono);
+  font-size: 10px;
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.bar {
+  height: 5px;
+  border-radius: 3px;
+  background: #e0dfd8;
+  overflow: hidden;
+  letter-spacing: 0;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+}

@@ -2,6 +2,23 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 2px;
+  letter-spacing: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  letter-spacing: 0;
+}
+
+.groupHeading {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  color: var(--color-text-subtle);
+  padding: 13px 11px 5px;
+  text-transform: uppercase;
 }
 
 .list {
@@ -14,8 +31,10 @@
 }
 
 .link {
-  display: block;
-  padding: var(--space-2) var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 11px;
   border-radius: var(--radius-md);
   font-size: var(--font-size-md);
   color: var(--color-text-muted);
@@ -24,22 +43,34 @@
 }
 
 .link:hover {
-  background: var(--color-surface-muted);
+  background: rgba(19, 138, 124, 0.07);
   color: var(--color-text);
 }
 
 .linkActive {
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: rgba(19, 138, 124, 0.12);
+  color: var(--color-accent-strong);
   font-weight: var(--font-weight-semibold);
 }
 
 @media (max-width: 768px) {
-  .list {
+  .nav {
     flex-direction: row;
     overflow-x: auto;
     gap: var(--space-1);
     padding-bottom: 2px;
+  }
+  .group {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .groupHeading {
+    display: none;
+  }
+  .list {
+    flex-direction: row;
+    gap: var(--space-1);
   }
   .link {
     white-space: nowrap;

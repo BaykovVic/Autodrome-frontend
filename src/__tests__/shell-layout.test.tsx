@@ -19,6 +19,22 @@ describe("ShellLayout", () => {
     ).toBeDefined();
   });
 
+  it("renders the console topbar and sidebar storage footer", () => {
+    render(
+      <ShellLayout>
+        <div data-testid="content">placeholder body</div>
+      </ShellLayout>,
+    );
+    expect(
+      screen.getByRole("banner", { name: /console topbar/i }),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("progressbar", {
+        name: /node storage usage/i,
+      }),
+    ).toBeDefined();
+  });
+
   it("renders provided children inside the main content area", () => {
     render(
       <ShellLayout>

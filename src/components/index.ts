@@ -24,3 +24,7 @@ export { ApiErrorView } from "./ApiErrorView";
 export { DegradedState } from "./DegradedState";
 export { ValidationErrors } from "./ValidationErrors";
 export type { ValidationIssue } from "./ValidationErrors";
+
+export { StatusDot } from "./StatusDot";
+export type { StatusDotVariant } from "./StatusDot";
+export { ConsoleCard } from "./ConsoleCard";

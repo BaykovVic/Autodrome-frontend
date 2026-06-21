@@ -1,4 +1,5 @@
-import { StatusBadge } from "@/components";
+import { ConsoleSidebarFooter } from "./_components/ConsoleSidebarFooter";
+import { ConsoleTopbar } from "./_components/ConsoleTopbar";
 import { SidebarNav } from "./_components/SidebarNav";
 import styles from "./layout.module.css";
 
@@ -9,20 +10,19 @@ export default function ShellLayout({
 }) {
   return (
     <div className={styles.shell}>
+      <ConsoleTopbar />
       <aside className={styles.aside} aria-label="Shell sidebar">
-        <div className={styles.brand}>Autodrome</div>
-        <SidebarNav />
-        <div className={styles.asideFooter}>operator / admin</div>
+        <div className={styles.navColumn}>
+          <SidebarNav />
+        </div>
+        <ConsoleSidebarFooter
+          storageLabel="588 / 1000 GB"
+          storageProgress={0.59}
+          buildLabel="Build 0.7.0 · offline"
+          versionLabel="v0.7.0"
+        />
       </aside>
-      <div className={styles.column}>
-        <header className={styles.topbar}>
-          <div className={styles.topbarTitle}>Operator console</div>
-          <StatusBadge variant="neutral" aria-label="Build status">
-            skeleton
-          </StatusBadge>
-        </header>
-        <main className={styles.content}>{children}</main>
-      </div>
+      <main className={styles.content}>{children}</main>
     </div>
   );
 }

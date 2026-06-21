@@ -127,38 +127,93 @@ App Router с route group `(shell)`:
   теперь —
   domain workspaces, RoutePlaceholder больше не используется.
 
-## Design system
+## Autodrome Console design foundation
 
-`src/components/` содержит примитивы, построенные поверх токенов из
-`src/app/tokens.css`:
+Visual reference: [`design/Autodrome Console.dc.html`](../../design/Autodrome%20Console.dc.html)
+(статический HTML-макет в корне проекта Autodrome). Из него
+перенесена визуальная база: warm gray work surface
+(`--color-bg: #e6e5e1`), dark topbar (`#1b1c1f`), light off-white
+sidebar (`#f3f2ef`), teal accent (`#138a7c`) и operational status
+palette (online / degraded / offline / standby / unknown).
+Density сделана плотнее skeleton-варианта: row 28/32px, font
+12–14px по умолчанию, card padding 11/14px.
 
-- `Button` — varianты `primary | secondary | danger | ghost`, sizes
-  `sm | md`, опциональный `iconOnly`.
-- `Input`, `Select`, `Textarea` — поля с label/hint/invalid через
-  общий `Field.module.css`.
+Шрифты — IBM Plex Sans / IBM Plex Mono **если установлены
+локально на машине пользователя**, иначе fallback на системный
+font stack (`-apple-system`, BlinkMacSystemFont, …) и
+`ui-monospace`. Никакого `next/font/google` и CDN — build/dev
+работают полностью offline (это исторический архитектурный
+constraint).
+
+Shell:
+
+- `(shell)/_components/ConsoleTopbar.tsx` — dark topbar 46px:
+  brand (teal mark + AUTODROME) + `LOCAL NODE` chip + cluster
+  node identity (`StatusDot`, NODE id, ONLINE label) + cluster
+  DB/Media/Tel dot indicators + operator avatar/name/role.
+  Все clusters разделены `--color-border-dark` divider'ом.
+- `(shell)/_components/SidebarNav.tsx` — sidebar 228px с
+  группами `SHELL_NAV_GROUPS` (ungrouped Dashboard, REGISTRY,
+  CONFIGURATION, SYSTEM). Активная ссылка подсвечивается
+  teal-soft background и `aria-current="page"`. Совместимость
+  с старым flat `SHELL_ROUTES` сохранена (deflated через
+  `flatMap`).
+- `(shell)/_components/ConsoleSidebarFooter.tsx` — нижний блок
+  sidebar: `Node storage` caption + mono-value + 5px progress
+  bar (`role="progressbar"`, `aria-valuemin/max/now`) + build/
+  offline + version mono. Прогресс клампится в `[0, 1]`.
+- `(shell)/layout.tsx` — CSS grid `46px 1fr / 228px 1fr`.
+  Topbar занимает row 1 / colspan 2. Sidebar — row 2 col 1.
+  Main — row 2 col 2 со скроллом. На narrow viewports
+  layout складывается в одну колонку с topbar/sidebar/content
+  как rows.
+
+`src/components/` содержит общие примитивы:
+
+- `Button` — варианты `primary | secondary | danger | ghost`,
+  sizes `sm | md`, опциональный `iconOnly`.
+- `Input`, `Select`, `Textarea` — поля с label/hint/invalid
+  через общий `Field.module.css`.
 - `Table` — accessible table-обёртка с overflow-wrapper.
-- `Tabs` (client) — управляемые табы с `useState`, ARIA tablist/tab/
-  tabpanel.
-- `StatusBadge` — варианты `neutral | info | success | warning | danger`.
-- `Toolbar` + `ToolbarSection` — горизонтальный action-контейнер.
+- `Tabs` (client) — управляемые табы с `useState`, ARIA
+  tablist/tab/tabpanel.
+- `StatusBadge` — варианты `neutral | info | success |
+  warning | danger`.
+- `StatusDot` — accessible цветной dot (`role="img"` с
+  label или `aria-hidden` для декоративных), варианты
+  `online | degraded | offline | standby | unknown`,
+  опциональный halo.
+- `ConsoleCard` — основной surface для виджетов: header
+  с title + optional aside, body с padding или edge-to-edge
+  через `flush`. Используется в будущих dashboard widgets.
+- `Toolbar` + `ToolbarSection` — горизонтальный
+  action-контейнер.
 - `Modal` (client) — обёртка над нативным `<dialog>`
   (`showModal()`/`close()`, Escape, backdrop-click).
-- `State` / `EmptyState` / `LoadingState` / `ErrorState` — единые
-  заготовки пустых, загрузочных и ошибочных состояний.
-- `Skeleton` — анимированный placeholder с регулируемым числом
-  строк, `role="status"` + `aria-busy`, уважает
+- `State` / `EmptyState` / `LoadingState` / `ErrorState` —
+  единые заготовки пустых, загрузочных и ошибочных
+  состояний.
+- `Skeleton` — анимированный placeholder с регулируемым
+  числом строк, `role="status"` + `aria-busy`, уважает
   `prefers-reduced-motion`.
-- `ApiErrorView` (client) — рендерит canonical REST `ErrorEnvelope`
-  через `ApiError`: code, message, HTTP status, `Correlation-Id`
-  c кнопкой copy и optional retry action.
-- `DegradedState` — баннер «service degraded» (предполагается для
-  `service-degraded` сценария mock-адаптера и реальных HTTP 503)
-  с optional retry.
-- `ValidationErrors` — список ошибок валидации `{field, message}`,
-  используется как form-level baseline до подключения форм.
+- `ApiErrorView` (client) — рендерит canonical REST
+  `ErrorEnvelope` через `ApiError`: code, message, HTTP
+  status, `Correlation-Id` c кнопкой copy и optional retry
+  action.
+- `DegradedState` — баннер «service degraded» (предполагается
+  для `service-degraded` сценария mock-адаптера и реальных
+  HTTP 503) с optional retry.
+- `ValidationErrors` — список ошибок валидации
+  `{field, message}`, используется как form-level baseline
+  до подключения форм.
 
-Все примитивы используют только CSS custom properties и CSS modules
-без runtime token-системы и без JS-генерации стилей.
+Все примитивы используют только CSS custom properties и
+CSS modules без runtime token-системы и без JS-генерации
+стилей. Operational status palette (
+`--color-status-online`, `--color-status-degraded`, …) и
+её halo-varianты выведены как явные токены, чтобы
+dashboard widgets из дизайн-референса могли подключаться
+без one-off inline color'ов.
 
 ## Связанные репозитории
 
@@ -175,8 +230,11 @@ App Router с route group `(shell)`:
 - `@testing-library/react` 16 для render-тестов компонентов.
 - pnpm 11 как package manager.
 
-Шрифты — системный font stack в `src/app/globals.css`. `next/font/google`
-и любые CDN-шрифты не используются, build/dev работают полностью offline.
+Шрифты — IBM Plex Sans / IBM Plex Mono с fallback на системный
+font stack в `src/app/tokens.css`. `next/font/google` и любые
+CDN-шрифты не используются, build/dev работают полностью offline
+(если IBM Plex локально не установлен — шрифт молча fallback'ится
+к системному, дизайн остаётся читаемым).
 
 ## Команды запуска
 

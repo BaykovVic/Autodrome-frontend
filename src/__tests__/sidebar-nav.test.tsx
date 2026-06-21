@@ -6,6 +6,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import {
+  SHELL_NAV_GROUPS,
   SHELL_ROUTES,
   SidebarNav,
 } from "@/app/(shell)/_components/SidebarNav";
@@ -25,5 +26,18 @@ describe("SidebarNav", () => {
     );
     expect(active).toHaveLength(1);
     expect(active[0].textContent).toBe("Candidates");
+  });
+
+  it("renders REGISTRY / CONFIGURATION / SYSTEM section headings", () => {
+    render(<SidebarNav />);
+    for (const group of SHELL_NAV_GROUPS) {
+      if (group.heading === null) continue;
+      expect(screen.getByText(group.heading)).toBeDefined();
+    }
+  });
+
+  it("keeps SHELL_ROUTES in sync with SHELL_NAV_GROUPS", () => {
+    const flattened = SHELL_NAV_GROUPS.flatMap((g) => g.routes);
+    expect(flattened).toEqual(SHELL_ROUTES);
   });
 });
