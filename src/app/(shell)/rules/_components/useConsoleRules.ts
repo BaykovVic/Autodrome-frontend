@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { getApiAdapter } from "@/api/get-api-adapter";
 import {
   DEFAULT_SCENARIO,
   isMockScenario,
   type MockScenario,
 } from "@/api/mock/scenarios";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 import { consoleRulesFor } from "./consoleRulesFixtures";
+import { liveRulesLoader } from "./liveRulesLoader";
 import type { ConsoleRulesSnapshot } from "./consoleRulesSnapshot";
 
 export type ConsoleRulesLoader = () =>
@@ -21,7 +24,13 @@ export type ConsoleRulesState = {
   reload: () => void;
 };
 
-function defaultLoader(): ConsoleRulesSnapshot {
+async function defaultLoader(): Promise<ConsoleRulesSnapshot> {
+  // Live mode: route through the typed violation-rule-service client.
+  // Mock mode (default): keep using scenario fixtures so `pnpm dev`
+  // and gates stay backend-free.
+  if (resolveRuntimeMode() === "live") {
+    return liveRulesLoader(getApiAdapter({ mode: "live" }));
+  }
   const env = process.env.NEXT_PUBLIC_MOCK_SCENARIO;
   const scenario: MockScenario = isMockScenario(env)
     ? env

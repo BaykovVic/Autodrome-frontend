@@ -935,6 +935,86 @@ sidebar navigation round-trip с `aria-current="page"`). Live
 transport tested на unit layer
 (`live-exercise-loader.test.ts`) с mocked openapi-fetch client.
 
+### Violation + rule live API integration
+
+`/rules` и `/violations` workspaces подключены к live
+`violation-rule-service`: violation catalog read + create,
+rule catalog/detail read + create + publish. Backend gap для
+rule edit/update surfaces'ится через явный
+`RuleUpdateUnsupportedError` (не silent success).
+
+- `src/app/(shell)/rules/_components/liveRulesLoader.ts` — pure
+  mappers (`mapRuleStatus`, `mapRuleDtoToConsole` с
+  design-only `conditionPreview` placeholder) + commands:
+  - `liveRulesLoader(adapter)` — `GET /rules` (totals + rule
+    rows). Pagination первой страницей.
+  - `liveRuleGet(adapter, ruleId, ruleVersion?)` —
+    `GET /rules/{ruleId}` с optional version query.
+  - `liveRuleCreate(adapter, draft)` — `POST /rules` с
+    `Idempotency-Key` per call.
+  - `liveRulePublish(adapter, ruleId, request)` —
+    `POST /rules/{ruleId}/publish`.
+  - `liveRuleUpdate(adapter, ruleId, update)` — **throws
+    `RuleUpdateUnsupportedError`** (code `RULE_UPDATE_UNSUPPORTED`;
+    canonical violation-rule-service не выставил
+    `PUT/PATCH /rules/{id}`). UI surfaces degraded state через
+    ApiErrorView. Forward-compat signature.
+- `src/app/(shell)/violations/_components/liveViolationsLoader.ts`
+  — pure mappers (`mapViolationSeverity`,
+  `mapViolationDtoToConsole`) + commands:
+  - `liveViolationsLoader(adapter)` — `GET /violations` с
+    активным rule banner derived from first violation's
+    `activeRuleVersion`.
+  - `liveViolationGet(adapter, violationId)` —
+    `GET /violations/{violationId}`.
+  - `liveViolationCreate(adapter, creation)` —
+    `POST /violations` с `Idempotency-Key` per call.
+- `useConsoleRules` + `useConsoleViolations` defaultLoader
+  переключаются по `resolveRuntimeMode()` (mock default-safe,
+  live opt-in).
+
+Severity vocabulary translation:
+
+| Canonical `Severity` | Console `ConsoleViolationSeverity` |
+|---|---|
+| `critical` | `critical` |
+| `high` | `critical` |
+| `medium` | `major` |
+| `low` | `minor` |
+
+Mapping caveats (design-only blocks):
+
+- `ConsoleRule.conditionPreview[]` — design-only block. Default
+  placeholder ("Condition tree available in backend snapshot" /
+  "No condition tree attached yet"); полный human-readable preview
+  лансит вместе с rule editor follow-up фичей.
+- `ConsoleRule.history[]` — design-only, defaults `[]` пока
+  backend не выставит history read endpoint.
+- `ConsoleViolation.penalty` — design-only, defaults `"—"` пока
+  violation policy extension не доедет.
+- `ConsoleViolation.requiredEvidence[]` — design-only, defaults
+  `[]`.
+- `ConsoleViolation.status` — defaults `"active"` (canonical
+  Violation DTO не carries lifecycle state; ".deprecated" branch
+  ждёт backend extension).
+- `ConsoleViolation.ruleId` — derived from
+  `activeRuleVersion?.ruleId`, иначе `"—"`.
+
+Editor dirty-state requirement (per spec "preserve editor
+dirty-state and safe confirm behavior") — vacuous на этой фиче:
+`RulesScreen` пока read-only preview с тегом "EDITOR · PLANNED";
+loader возвращает immutable snapshots без записи в editor-local
+state, что safe для future editor wiring. Documented в feature
+report.
+
+Browser smoke `e2e/rules-violations-workflow.spec.ts` (5
+chromium tests) проверяет что live-loader code-path не регрессит
+mock-mode workflows (rules table + detail aside + row selection;
+violations catalog + severity legend + row selection; sidebar
+nav round-trip). Live transport tested на unit layer
+(`live-rules-loader.test.ts` + `live-violations-loader.test.ts`)
+с mocked openapi-fetch clients.
+
 ## Branch policy
 
 Frontend bootstrap rule:
