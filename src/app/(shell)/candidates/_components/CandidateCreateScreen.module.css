@@ -1,0 +1,217 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  letter-spacing: 0;
+  padding: 16px 20px;
+  max-width: 820px;
+  width: 100%;
+  margin: 0;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  letter-spacing: 0;
+}
+
+.crumbsLink {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0;
+}
+
+.crumbsLink:hover {
+  color: var(--color-text);
+}
+
+.crumbsLink:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.crumbsCurrent {
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+.infoBanner {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  background: var(--color-accent-soft);
+  border: var(--border-width) solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: 10px 13px;
+  margin-bottom: 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+.infoIcon {
+  flex: none;
+  color: var(--color-accent-strong);
+}
+
+.savedBanner {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  background: var(--color-success-soft);
+  border: var(--border-width) solid var(--color-success);
+  border-radius: var(--radius-md);
+  padding: 10px 13px;
+  margin-bottom: 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+.savedIcon {
+  flex: none;
+  color: var(--color-success-strong);
+}
+
+.card {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+  letter-spacing: 0;
+}
+
+.cardSection {
+  grid-column: 1 / -1;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.cardSectionDivider {
+  border-top: var(--border-width) solid var(--color-border-divider);
+  padding-top: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  letter-spacing: 0;
+}
+
+.fieldLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  letter-spacing: 0;
+}
+
+.fieldLabelRequired::after {
+  content: " *";
+  color: var(--color-danger);
+}
+
+.fieldInput {
+  height: 32px;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 0 10px;
+  font: inherit;
+  font-size: var(--font-size-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.fieldInput:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.fieldInputMono {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+.fieldInputInvalid {
+  border-color: var(--color-danger);
+}
+
+.fieldError {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  margin-top: 3px;
+  letter-spacing: 0;
+}
+
+.fieldHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  margin-top: 3px;
+  letter-spacing: 0;
+}
+
+.assignedId {
+  align-self: flex-end;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.assignedIdMono {
+  font-family: var(--font-family-mono);
+  color: var(--color-text);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  letter-spacing: 0;
+}
+
+.cancelLink {
+  background: none;
+  border: 0;
+  color: var(--color-text-muted);
+  padding: 9px 6px;
+  font: inherit;
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  letter-spacing: 0;
+}
+
+.cancelLink:hover {
+  color: var(--color-text);
+}
+
+.cancelLink:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

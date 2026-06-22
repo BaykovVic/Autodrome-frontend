@@ -13,6 +13,7 @@ const NARROW = { width: 375, height: 812 } as const;
 const ROUTES = [
   "/dashboard",
   "/candidates",
+  "/candidates/new",
   "/vehicles",
   "/exams",
   "/exercises",

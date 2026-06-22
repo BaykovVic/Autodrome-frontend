@@ -1,6 +1,18 @@
 import { describe, expect, it, beforeAll, afterAll, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => "/",
+}));
+
 import CandidatesPage from "@/app/(shell)/candidates/page";
 import DashboardPage from "@/app/(shell)/dashboard/page";
 import EvidencePage from "@/app/(shell)/evidence/page";
