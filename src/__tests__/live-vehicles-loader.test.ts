@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/api/errors";
 import {
+  liveVehicleBindDevice,
+  liveVehicleBindGateway,
+  liveVehicleChangeStatus,
+  liveVehicleGet,
+  liveVehicleRegister,
   liveVehiclesLoader,
   mapVehicleDtoToConsole,
   vehicleDeviceState,
@@ -137,5 +142,220 @@ describe("liveVehiclesLoader: full loader (mocked client)", () => {
       });
     });
     await expect(liveVehiclesLoader(api)).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+function makeVehicleApi(
+  vehicle: Partial<AutodromeApi["vehicle"]>,
+): AutodromeApi {
+  return { vehicle } as unknown as AutodromeApi;
+}
+
+describe("liveVehicleGet / liveVehicleRegister / liveVehicleChangeStatus / liveVehicleBindGateway / liveVehicleBindDevice", () => {
+  it("GET /vehicles/{id}: passes path param and maps DTO", async () => {
+    const dto = makeDto({ vehicleId: "v-X" });
+    const GET = vi.fn(async () => ({ data: dto }));
+    const api = makeVehicleApi({
+      GET: GET as unknown as AutodromeApi["vehicle"]["GET"],
+    });
+
+    const v = await liveVehicleGet(api, "v-X");
+
+    expect(GET).toHaveBeenCalledWith("/vehicles/{vehicleId}", {
+      params: { path: { vehicleId: "v-X" } },
+    });
+    expect(v.id).toBe("v-X");
+  });
+
+  it("GET /vehicles/{id}: throws on empty body", async () => {
+    const GET = vi.fn(async () => ({ data: undefined }));
+    const api = makeVehicleApi({
+      GET: GET as unknown as AutodromeApi["vehicle"]["GET"],
+    });
+    await expect(liveVehicleGet(api, "v-Z")).rejects.toThrow(/empty body/i);
+  });
+
+  it("POST /vehicles: attaches Idempotency-Key header and maps response", async () => {
+    const created = makeDto({ vehicleId: "v-NEW-1" });
+    const POST = vi.fn(async () => ({ data: created }));
+    const api = makeVehicleApi({
+      POST: POST as unknown as AutodromeApi["vehicle"]["POST"],
+    });
+
+    const registration: components["schemas"]["VehicleRegistration"] = {
+      plateNumber: "AA 100",
+      type: "passenger",
+      model: "Renault Logan",
+    };
+    const v = await liveVehicleRegister(api, registration);
+
+    expect(POST).toHaveBeenCalledTimes(1);
+    const [path, opts] = POST.mock.calls[0] as unknown as [
+      string,
+      {
+        params: { header: { "Idempotency-Key": string } };
+        body: components["schemas"]["VehicleRegistration"];
+      },
+    ];
+    expect(path).toBe("/vehicles");
+    expect(opts.params.header["Idempotency-Key"]).toMatch(/.+/);
+    expect(opts.body).toEqual(registration);
+    expect(v.id).toBe("v-NEW-1");
+  });
+
+  it("POST /vehicles: throws on empty body", async () => {
+    const POST = vi.fn(async () => ({ data: undefined }));
+    const api = makeVehicleApi({
+      POST: POST as unknown as AutodromeApi["vehicle"]["POST"],
+    });
+    await expect(
+      liveVehicleRegister(api, {
+        plateNumber: "AA 100",
+        type: "passenger",
+        model: "Renault Logan",
+      }),
+    ).rejects.toThrow(/empty body/i);
+  });
+
+  it("POST /vehicles/{id}/status: forwards path, header, and body", async () => {
+    const dto = makeDto({ vehicleId: "v-S", status: "maintenance" });
+    const POST = vi.fn(async () => ({ data: dto }));
+    const api = makeVehicleApi({
+      POST: POST as unknown as AutodromeApi["vehicle"]["POST"],
+    });
+
+    const v = await liveVehicleChangeStatus(api, "v-S", {
+      targetStatus: "maintenance",
+      reason: "scheduled",
+    });
+
+    const [path, opts] = POST.mock.calls[0] as unknown as [
+      string,
+      {
+        params: {
+          path: { vehicleId: string };
+          header: { "Idempotency-Key": string };
+        };
+        body: components["schemas"]["VehicleStatusChange"];
+      },
+    ];
+    expect(path).toBe("/vehicles/{vehicleId}/status");
+    expect(opts.params.path.vehicleId).toBe("v-S");
+    expect(opts.body.targetStatus).toBe("maintenance");
+    expect(v.device.state).toBe("degraded");
+  });
+
+  it("POST /vehicles/{id}/bind-gateway: forwards path, header, and binding payload", async () => {
+    const dto = makeDto({
+      vehicleId: "v-G",
+      status: "active",
+      boundEdgeGateway: {
+        edgeGatewayId: "gw-1",
+      },
+    });
+    const POST = vi.fn(async () => ({ data: dto }));
+    const api = makeVehicleApi({
+      POST: POST as unknown as AutodromeApi["vehicle"]["POST"],
+    });
+
+    const v = await liveVehicleBindGateway(api, "v-G", {
+      edgeGatewayRef: { edgeGatewayId: "gw-1" },
+    });
+
+    const [path, opts] = POST.mock.calls[0] as unknown as [
+      string,
+      {
+        params: {
+          path: { vehicleId: string };
+          header: { "Idempotency-Key": string };
+        };
+        body: components["schemas"]["EdgeGatewayBinding"];
+      },
+    ];
+    expect(path).toBe("/vehicles/{vehicleId}/bind-gateway");
+    expect(opts.params.path.vehicleId).toBe("v-G");
+    expect(opts.body.edgeGatewayRef.edgeGatewayId).toBe("gw-1");
+    expect(v.device.state).toBe("degraded");
+  });
+
+  it("POST /vehicles/{id}/bind-device: forwards path, header, and binding payload", async () => {
+    const dto = makeDto({
+      vehicleId: "v-D",
+      status: "active",
+      boundEdgeGateway: { edgeGatewayId: "gw-1" },
+      boundDevice: { deviceId: "dev-1" },
+    });
+    const POST = vi.fn(async () => ({ data: dto }));
+    const api = makeVehicleApi({
+      POST: POST as unknown as AutodromeApi["vehicle"]["POST"],
+    });
+
+    const v = await liveVehicleBindDevice(api, "v-D", {
+      deviceRef: { deviceId: "dev-1" },
+    });
+
+    const [path, opts] = POST.mock.calls[0] as unknown as [
+      string,
+      {
+        params: {
+          path: { vehicleId: string };
+          header: { "Idempotency-Key": string };
+        };
+        body: components["schemas"]["DeviceBinding"];
+      },
+    ];
+    expect(path).toBe("/vehicles/{vehicleId}/bind-device");
+    expect(opts.params.path.vehicleId).toBe("v-D");
+    expect(opts.body.deviceRef.deviceId).toBe("dev-1");
+    expect(v.device.state).toBe("online");
+  });
+
+  it("propagates ApiError from middleware on register", async () => {
+    const POST = vi.fn(() => {
+      throw new ApiError({
+        status: 422,
+        code: "VALIDATION",
+        message: "invalid plate",
+        url: "/api/vehicle/v1/vehicles",
+      });
+    });
+    const api = makeVehicleApi({
+      POST: POST as unknown as AutodromeApi["vehicle"]["POST"],
+    });
+    await expect(
+      liveVehicleRegister(api, {
+        plateNumber: "??",
+        type: "passenger",
+        model: "X",
+      }),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("each register call uses a fresh Idempotency-Key", async () => {
+    const POST = vi.fn(async () => ({ data: makeDto() }));
+    const api = makeVehicleApi({
+      POST: POST as unknown as AutodromeApi["vehicle"]["POST"],
+    });
+    await liveVehicleRegister(api, {
+      plateNumber: "AA 100",
+      type: "passenger",
+      model: "X",
+    });
+    await liveVehicleRegister(api, {
+      plateNumber: "AA 101",
+      type: "passenger",
+      model: "X",
+    });
+    const [, opts1] = POST.mock.calls[0] as unknown as [
+      string,
+      { params: { header: { "Idempotency-Key": string } } },
+    ];
+    const [, opts2] = POST.mock.calls[1] as unknown as [
+      string,
+      { params: { header: { "Idempotency-Key": string } } },
+    ];
+    expect(opts1.params.header["Idempotency-Key"]).not.toBe(
+      opts2.params.header["Idempotency-Key"],
+    );
   });
 });

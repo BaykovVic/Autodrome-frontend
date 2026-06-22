@@ -3,11 +3,18 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { Button } from "@/components";
+import { ApiErrorView, Button } from "@/components";
+import { getApiAdapter } from "@/api/get-api-adapter";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 
 import { StartEnrollmentDialog } from "./StartEnrollmentDialog";
 import type { EnrollmentChannelsSnapshot } from "./consoleEnrollmentChannels";
 import { consoleEnrollmentChannelsFor } from "./consoleEnrollmentChannelsFixtures";
+import {
+  liveCandidateRegister,
+  type CandidateCreateDraft,
+} from "./liveCandidatesLoader";
+import type { ConsoleCandidate } from "./consoleRegistrySnapshot";
 
 import styles from "./CandidateCreateScreen.module.css";
 
@@ -23,15 +30,27 @@ type FormState = {
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
+export type CandidateRegisterCommand = (
+  draft: CandidateCreateDraft,
+) => Promise<ConsoleCandidate>;
+
 type Props = {
   /**
    * Optional fixed candidate id to assign on save. Defaults to a
    * deterministic mock id so tests and the design surface stay
-   * predictable; live binding lands in a follow-up feature.
+   * predictable; in live mode the real candidate id from the
+   * backend replaces this on a successful POST /candidates.
    */
   assignedCandidateId?: string;
   /** Optional pre-loaded enrollment-channels snapshot for tests. */
   channels?: EnrollmentChannelsSnapshot;
+  /**
+   * Optional register command. Defaults to
+   * `liveCandidateRegister(getApiAdapter({mode:"live"}))` when
+   * runtime mode is `live`, and to `undefined` (mock-only client
+   * commit) otherwise. Tests inject explicit commands.
+   */
+  registerCandidate?: CandidateRegisterCommand;
 };
 
 const DEFAULT_FORM: FormState = {
@@ -96,18 +115,35 @@ function CheckIcon() {
   );
 }
 
+function defaultRegisterCandidate(): CandidateRegisterCommand | undefined {
+  // Live mode: bind to the real candidate-service POST /candidates.
+  // Mock mode: keep the mock-only client commit (no API call).
+  if (resolveRuntimeMode() === "live") {
+    const adapter = getApiAdapter({ mode: "live" });
+    return (draft) => liveCandidateRegister(adapter, draft);
+  }
+  return undefined;
+}
+
 export function CandidateCreateScreen({
-  assignedCandidateId = "CND-2026-0151",
+  assignedCandidateId: initialAssignedId = "CND-2026-0151",
   channels,
+  registerCandidate,
 }: Props) {
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savedId, setSavedId] = useState<string>(initialAssignedId);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [liveError, setLiveError] = useState<unknown | null>(null);
 
   const errors = useMemo(() => validate(form), [form]);
   const hasErrors = Object.keys(errors).length > 0;
   const visibleErrors = submitAttempted ? errors : {};
+
+  const effectiveRegister: CandidateRegisterCommand | undefined =
+    registerCandidate ?? defaultRegisterCandidate();
 
   const handleChange = <K extends keyof FormState>(
     key: K,
@@ -115,23 +151,55 @@ export function CandidateCreateScreen({
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (saved) setSaved(false);
+    if (liveError) setLiveError(null);
   };
 
-  const tryCommit = (): boolean => {
+  /**
+   * Validates the form and dispatches a register-candidate call when
+   * a live command is bound. Returns `true` when the screen has a
+   * locally-committed (saved) state operator can build on (open the
+   * dialog, see the assigned id). When the live command throws, the
+   * error is surfaced via `<ApiErrorView />` and the screen stays
+   * in the editing state.
+   */
+  const tryCommit = async (): Promise<boolean> => {
     setSubmitAttempted(true);
     if (Object.keys(validate(form)).length > 0) {
       return false;
     }
+
+    if (effectiveRegister) {
+      setLiveError(null);
+      setRegistering(true);
+      try {
+        const created = await effectiveRegister({
+          fullName: form.fullName,
+          dob: form.dob,
+          document: form.document,
+        });
+        setSavedId(created.id);
+        setSaved(true);
+        return true;
+      } catch (error) {
+        setLiveError(error);
+        return false;
+      } finally {
+        setRegistering(false);
+      }
+    }
+
+    // Mock-mode commit: client-only saved transition.
+    setSavedId(initialAssignedId);
     setSaved(true);
     return true;
   };
 
   const handleSave = () => {
-    tryCommit();
+    void tryCommit();
   };
 
-  const handleSaveAndStart = () => {
-    if (tryCommit()) {
+  const handleSaveAndStart = async () => {
+    if (await tryCommit()) {
       setDialogOpen(true);
     }
   };
@@ -163,7 +231,7 @@ export function CandidateCreateScreen({
           <div>
             Candidate saved as{" "}
             <span className={styles.assignedIdMono}>
-              {assignedCandidateId}
+              {savedId}
             </span>
             . You can now <strong>Start face enrollment</strong> —
             face capture runs in a separate flow.
@@ -324,10 +392,22 @@ export function CandidateCreateScreen({
         <div className={styles.assignedId}>
           Candidate id will be assigned on save:{" "}
           <span className={styles.assignedIdMono}>
-            {assignedCandidateId}
+            {savedId}
           </span>
         </div>
       </form>
+
+      {liveError ? (
+        <div
+          className={styles.savedBanner}
+          style={{
+            background: "var(--color-danger-soft)",
+            borderColor: "var(--color-danger)",
+          }}
+        >
+          <ApiErrorView error={liveError} />
+        </div>
+      ) : null}
 
       <div className={styles.actions}>
         <Button
@@ -335,14 +415,16 @@ export function CandidateCreateScreen({
           size="md"
           type="button"
           onClick={handleSaveAndStart}
-          disabled={submitAttempted && hasErrors}
+          disabled={(submitAttempted && hasErrors) || registering}
           title={
             submitAttempted && hasErrors
               ? "Resolve form errors first."
-              : "Save the candidate, then open the enrollment channel selector."
+              : registering
+                ? "Saving the candidate in candidate-service…"
+                : "Save the candidate, then open the enrollment channel selector."
           }
         >
-          Save and start enrollment
+          {registering ? "Saving…" : "Save and start enrollment"}
         </Button>
         <Button
           variant="secondary"
@@ -370,7 +452,7 @@ export function CandidateCreateScreen({
       <StartEnrollmentDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        candidateId={assignedCandidateId}
+        candidateId={savedId}
         candidateName={form.fullName || "—"}
         maskedDob={
           form.dob && DOB_PATTERN.test(form.dob.trim())

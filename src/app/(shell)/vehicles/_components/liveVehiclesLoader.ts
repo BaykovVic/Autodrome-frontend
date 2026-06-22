@@ -22,6 +22,7 @@
  */
 
 import type { AutodromeApi } from "@/api/adapter";
+import { newCorrelationId } from "@/api/correlation";
 import type { components } from "@/contracts/types/vehicle";
 
 import type {
@@ -32,6 +33,10 @@ import type {
 
 type VehicleDto = components["schemas"]["Vehicle"];
 type VehicleType = components["schemas"]["VehicleType"];
+type VehicleRegistrationDto = components["schemas"]["VehicleRegistration"];
+type VehicleStatusChangeDto = components["schemas"]["VehicleStatusChange"];
+type EdgeGatewayBindingDto = components["schemas"]["EdgeGatewayBinding"];
+type DeviceBindingDto = components["schemas"]["DeviceBinding"];
 
 const CATEGORY_FOR_TYPE: Record<VehicleType, string> = {
   passenger: "Cat B",
@@ -105,4 +110,118 @@ export async function liveVehiclesLoader(
     },
     vehicles,
   };
+}
+
+/** GET /vehicles/{vehicleId} — single vehicle read. */
+export async function liveVehicleGet(
+  adapter: AutodromeApi,
+  vehicleId: string,
+): Promise<ConsoleVehicle> {
+  const result = await adapter.vehicle.GET("/vehicles/{vehicleId}", {
+    params: { path: { vehicleId } },
+  });
+  const dto = result.data as VehicleDto | undefined;
+  if (!dto) {
+    throw new Error("vehicle-service returned an empty body");
+  }
+  return mapVehicleDtoToConsole(dto);
+}
+
+/**
+ * POST /vehicles — register a new vehicle. A fresh
+ * `Idempotency-Key` is generated per call so retries do not
+ * register duplicates.
+ */
+export async function liveVehicleRegister(
+  adapter: AutodromeApi,
+  registration: VehicleRegistrationDto,
+): Promise<ConsoleVehicle> {
+  const result = await adapter.vehicle.POST("/vehicles", {
+    params: {
+      header: { "Idempotency-Key": newCorrelationId() },
+    },
+    body: registration,
+  });
+  const dto = result.data as VehicleDto | undefined;
+  if (!dto) {
+    throw new Error(
+      "vehicle-service returned an empty body for POST /vehicles",
+    );
+  }
+  return mapVehicleDtoToConsole(dto);
+}
+
+/** POST /vehicles/{vehicleId}/status — change vehicle status. */
+export async function liveVehicleChangeStatus(
+  adapter: AutodromeApi,
+  vehicleId: string,
+  change: VehicleStatusChangeDto,
+): Promise<ConsoleVehicle> {
+  const result = await adapter.vehicle.POST(
+    "/vehicles/{vehicleId}/status",
+    {
+      params: {
+        path: { vehicleId },
+        header: { "Idempotency-Key": newCorrelationId() },
+      },
+      body: change,
+    },
+  );
+  const dto = result.data as VehicleDto | undefined;
+  if (!dto) {
+    throw new Error(
+      "vehicle-service returned an empty body for status change",
+    );
+  }
+  return mapVehicleDtoToConsole(dto);
+}
+
+/** POST /vehicles/{vehicleId}/bind-gateway — bind an edge gateway. */
+export async function liveVehicleBindGateway(
+  adapter: AutodromeApi,
+  vehicleId: string,
+  binding: EdgeGatewayBindingDto,
+): Promise<ConsoleVehicle> {
+  const result = await adapter.vehicle.POST(
+    "/vehicles/{vehicleId}/bind-gateway",
+    {
+      params: {
+        path: { vehicleId },
+        header: { "Idempotency-Key": newCorrelationId() },
+      },
+      body: binding,
+    },
+  );
+  const dto = result.data as VehicleDto | undefined;
+  if (!dto) {
+    throw new Error(
+      "vehicle-service returned an empty body for bind-gateway",
+    );
+  }
+  return mapVehicleDtoToConsole(dto);
+}
+
+/** POST /vehicles/{vehicleId}/bind-device — bind an Android device. */
+export async function liveVehicleBindDevice(
+  adapter: AutodromeApi,
+  vehicleId: string,
+  binding: DeviceBindingDto,
+): Promise<ConsoleVehicle> {
+  const result = await adapter.vehicle.POST(
+    "/vehicles/{vehicleId}/bind-device",
+    {
+      params: {
+        path: { vehicleId },
+        header: { "Idempotency-Key": newCorrelationId() },
+      },
+      body: binding,
+    },
+  );
+  const dto = result.data as VehicleDto | undefined;
+  if (!dto) {
+    throw new Error(
+      "vehicle-service returned an empty body for bind-device",
+    );
+  }
+  return mapVehicleDtoToConsole(dto);
 }

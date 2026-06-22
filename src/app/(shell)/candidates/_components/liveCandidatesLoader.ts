@@ -23,6 +23,7 @@
  */
 
 import type { AutodromeApi } from "@/api/adapter";
+import { newCorrelationId } from "@/api/correlation";
 import type { components } from "@/contracts/types/candidate";
 
 import type {
@@ -36,6 +37,27 @@ import type {
 type CandidateDto = components["schemas"]["Candidate"];
 type CandidateStatus = components["schemas"]["CandidateStatus"];
 type CandidatesPage = components["schemas"]["CandidatesPage"];
+type CandidateRegistrationDto =
+  components["schemas"]["CandidateRegistration"];
+type CandidateStatusChangeDto =
+  components["schemas"]["CandidateStatusChange"];
+type CandidateDeletionDto = components["schemas"]["CandidateDeletion"];
+
+/**
+ * Operator-facing draft for the candidate create form. Maps onto
+ * the canonical `CandidateRegistration` DTO via
+ * `formToCandidateRegistration`. Design-only fields (`category`,
+ * `eligibility`) are not part of the DTO yet — see the adapter
+ * README for the missing-contract note.
+ */
+export type CandidateCreateDraft = {
+  fullName: string;
+  /** Operator-input `DD.MM.YYYY`. Mapper converts to ISO `YYYY-MM-DD`. */
+  dob: string;
+  document: string;
+  /** Optional document type — defaults to `drivingLicense`. */
+  documentType?: CandidateRegistrationDto["identityDocument"]["documentType"];
+};
 
 const REGISTRATION_FOR_STATUS: Record<
   CandidateStatus,
@@ -153,4 +175,159 @@ export async function liveCandidatesLoader(
     },
     candidates,
   };
+}
+
+function dobIsoFromOperatorInput(dob: string): string {
+  // `DD.MM.YYYY` → `YYYY-MM-DD`.
+  const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(dob.trim());
+  if (!m) {
+    throw new Error(
+      "Invalid date of birth — expected DD.MM.YYYY",
+    );
+  }
+  const [, dd, mm, yyyy] = m;
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function splitFullName(fullName: string): {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+} {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    throw new Error("Invalid full name — at least first + last required");
+  }
+  if (parts.length === 1) {
+    // Single name → reuse as both first and last so the canonical
+    // contract (which requires both) still accepts it.
+    return { firstName: parts[0], lastName: parts[0] };
+  }
+  if (parts.length === 2) {
+    return { firstName: parts[0], lastName: parts[1] };
+  }
+  return {
+    firstName: parts[0],
+    middleName: parts.slice(1, -1).join(" "),
+    lastName: parts[parts.length - 1],
+  };
+}
+
+/**
+ * Map operator-input form → canonical `CandidateRegistration` DTO.
+ * Pure, no side effects. Throws on malformed input so the caller
+ * can surface a validation error.
+ */
+export function formToCandidateRegistration(
+  draft: CandidateCreateDraft,
+): CandidateRegistrationDto {
+  const { firstName, middleName, lastName } = splitFullName(draft.fullName);
+  return {
+    firstName,
+    ...(middleName ? { middleName } : {}),
+    lastName,
+    birthDate: dobIsoFromOperatorInput(draft.dob),
+    identityDocument: {
+      documentType: draft.documentType ?? "drivingLicense",
+      documentNumber: draft.document.trim(),
+    },
+  };
+}
+
+/** GET /candidates/{candidateId} — single candidate read. */
+export async function liveCandidateGet(
+  adapter: AutodromeApi,
+  candidateId: string,
+): Promise<ConsoleCandidate> {
+  const result = await adapter.candidate.GET(
+    "/candidates/{candidateId}",
+    {
+      params: { path: { candidateId } },
+    },
+  );
+  const dto = result.data as CandidateDto | undefined;
+  if (!dto) {
+    throw new Error("candidate-service returned an empty body");
+  }
+  return mapCandidateDtoToConsole(dto);
+}
+
+/**
+ * POST /candidates — register a new candidate. The operator-input
+ * draft is mapped to the canonical DTO via
+ * `formToCandidateRegistration`. A fresh `Idempotency-Key` is
+ * generated per call so retries do not register duplicates.
+ */
+export async function liveCandidateRegister(
+  adapter: AutodromeApi,
+  draft: CandidateCreateDraft,
+): Promise<ConsoleCandidate> {
+  const registration = formToCandidateRegistration(draft);
+  const result = await adapter.candidate.POST("/candidates", {
+    params: {
+      header: { "Idempotency-Key": newCorrelationId() },
+    },
+    body: registration,
+  });
+  const dto = result.data as CandidateDto | undefined;
+  if (!dto) {
+    throw new Error(
+      "candidate-service returned an empty body for POST /candidates",
+    );
+  }
+  return mapCandidateDtoToConsole(dto);
+}
+
+/** POST /candidates/{candidateId}/status — change candidate status. */
+export async function liveCandidateChangeStatus(
+  adapter: AutodromeApi,
+  candidateId: string,
+  change: CandidateStatusChangeDto,
+): Promise<ConsoleCandidate> {
+  const result = await adapter.candidate.POST(
+    "/candidates/{candidateId}/status",
+    {
+      params: {
+        path: { candidateId },
+        header: { "Idempotency-Key": newCorrelationId() },
+      },
+      body: change,
+    },
+  );
+  const dto = result.data as CandidateDto | undefined;
+  if (!dto) {
+    throw new Error(
+      "candidate-service returned an empty body for status change",
+    );
+  }
+  return mapCandidateDtoToConsole(dto);
+}
+
+/**
+ * POST /candidates/{candidateId}/delete — idempotent soft-delete.
+ * Returns the candidate snapshot the backend chooses to expose
+ * post-delete (typically status `deleted`).
+ */
+export async function liveCandidateDelete(
+  adapter: AutodromeApi,
+  candidateId: string,
+  deletion: CandidateDeletionDto = {},
+): Promise<ConsoleCandidate> {
+  const result = await adapter.candidate.POST(
+    "/candidates/{candidateId}/delete",
+    {
+      params: {
+        path: { candidateId },
+        header: { "Idempotency-Key": newCorrelationId() },
+      },
+      body: deletion,
+    },
+  );
+  const dto = result.data as CandidateDto | undefined;
+  if (!dto) {
+    throw new Error(
+      "candidate-service returned an empty body for delete",
+    );
+  }
+  return mapCandidateDtoToConsole(dto);
 }
