@@ -188,13 +188,18 @@ export function CandidatesScreen({ loader }: Props) {
     });
   }, [candidates, search, filter]);
 
+  // The detail pane is scoped to the currently filtered set. When
+  // filters/search hide every row, no detail is shown — otherwise the
+  // operator would see a candidate that contradicts the "No
+  // candidates match current filters" message in the table column.
   const selected: ConsoleCandidate | undefined = useMemo(() => {
+    if (visible.length === 0) return undefined;
     if (selectedId) {
-      const match = candidates.find((c) => c.id === selectedId);
+      const match = visible.find((c) => c.id === selectedId);
       if (match) return match;
     }
-    return visible[0] ?? candidates[0];
-  }, [candidates, visible, selectedId]);
+    return visible[0];
+  }, [visible, selectedId]);
 
   if (state.loading) {
     return (

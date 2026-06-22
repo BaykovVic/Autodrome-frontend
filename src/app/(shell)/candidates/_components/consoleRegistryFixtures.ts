@@ -6,10 +6,13 @@ import type {
 
 /**
  * Per spec: all nine enrollment states must be represented across
- * scenario fixtures. The `NORMAL` set below covers eight candidates,
- * each tagged with a distinct enrollment state. Scenarios like
- * `violations-detected` and `exam-in-progress` derive from `NORMAL`
- * and adjust eligibility/labels without losing state coverage.
+ * scenario fixtures. The `NORMAL` scenario combines `NORMAL_CANDIDATES`
+ * (eight candidates, enrollment states 1–8) with
+ * `SESSION_EXPIRED_CANDIDATE` (the ninth — `session-expired`), for a
+ * total of nine candidates with one-to-one state coverage. Scenarios
+ * like `violations-detected` and `exam-in-progress` derive from
+ * `NORMAL` and adjust eligibility/labels without losing state
+ * coverage.
  */
 const NORMAL_CANDIDATES: ConsoleCandidate[] = [
   {

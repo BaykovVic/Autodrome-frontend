@@ -74,6 +74,56 @@ describe("CandidatesScreen", () => {
     expect(screen.queryByText("CND-1042")).toBeNull();
   });
 
+  it("hides the detail pane when filters return zero visible rows on a non-empty dataset (R1 regression)", async () => {
+    renderScreen("normal");
+    await screen.findAllByText("CND-1042");
+    // Pre-condition: an aside is rendered for the default selection.
+    expect(
+      screen.queryByRole("complementary", {
+        name: /Candidate CND-1042/i,
+      }),
+    ).not.toBeNull();
+    const search = screen.getByRole("textbox", { name: /search/i });
+    // Non-empty dataset + impossible search → zero visible rows.
+    fireEvent.change(search, { target: { value: "no-such-candidate-zzz" } });
+    // Table column shows the empty-filter message.
+    expect(
+      screen.getByText(/No candidates match current filters/i),
+    ).toBeDefined();
+    // No detail aside renders — i.e. no candidate from outside the
+    // filtered set leaks into the UI.
+    expect(
+      screen.queryByRole("complementary", { name: /^Candidate /i }),
+    ).toBeNull();
+  });
+
+  it("refocuses detail to first visible row when a previously selected candidate is filtered out", async () => {
+    renderScreen("normal");
+    await screen.findAllByText("CND-1042");
+    // Select an enrolled candidate (CND-1042).
+    fireEvent.click(screen.getByRole("button", { name: /A\. Nikitin/i }));
+    expect(
+      screen.getByRole("complementary", {
+        name: /Candidate CND-1042/i,
+      }),
+    ).toBeDefined();
+    // Switch to "Not enrolled" filter — CND-1042 (enrolled) is hidden,
+    // CND-1046 (not-enrolled) becomes the first visible row.
+    fireEvent.click(
+      screen.getByRole("tab", { name: /^not enrolled$/i }),
+    );
+    expect(
+      screen.queryByRole("complementary", {
+        name: /Candidate CND-1042/i,
+      }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("complementary", {
+        name: /Candidate CND-1046/i,
+      }),
+    ).toBeDefined();
+  });
+
   it("renders empty state for the empty scenario", async () => {
     renderScreen("empty");
     expect(
