@@ -52,18 +52,30 @@ App Router с route group `(shell)`:
   Retry/View actions, появляется только когда в snapshot
   есть `degradedNotice`). Live API binding intentionally не
   включён — это design implementation фича. `/candidates`
-  использует `CandidatesScreen` — registry visual surface
-  поверх `useConsoleCandidates` hook'а + scenario-driven
-  fixtures (`consoleRegistryFixtures.ts`): compact header
-  с totals (records + awaiting face verification), filters
-  bar (search / category / registration status), dense
-  sticky-header table (Candidate / Cat / Registration /
-  Face verify / Exams) с tinted active row и detail pane
-  с avatar (инициалы), reg badge, **Face verification**
-  block (frame + dot + badge + confidence), Details list
-  (Cat / DoB / Phone / Last activity) и disabled actions
-  (Start exam / Capture face / Edit — service-specific
-  workflows вне scope design implementation). `/vehicles`
+  использует `CandidatesScreen` — Web Operator Console
+  candidate registry + face enrollment panel поверх
+  `useConsoleCandidates` hook'а + scenario-driven fixtures
+  (`consoleRegistryFixtures.ts`): compact header с totals
+  (records + awaiting enrollment), filters bar (search +
+  5 enrollment chips All / Not enrolled / In progress /
+  Quality issues / Enrolled), dense sticky-header table
+  (Candidate / Masked DOB / Eligibility / Face template)
+  с keyboard-accessible primary-cell button (R2) и detail
+  aside с avatar (инициалы), Identity dl (Masked DOB —
+  `**.**.YYYY` privacy mask / Document / Eligibility /
+  Last enrollment) и **Face enrollment** panel (face icon
+  + status badge + Template status + Source device + note
+  «Per-exam face verification and passive liveness checks
+  are tracked outside this view» + disabled Start enrollment
+  / Sessions actions). 9 enrollment states покрыты в
+  fixtures: enrolled / capturing / command-sent /
+  ready-to-enroll / not-enrolled / quality-failed /
+  needs-retry / device-unavailable / session-expired.
+  Separation сохранена: enrollment-only surface; per-exam
+  face verification, passive liveness, candidate
+  create/edit flow, start enrollment dialog, session
+  monitor и camera station / capture window намеренно вне
+  scope и должны быть отдельными фичами. `/vehicles`
   использует `VehiclesScreen` — тот же visual pattern
   поверх `useConsoleVehicles`: header с totals (vehicles +
   degraded + offline), filters (search / device state),
