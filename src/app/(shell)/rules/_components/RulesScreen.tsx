@@ -6,6 +6,7 @@ import {
   ApiErrorView,
   Button,
   EmptyState,
+  PlusIcon,
   Skeleton,
   StatusBadge,
   type StatusBadgeVariant,
@@ -104,6 +105,7 @@ export function RulesScreen({ loader }: Props) {
           disabled
           title="Create-rule flow lands in a follow-up feature."
         >
+          <PlusIcon />
           New rule
         </Button>
       </header>

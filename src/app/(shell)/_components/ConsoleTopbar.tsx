@@ -28,7 +28,7 @@ type Props = {
 };
 
 const DEFAULT_NODE: TopbarNode = {
-  id: "NODE-LOCAL",
+  id: "NODE-A2",
   state: "online",
   stateLabel: "ONLINE",
 };
@@ -40,8 +40,8 @@ const DEFAULT_SERVICES: TopbarService[] = [
 ];
 
 const DEFAULT_OPERATOR: TopbarOperator = {
-  initials: "OP",
-  name: "Operator",
+  initials: "MO",
+  name: "M. Orlova",
   role: "Inspector",
 };
 

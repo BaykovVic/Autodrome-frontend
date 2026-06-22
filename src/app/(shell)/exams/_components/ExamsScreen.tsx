@@ -6,6 +6,7 @@ import {
   ApiErrorView,
   Button,
   EmptyState,
+  PlusIcon,
   Skeleton,
   StatusBadge,
   type StatusBadgeVariant,
@@ -133,6 +134,7 @@ export function ExamsScreen({ loader }: Props) {
             disabled
             title="Create-exam flow lands in a follow-up feature."
           >
+            <PlusIcon />
             Create exam
           </Button>
         </div>

@@ -7,6 +7,7 @@ import {
   Button,
   DegradedState,
   EmptyState,
+  RefreshIcon,
   Skeleton,
 } from "@/components";
 import {
@@ -65,6 +66,7 @@ export function ServiceHealthDashboard({ loader }: Props) {
         </div>
         <div className={styles.actions}>
           <Button variant="secondary" size="sm" onClick={state.reload}>
+            <RefreshIcon />
             Reload
           </Button>
         </div>

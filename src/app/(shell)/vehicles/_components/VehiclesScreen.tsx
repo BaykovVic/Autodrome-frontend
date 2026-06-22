@@ -6,6 +6,7 @@ import {
   ApiErrorView,
   Button,
   EmptyState,
+  SearchIcon,
   Skeleton,
   StatusBadge,
   type StatusBadgeVariant,
@@ -163,13 +164,18 @@ export function VehiclesScreen({ loader }: Props) {
           role="search"
           aria-label="Vehicles filters"
         >
-          <input
-            className={styles.search}
-            placeholder="Search plate or ID…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search"
-          />
+          <div className={styles.searchWrap}>
+            <span className={styles.searchIcon} aria-hidden="true">
+              <SearchIcon />
+            </span>
+            <input
+              className={styles.search}
+              placeholder="Search plate or ID…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search"
+            />
+          </div>
           <select
             className={styles.select}
             value={deviceFilter}

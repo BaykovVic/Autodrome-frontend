@@ -1,6 +1,7 @@
 import type { MockScenario } from "@/api/mock/scenarios";
 import type {
   ConsoleDashboardSnapshot,
+  DashboardServiceRow,
 } from "./consoleDashboardSnapshot";
 
 const BASE_NODE = {
@@ -9,52 +10,64 @@ const BASE_NODE = {
   lastRefresh: "12:12:40",
 };
 
+/**
+ * Local-node infrastructure rows shown in the Service health widget.
+ *
+ * These align with the dashboard service-row layout in the Autodrome
+ * Console design reference: each row names a node infrastructure
+ * component (API gateway, local database, media store, telemetry
+ * broker, biometry service, auth/session) with a small operational
+ * meta string and a coarse state. Per-scenario fixtures override
+ * `state` / `badgeLabel` / `meta` to reflect degraded conditions.
+ */
+const BASE_SERVICE_HEALTHY: DashboardServiceRow[] = [
+  {
+    id: "api-gateway",
+    name: "API gateway",
+    meta: "12 ms",
+    state: "healthy",
+    badgeLabel: "Operational",
+  },
+  {
+    id: "local-database",
+    name: "Local database",
+    meta: "PostgreSQL 16",
+    state: "healthy",
+    badgeLabel: "Ready",
+  },
+  {
+    id: "media-store",
+    name: "Media store",
+    meta: "412 GB free",
+    state: "healthy",
+    badgeLabel: "Ready",
+  },
+  {
+    id: "telemetry-broker",
+    name: "Telemetry broker",
+    meta: "0 stale",
+    state: "healthy",
+    badgeLabel: "Operational",
+  },
+  {
+    id: "biometry",
+    name: "Biometry service",
+    meta: "0.92 conf",
+    state: "healthy",
+    badgeLabel: "Operational",
+  },
+  {
+    id: "auth-session",
+    name: "Auth / session",
+    meta: "local realm",
+    state: "healthy",
+    badgeLabel: "Operational",
+  },
+];
+
 const NORMAL: ConsoleDashboardSnapshot = {
   node: BASE_NODE,
-  serviceHealth: [
-    {
-      id: "candidate",
-      name: "Candidate service",
-      meta: "v0.7.0",
-      state: "healthy",
-      badgeLabel: "ok",
-    },
-    {
-      id: "vehicle",
-      name: "Vehicle service",
-      meta: "v0.7.0",
-      state: "healthy",
-      badgeLabel: "ok",
-    },
-    {
-      id: "exam",
-      name: "Exam service",
-      meta: "v0.7.0",
-      state: "healthy",
-      badgeLabel: "ok",
-    },
-    {
-      id: "exercise",
-      name: "Exercise service",
-      meta: "v0.7.0",
-      state: "healthy",
-      badgeLabel: "ok",
-    },
-    {
-      id: "violation-rule",
-      name: "Violation & rule service",
-      meta: "v0.7.0",
-      state: "healthy",
-      badgeLabel: "ok",
-    },
-    {
-      id: "media-archive",
-      name: "Media archive service",
-      meta: "v0.7.0",
-      state: "healthy",
-      badgeLabel: "ok",
-    },
-  ],
+  serviceHealth: BASE_SERVICE_HEALTHY,
   database: {
     schemaReady: true,
     migrationLabel: "migration 0142",
@@ -152,20 +165,20 @@ const SERVICE_DEGRADED: ConsoleDashboardSnapshot = {
     primaryAction: "Retry sync",
     secondaryAction: "View broker",
   },
-  serviceHealth: NORMAL.serviceHealth.map((row) => {
-    if (row.id === "vehicle") {
+  serviceHealth: BASE_SERVICE_HEALTHY.map((row) => {
+    if (row.id === "telemetry-broker") {
       return {
         ...row,
-        state: "down",
-        badgeLabel: "down",
-        meta: "probe failed",
+        state: "degraded",
+        badgeLabel: "Degraded",
+        meta: "2 stale",
       };
     }
-    if (row.id === "media-archive") {
+    if (row.id === "media-store") {
       return {
         ...row,
         state: "unknown",
-        badgeLabel: "unknown",
+        badgeLabel: "No probe data",
         meta: "no probe data",
       };
     }
@@ -206,10 +219,10 @@ const SERVICE_DEGRADED: ConsoleDashboardSnapshot = {
 
 const EMPTY: ConsoleDashboardSnapshot = {
   ...NORMAL,
-  serviceHealth: NORMAL.serviceHealth.map((row) => ({
+  serviceHealth: BASE_SERVICE_HEALTHY.map((row) => ({
     ...row,
     state: "unknown",
-    badgeLabel: "no data",
+    badgeLabel: "No data",
     meta: "no probe yet",
   })),
   database: {

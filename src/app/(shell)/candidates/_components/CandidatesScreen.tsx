@@ -6,6 +6,8 @@ import {
   ApiErrorView,
   Button,
   EmptyState,
+  PlusIcon,
+  SearchIcon,
   Skeleton,
   StatusBadge,
   type StatusBadgeVariant,
@@ -164,17 +166,23 @@ export function CandidatesScreen({ loader }: Props) {
             disabled
             title="Registration flow lands in a follow-up feature."
           >
+            <PlusIcon />
             Register candidate
           </Button>
         </div>
         <div className={styles.filters} role="search" aria-label="Candidates filters">
-          <input
-            className={styles.search}
-            placeholder="Search name or ID…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search"
-          />
+          <div className={styles.searchWrap}>
+            <span className={styles.searchIcon} aria-hidden="true">
+              <SearchIcon />
+            </span>
+            <input
+              className={styles.search}
+              placeholder="Search name or ID…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search"
+            />
+          </div>
           <select
             className={styles.select}
             value={category}

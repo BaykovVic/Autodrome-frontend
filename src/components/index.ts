@@ -28,3 +28,5 @@ export type { ValidationIssue } from "./ValidationErrors";
 export { StatusDot } from "./StatusDot";
 export type { StatusDotVariant } from "./StatusDot";
 export { ConsoleCard } from "./ConsoleCard";
+
+export { PlusIcon, RefreshIcon, SearchIcon } from "./Icons";

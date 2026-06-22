@@ -40,4 +40,14 @@ describe("SidebarNav", () => {
     const flattened = SHELL_NAV_GROUPS.flatMap((g) => g.routes);
     expect(flattened).toEqual(SHELL_ROUTES);
   });
+
+  it("renders an SVG icon inside every route link (web-operator-console reference alignment)", () => {
+    render(<SidebarNav />);
+    const links = screen.getAllByRole("link");
+    for (const link of links) {
+      const svg = link.querySelector("svg");
+      expect(svg).not.toBeNull();
+      expect(svg?.getAttribute("aria-hidden")).toBe("true");
+    }
+  });
 });

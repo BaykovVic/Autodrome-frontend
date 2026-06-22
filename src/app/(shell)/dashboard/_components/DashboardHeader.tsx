@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components";
+import { Button, RefreshIcon } from "@/components";
 import styles from "./DashboardHeader.module.css";
 
 type Props = {
@@ -36,6 +36,7 @@ export function DashboardHeader({
           type="button"
           onClick={onReload}
         >
+          <RefreshIcon />
           Refresh
         </Button>
         <Button

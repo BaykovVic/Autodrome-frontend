@@ -6,6 +6,7 @@ import {
   ApiErrorView,
   Button,
   EmptyState,
+  PlusIcon,
   Skeleton,
   StatusBadge,
   type StatusBadgeVariant,
@@ -119,6 +120,7 @@ export function ExercisesScreen({ loader }: Props) {
           disabled
           title="Create-exercise flow lands in a follow-up feature."
         >
+          <PlusIcon />
           New exercise
         </Button>
       </header>

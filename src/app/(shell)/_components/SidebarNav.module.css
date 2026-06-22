@@ -42,6 +42,17 @@
   letter-spacing: 0;
 }
 
+.icon {
+  flex: none;
+  color: currentColor;
+  letter-spacing: 0;
+}
+
+.label {
+  letter-spacing: 0;
+  min-width: 0;
+}
+
 .link:hover {
   background: rgba(19, 138, 124, 0.07);
   color: var(--color-text);

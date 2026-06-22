@@ -186,14 +186,23 @@ App Router с route group `(shell)`:
 
 ## Autodrome Console design foundation
 
-Visual reference: [`design/Autodrome Console.dc.html`](../../design/Autodrome%20Console.dc.html)
-(статический HTML-макет в корне проекта Autodrome). Из него
-перенесена визуальная база: warm gray work surface
-(`--color-bg: #e6e5e1`), dark topbar (`#1b1c1f`), light off-white
-sidebar (`#f3f2ef`), teal accent (`#138a7c`) и operational status
-palette (online / degraded / offline / standby / unknown).
-Density сделана плотнее skeleton-варианта: row 28/32px, font
-12–14px по умолчанию, card padding 11/14px.
+Visual reference: [`design/web-operator-console/Web Operator Console.dc.html`](../../design/web-operator-console/Web%20Operator%20Console.dc.html)
+(статический HTML-макет в корне проекта Autodrome; ранее
+`design/Autodrome Console.dc.html`). Из него перенесена
+визуальная база: warm gray work surface (`--color-bg: #e6e5e1`),
+dark topbar (`#1b1c1f`), light off-white sidebar (`#f3f2ef`),
+teal accent (`#138a7c`) и operational status palette (online /
+degraded / offline / standby / unknown). Density сделана плотнее
+skeleton-варианта: row 28/32px, font 12–14px по умолчанию, card
+padding 11/14px. Shell-wide affordances (sidebar route SVG
+icons, topbar brand mark + cluster identity + operator block,
+plus icon на primary create/register CTAs, circular refresh
+icon на reload actions, inline search magnifier в search inputs,
+node-component service rows в dashboard fixtures) выровнены с
+reference в фиче `frontend-autodrome-shell-reference-alignment`;
+визуальный язык (teal accent / English copy / wide grouped
+sidebar) остался прежним и не заменялся blue accent / Russian
+copy / 54px narrow icon-nav из reference.
 
 Шрифты — IBM Plex Sans / IBM Plex Mono **если установлены
 локально на машине пользователя**, иначе fallback на системный
