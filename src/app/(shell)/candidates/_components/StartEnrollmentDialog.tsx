@@ -19,6 +19,8 @@ import styles from "./StartEnrollmentDialog.module.css";
 
 type Channel = "registrar" | "local";
 
+type DialogPhase = "selecting" | "command-queued" | "local-prepared";
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -178,9 +180,13 @@ export function StartEnrollmentDialog({
   // setState-in-effect / ref-mutation-in-render (both lint-prohibited).
   const [prevOpen, setPrevOpen] = useState(open);
   const [channel, setChannel] = useState<Channel>(defaultChannel);
+  const [phase, setPhase] = useState<DialogPhase>("selecting");
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setChannel(defaultChannel);
+    if (open) {
+      setChannel(defaultChannel);
+      setPhase("selecting");
+    }
   }
 
   const retryDisabled = channels.currentAttempt.active;
@@ -195,6 +201,9 @@ export function StartEnrollmentDialog({
       : localAvailable
         ? "Capture on the local Web camera station."
         : "No local camera detected. Use the registrar tablet instead.";
+
+  const handleSendToRegistrar = () => setPhase("command-queued");
+  const handleUseLocalCamera = () => setPhase("local-prepared");
 
   return (
     <Modal
@@ -213,7 +222,7 @@ export function StartEnrollmentDialog({
         <button
           type="button"
           className={styles.closeBtn}
-          aria-label="Close"
+          aria-label="Close dialog"
           onClick={onClose}
         >
           <CloseIcon />
@@ -221,6 +230,14 @@ export function StartEnrollmentDialog({
       </div>
 
       <div className={styles.body}>
+        {phase !== "selecting" ? (
+          <CommittedPanel
+            phase={phase}
+            channels={channels}
+            onClose={onClose}
+          />
+        ) : (
+          <>
         <div className={styles.sectionTitle}>Capture channel</div>
         <div
           className={styles.channelRow}
@@ -349,6 +366,7 @@ export function StartEnrollmentDialog({
               size="md"
               type="button"
               disabled={sendDisabled}
+              onClick={handleSendToRegistrar}
               title={sendTitle}
             >
               Send to registrar
@@ -359,6 +377,7 @@ export function StartEnrollmentDialog({
               size="md"
               type="button"
               disabled={sendDisabled}
+              onClick={handleUseLocalCamera}
               title={sendTitle}
             >
               Use local camera
@@ -393,7 +412,74 @@ export function StartEnrollmentDialog({
             {channels.currentAttempt.reason}
           </p>
         ) : null}
+          </>
+        )}
       </div>
     </Modal>
+  );
+}
+
+function CommittedPanel({
+  phase,
+  channels,
+  onClose,
+}: {
+  phase: "command-queued" | "local-prepared";
+  channels: EnrollmentChannelsSnapshot;
+  onClose: () => void;
+}) {
+  const isRegistrar = phase === "command-queued";
+  const title = isRegistrar
+    ? "Command queued for the registrar tablet"
+    : "Local capture prepared on this PC";
+  const target = isRegistrar
+    ? `${channels.registrar.deviceId} · ${channels.registrar.station}`
+    : `${channels.local.cameraName} · operator PC`;
+  const description = isRegistrar
+    ? "The registrar tablet will pick up the enrollment command from the local node queue. No real Android transport is wired in this baseline — the command is held in the mock queue."
+    : "In a real session the capture window opens on the second monitor and the operator keeps controlling the console here. No real camera capture runs in this baseline.";
+
+  return (
+    <div className={styles.committedPanel} role="status" aria-live="polite">
+      <div className={styles.committedHead}>
+        <CommittedCheckIcon />
+        <div className={styles.committedHeadText}>
+          <div className={styles.committedTitle}>{title}</div>
+          <div className={styles.committedTarget}>{target}</div>
+        </div>
+      </div>
+      <p className={styles.committedDescription}>{description}</p>
+      <p className={styles.committedFollowUp}>
+        Session monitor lands with the follow-up feature — track
+        progress on the candidate detail pane once it ships.
+      </p>
+      <div className={styles.committedActions}>
+        <Button
+          variant="primary"
+          size="md"
+          type="button"
+          onClick={onClose}
+        >
+          Close
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CommittedCheckIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+      className={styles.committedIcon}
+    >
+      <path d="M5 12.5l4.5 4.5L20 6.5" />
+    </svg>
   );
 }

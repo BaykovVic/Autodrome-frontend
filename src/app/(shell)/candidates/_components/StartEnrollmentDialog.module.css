@@ -223,3 +223,63 @@
 .spacer {
   flex: 1;
 }
+
+.committedPanel {
+  letter-spacing: 0;
+}
+
+.committedHead {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 12px;
+  letter-spacing: 0;
+}
+
+.committedIcon {
+  flex: none;
+  color: var(--color-success-strong);
+}
+
+.committedHeadText {
+  flex: 1;
+  min-width: 0;
+  letter-spacing: 0;
+}
+
+.committedTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.committedTarget {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  font-family: var(--font-family-mono);
+  margin-top: 2px;
+  letter-spacing: 0;
+}
+
+.committedDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.45;
+  margin: 0 0 9px;
+  letter-spacing: 0;
+}
+
+.committedFollowUp {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  line-height: 1.45;
+  margin: 0 0 14px;
+  letter-spacing: 0;
+}
+
+.committedActions {
+  display: flex;
+  justify-content: flex-end;
+  letter-spacing: 0;
+}

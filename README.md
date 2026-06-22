@@ -79,20 +79,30 @@ App Router с route group `(shell)`:
   reference / exam category / eligibility) и client-side
   валидацией; save транзитит в `saved` state с
   моковым assigned id; `Save and start enrollment`
-  открывает `StartEnrollmentDialog` модалку с channel
-  selection (Android registrar / Local Web camera),
-  per-channel device state card (registrar device id /
-  station / last seen / battery & network; local camera
-  model / detection / second-monitor copy) и actions
-  (Send to registrar, Use local camera, Retry — disabled
-  с visible reason note когда current attempt active,
-  Cancel). 5 enrollment scenarios покрыты в
-  `consoleEnrollmentChannelsFixtures.ts`:
+  открывает `StartEnrollmentDialog` модалку с phase state
+  machine `selecting → command-queued / local-prepared`.
+  В `selecting` фазе — channel selection (Android registrar
+  / Local Web camera), per-channel device state card
+  (registrar device id / station / last seen / battery &
+  network; local camera model / detection / second-monitor
+  copy) и actions Send to registrar / Use local camera
+  (enabled когда channel доступен; клик переключает phase),
+  Retry (disabled с visible reason note когда current
+  attempt active), Cancel. В committed фазе — status panel
+  c `role="status"`: «Command queued for the registrar
+  tablet» / «Local capture prepared on this PC» + target
+  device + explanatory copy («No real Android transport is
+  wired in this baseline» / «No real camera capture runs in
+  this baseline» + follow-up note про session monitor) +
+  Close button. Каждый closed→open transition сбрасывает
+  phase обратно в `selecting`. 5 enrollment scenarios
+  покрыты в `consoleEnrollmentChannelsFixtures.ts`:
   registrar-online / registrar-offline /
   local-camera-available / local-camera-unavailable /
-  attempt-active. Session monitor, Web camera station и
-  Capture window per reference остаются вне scope и
-  должны быть отдельными фичами. `/vehicles`
+  attempt-active. Реальный Android command transport,
+  `getUserMedia` capture, session monitor, Web camera
+  station и Capture window per reference остаются вне scope
+  и должны быть отдельными фичами. `/vehicles`
   использует `VehiclesScreen` — тот же visual pattern
   поверх `useConsoleVehicles`: header с totals (vehicles +
   degraded + offline), filters (search / device state),

@@ -140,6 +140,59 @@ describe("StartEnrollmentDialog", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it("clicking Send to registrar transitions to the command-queued mock state with visible status", () => {
+    renderDialog("registrar-online");
+    fireEvent.click(
+      screen.getByRole("button", { name: /send to registrar/i }),
+    );
+    expect(
+      screen.queryByRole("button", { name: /send to registrar/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("tab", { name: /send to registrar tablet/i }),
+    ).toBeNull();
+    expect(
+      screen.getByText(/Command queued for the registrar tablet/i),
+    ).toBeDefined();
+    expect(screen.getByText(/REG-TAB-02/)).toBeDefined();
+    expect(
+      screen.getByText(/No real Android transport is wired in this baseline/i),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: /^close$/i }),
+    ).toBeDefined();
+  });
+
+  it("clicking Use local camera transitions to the local-prepared mock state with visible status", () => {
+    renderDialog("local-camera-available");
+    fireEvent.click(screen.getByRole("tab", { name: /local web camera/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /use local camera/i }),
+    );
+    expect(
+      screen.queryByRole("button", { name: /use local camera/i }),
+    ).toBeNull();
+    expect(
+      screen.getByText(/Local capture prepared on this PC/i),
+    ).toBeDefined();
+    expect(screen.getByText(/Logitech BRIO/)).toBeDefined();
+    expect(
+      screen.getByText(/No real camera capture runs in this baseline/i),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: /^close$/i }),
+    ).toBeDefined();
+  });
+
+  it("the Close action in the committed phase calls onClose", () => {
+    const { onClose } = renderDialog("registrar-online");
+    fireEvent.click(
+      screen.getByRole("button", { name: /send to registrar/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^close$/i }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it("covers all five enrollment scenarios with distinct snapshots", () => {
     expect(ENROLLMENT_SCENARIOS.length).toBe(5);
     const scenarios = new Set<EnrollmentScenario>();
