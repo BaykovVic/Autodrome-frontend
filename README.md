@@ -733,6 +733,44 @@ surfaces; `candidate-service` / `vehicle-service` / `exam-service`
 domain mutations всё ещё проходят через `AutodromeApi` когда
 будут реализованы.
 
+### Frontend live API error taxonomy
+
+`src/api/error-taxonomy.ts` объявляет 8 stable категорий ошибок
+live-API runtime (+ `unknown` fallback) и `classifyError(error)`
+который маппит `ApiError` / `Error` / non-Error throws в категорию:
+
+- `network` — backend unavailable / fetch failed / DNS / TCP /
+  HTTP 502 / 5xx без узнаваемого envelope → `<DegradedState />`.
+- `timeout` — request exceeded timeout, `HTTP 408` / `504` / native
+  AbortError / "timed out" message → `<DegradedState />`.
+- `unauthorized` — 401 / 403 / `UNAUTHORIZED` envelope. Маппится в
+  auth-block UI с текстом «Authentication is not configured for
+  this build» — реальной auth implementation нет (per spec
+  constraint).
+- `validation` — 400 / 422 / `VALIDATION_FAILED` envelope с
+  `details.fields` или `details.issues`. Extract'ит per-field
+  errors в `classification.fieldErrors`. Form-level handling
+  (caller-side); глобальный ApiErrorView не показывается.
+- `conflict` — 409 / `RESOURCE_CONFLICT` → `<ApiErrorView />` с
+  hint про reload.
+- `not-found` — 404 / `NOT_FOUND` → `<ApiErrorView />`.
+- `contract-drift` — `DECODE_FAILURE` / `CONTRACT_DRIFT` /
+  `INVALID_RESPONSE_BODY` / unknown envelope → `<DegradedState />`
+  с dev-hint.
+- `degraded` — 503 / `SERVICE_DEGRADED` / `PARTIAL_DATA` envelope
+  → `<DegradedState />`. Данные могут быть stale / partial.
+
+Каждая категория несёт UI kind (`degraded-banner` / `error-view`
+/ `form-field` / `auth-block`), stable title + description,
+`retryable` boolean и опциональные `fieldErrors`. `ApiErrorView`
+автоматически показывает category chip в header + category-hint
+параграф под raw message — UI-инвариант для всех existing call
+sites сохранён (raw `error.code` остаётся primary title, raw
+`error.message` — primary message). Future live-binding фичи
+просто бросают `ApiError` (через существующий
+`parseErrorResponse(response, url)` в `src/api/errors.ts`) — UI
+сам решит какой primitive показать через `classifyError()`.
+
 ## Branch policy
 
 Frontend bootstrap rule:

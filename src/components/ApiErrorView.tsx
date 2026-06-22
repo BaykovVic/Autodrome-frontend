@@ -2,13 +2,23 @@
 
 import { useState } from "react";
 import { ApiError } from "@/api/errors";
+import {
+  classifyError,
+  type ApiErrorCategory,
+} from "@/api/error-taxonomy";
 import { Button } from "./Button";
 import styles from "./ApiErrorView.module.css";
 
 type NormalizedError = {
+  /** Raw error code (`ApiError.code` or `Error.name`). */
   title: string;
+  /** Raw error message (operator-facing primary text). */
   message: string;
-  code?: string;
+  /** Resolved taxonomy category. */
+  category: ApiErrorCategory;
+  /** Operator-facing category hint shown under the raw message. */
+  categoryHint: string;
+  /** Raw HTTP status if available. */
   status?: number;
   correlationId?: string;
   timestamp?: string;
@@ -16,11 +26,13 @@ type NormalizedError = {
 };
 
 function normalize(error: unknown): NormalizedError {
+  const classified = classifyError(error);
   if (error instanceof ApiError) {
     return {
       title: error.code,
       message: error.message,
-      code: error.code,
+      category: classified.category,
+      categoryHint: classified.description,
       status: error.status,
       correlationId: error.correlationId,
       timestamp: error.timestamp,
@@ -28,9 +40,19 @@ function normalize(error: unknown): NormalizedError {
     };
   }
   if (error instanceof Error) {
-    return { title: error.name || "Error", message: error.message };
+    return {
+      title: error.name || "Error",
+      message: error.message,
+      category: classified.category,
+      categoryHint: classified.description,
+    };
   }
-  return { title: "UnknownError", message: String(error) };
+  return {
+    title: classified.title,
+    message: String(error),
+    category: classified.category,
+    categoryHint: classified.description,
+  };
 }
 
 type Props = {
@@ -71,8 +93,20 @@ export function ApiErrorView({
         {info.status ? (
           <span className={styles.status}>HTTP {info.status}</span>
         ) : null}
+        {info.category !== "unknown" ? (
+          <span
+            className={styles.status}
+            data-category={info.category}
+            aria-label={`Error category ${info.category}`}
+          >
+            {info.category}
+          </span>
+        ) : null}
       </header>
       <p className={styles.message}>{info.message}</p>
+      <p className={styles.message} data-role="category-hint">
+        {info.categoryHint}
+      </p>
       {info.correlationId ? (
         <div className={styles.correlationRow}>
           <span className={styles.correlationLabel}>Correlation-Id</span>
