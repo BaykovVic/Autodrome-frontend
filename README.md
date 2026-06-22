@@ -824,6 +824,52 @@ Vehicles → Candidates через sidebar). Live transport tested на
 unit layer (`live-candidates-loader.test.ts` /
 `live-vehicles-loader.test.ts`) с mocked openapi-fetch clients.
 
+### Exam live API integration
+
+`/exams` workspace подключён к live `exam-service` lifecycle API:
+detail / create / start / finish / abort + paginated timeline read.
+Switching mode без изменений в screen коде:
+
+- `src/app/(shell)/exams/_components/liveExamLoader.ts` — pure
+  mappers (`mapExamDtoToConsole`, `mapTimelineEventToConsole`,
+  `formatExamScore`, `formatExamDuration`) + commands:
+  - `liveExamGet(adapter, examId)` — `GET /exams/{examId}`.
+  - `liveExamCreate(adapter, creation)` — `POST /exams` с
+    `Idempotency-Key` per call.
+  - `liveExamStart(adapter, examId, start?)` —
+    `POST /exams/{examId}/start`.
+  - `liveExamFinish(adapter, examId, finish)` —
+    `POST /exams/{examId}/finish` (outcome + optional score).
+  - `liveExamAbort(adapter, examId, abort)` —
+    `POST /exams/{examId}/abort` (reason).
+  - `liveExamTimeline(adapter, examId, query?)` —
+    `GET /exams/{examId}/timeline` с pageSize/pageToken/sortOrder
+    query params.
+- `useConsoleExams` defaultLoader переключается по
+  `resolveRuntimeMode()`:
+  - `mock` (default) → scenario fixtures (`consoleExamsFor`) —
+    `pnpm dev`/unit/e2e gates без backend.
+  - `live` → `liveExamsLoader(getApiAdapter({mode:"live"}))`.
+
+Backend gaps (документированы):
+
+- `GET /exams` (list) — **отсутствует в canonical exam-service
+  contract**. В live mode `liveExamsLoader` возвращает empty
+  snapshot, `<EmptyState>` рендерится корректно. Detail / lifecycle
+  / timeline остаются live. Tech-debt entry в feature report.
+- `ConsoleExam.route` — design-only label, defaults `"—"` пока
+  exam-service не выставит route metadata field.
+- `ConsoleExam.timeline detail` — actor-id fallback `"actor X"` или
+  `"—"`; полный human-readable narrative ждёт payload-schema
+  publication для каждого event-type.
+
+Browser smoke `e2e/exam-workflow.spec.ts` проверяет, что
+live-loader code-path не регрессит mock-mode workflow (heading +
+rows render, state filter tabs flip, row selection switches detail
+aside, sidebar navigation round-trip). Live transport tested на
+unit layer (`live-exam-loader.test.ts`) с mocked openapi-fetch
+client.
+
 ## Branch policy
 
 Frontend bootstrap rule:

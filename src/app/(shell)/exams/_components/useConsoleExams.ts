@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { getApiAdapter } from "@/api/get-api-adapter";
 import {
   DEFAULT_SCENARIO,
   isMockScenario,
   type MockScenario,
 } from "@/api/mock/scenarios";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 import { consoleExamsFor } from "./consoleExamsFixtures";
+import { liveExamsLoader } from "./liveExamLoader";
 import type { ConsoleExamsSnapshot } from "./consoleExamsSnapshot";
 
 export type ConsoleExamsLoader = () =>
@@ -21,7 +24,16 @@ export type ConsoleExamsState = {
   reload: () => void;
 };
 
-function defaultLoader(): ConsoleExamsSnapshot {
+async function defaultLoader(): Promise<ConsoleExamsSnapshot> {
+  // Live mode: route through the typed exam-service client. The
+  // backend does not currently expose `GET /exams` (list), so
+  // `liveExamsLoader` returns an empty snapshot until that endpoint
+  // ships — detail/create/lifecycle/timeline remain live.
+  // Mock mode (default): keep using scenario fixtures so `pnpm dev`
+  // and gates stay backend-free.
+  if (resolveRuntimeMode() === "live") {
+    return liveExamsLoader(getApiAdapter({ mode: "live" }));
+  }
   const env = process.env.NEXT_PUBLIC_MOCK_SCENARIO;
   const scenario: MockScenario = isMockScenario(env)
     ? env
