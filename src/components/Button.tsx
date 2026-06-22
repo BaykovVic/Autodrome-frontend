@@ -11,6 +11,29 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   iconOnly?: boolean;
 };
 
+/**
+ * Returns the Button visual classes so non-button interactive
+ * elements (most commonly `<a>` / Next `<Link>`) can adopt the same
+ * appearance without nesting a real `<button>` inside a link — that
+ * combination is invalid HTML and breaks keyboard/focus behaviour
+ * on the wrapper.
+ */
+export function buttonClassName(opts: {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  iconOnly?: boolean;
+} = {}): string {
+  const { variant = "secondary", size = "md", iconOnly = false } = opts;
+  return [
+    styles.button,
+    styles[`variant-${variant}`],
+    styles[`size-${size}`],
+    iconOnly ? styles.iconOnly : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
   {
     variant = "secondary",

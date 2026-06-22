@@ -126,11 +126,48 @@ App Router с route group `(shell)`:
   orchestration не вызывается. R1/R2 patterns: Skeleton
   + ApiErrorView early returns; навигация на monitor через
   `router.push("/candidates/sessions/ENR-9F41")` с Sessions
-  кнопки в candidate detail pane. Реальный Android command
-  transport, `getUserMedia` capture, WebSocket/SSE/live
-  polling, Web camera station и Capture window per
-  reference остаются вне scope и должны быть отдельными
-  фичами. `/vehicles`
+  кнопки в candidate detail pane. `/candidates/sessions/[id]/camera-station`
+  → `CameraStationScreen`: Web camera station control panel
+  поверх `useConsoleCameraStation` + scenario-driven
+  fixtures (`consoleCameraStationFixtures.ts`). Header с
+  breadcrumb (Candidates registry › Enrollment session
+  monitor › Web camera station) + title «Camera station —
+  operator PC» + subtitle. Body — 2-col grid: левая
+  карточка Capture control (selected camera device row с
+  camera icon + name + meta + permission state /
+  capture-window status row с pulsing accent dot когда
+  window open / Quality progress bars 4 items (Lighting /
+  Sharpness / Face position / Stability) с tone-color
+  fill / actions Open capture window (anchor с
+  `target="_blank" rel="noopener noreferrer"` на
+  `/capture/[id]`) + Retry + Cancel + Done) + visible
+  reason note; правая dark карточка Second monitor с
+  preview placeholder (face oval dashed) + mirror label +
+  copy «The preview is shown to the candidate on the
+  second monitor». 5 scenarios: ready / capturing
+  (default) / done / cancelled / permission-denied.
+  Retry/Cancel/Done transitions локальные через override
+  state — никакого реального getUserMedia/WebRTC.
+  `/capture/[sessionId]` → `CaptureWindowSurface`:
+  standalone full-screen surface вне (shell) group для
+  открытия в отдельном browser window. Window title bar
+  (green dot + «Capture for enrollment» + mono ENR id +
+  close button) + dark preview frame с teal-bordered face
+  oval + «Look straight into the camera» / «Keep your face
+  inside the oval · do not move» + candidate context
+  overlay (name + mono masked DOB + mono CND id) + quality
+  chips (Face in oval / Eyes open / Hold still — degraded
+  tone когда applicable) + footer с lock icon + privacy
+  copy «Frames are processed on the node. Images do not
+  leave NODE-A2.» + progress bar (aria-valuenow) +
+  best-frame mono line + Done / Cancel buttons.
+  Phase state `capturing → done | cancelled` с overlay
+  status panel и disabled actions в terminal states.
+  Никакого реального `getUserMedia()` / MediaStream /
+  WebRTC / image upload / biometry inference. Реальный
+  Android command transport, WebSocket/SSE/live polling и
+  biometry-service live binding остаются вне scope и
+  должны быть отдельными фичами. `/vehicles`
   использует `VehiclesScreen` — тот же visual pattern
   поверх `useConsoleVehicles`: header с totals (vehicles +
   degraded + offline), filters (search / device state),
