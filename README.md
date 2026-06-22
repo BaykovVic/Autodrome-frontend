@@ -475,13 +475,32 @@ Playwright + Chromium. В composite `release-gate` он намеренно
 (~170 MB Chromium-бинарь). Запуск browser smoke документирован
 как отдельный шаг в release checklist; оператор запускает его
 после `release-gate`, если Playwright уже установлен на машине.
-Spec файл — `e2e/smoke.spec.ts`:
+Spec файлы:
 
-- `/` redirect → `/dashboard` + рендер heading;
-- `/dashboard`, `/candidates`, `/vehicles`, `/exams`,
-  `/operations` — каждый рендерит level-1 heading;
-- shell sidebar: `aria-current="page"` следует за активным
-  маршрутом (dashboard → candidates переход).
+- `e2e/smoke.spec.ts`:
+  - `/` redirect → `/dashboard` + рендер heading;
+  - `/dashboard`, `/candidates`, `/vehicles`, `/exams`,
+    `/operations` — каждый рендерит level-1 heading;
+  - shell sidebar: `aria-current="page"` следует за активным
+    маршрутом (dashboard → candidates переход).
+- `e2e/mobile-shell.spec.ts` — проверка отсутствия
+  horizontal overflow на 11 routes @ 375x812 (включая
+  `/candidates/new`, `/candidates/sessions/ENR-9F41` и
+  `/candidates/sessions/ENR-9F41/camera-station`).
+- `e2e/web-operator-console-design-gate.spec.ts` — Web
+  Operator Console design-rework quality gate. Покрывает
+  6 reference screens × 2 viewports (1440×900 desktop +
+  375×812 narrow): candidate registry / candidate create /
+  start enrollment dialog (opened from /candidates/new
+  через valid Save and start enrollment) / session
+  monitor / camera station / standalone capture window
+  (`/capture/[id]` вне `(shell)`). Per-screen assertions:
+  level-1 heading visible / primary CTA visible (button
+  или styled link) / no horizontal overflow / detail
+  disabled state visible там где deterministic (Retry на
+  session monitor в default capturing scenario).
+  Намеренно вне scope: pixel-perfect visual diff tooling и
+  real camera permission automation.
 
 Vitest release-smoke (`src/__tests__/release-smoke.test.tsx`)
 остаётся в composite `release-gate` как лёгкий jsdom-уровневый
