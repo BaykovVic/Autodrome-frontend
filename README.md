@@ -771,6 +771,59 @@ sites сохранён (raw `error.code` остаётся primary title, raw
 `parseErrorResponse(response, url)` в `src/api/errors.ts`) — UI
 сам решит какой primitive показать через `classifyError()`.
 
+### Candidate + Vehicle live API integration
+
+`/candidates` и `/vehicles` workspaces подключены к live
+`candidate-service` / `vehicle-service` API через типизированные
+openapi-fetch клиенты в `src/api/services/`. Switching mode без
+изменений в screen коде:
+
+- `src/app/(shell)/candidates/_components/liveCandidatesLoader.ts`
+  + `liveVehiclesLoader.ts` — pure DTO→view-model mappers +
+  `liveCandidatesLoader(adapter)` / `liveVehiclesLoader(adapter)`
+  loaders, которые вызывают `adapter.candidate.GET("/candidates")`
+  / `adapter.vehicle.GET("/vehicles")` и мапят Candidate /
+  Vehicle DTO из canonical OpenAPI types в `ConsoleCandidate` /
+  `ConsoleVehicle` view-models.
+- `useConsoleCandidates` / `useConsoleVehicles` defaultLoader
+  переключается по `resolveRuntimeMode()`:
+  - `mock` (default) → scenario fixtures (`consoleCandidatesFor`
+    / `consoleVehiclesFor`) — `pnpm dev`/unit/e2e gates без
+    backend.
+  - `live` → live loader через `getApiAdapter({ mode: "live" })`.
+- ApiError бросается `createAutodromeClient` middleware на
+  non-2xx; UI surfaces ошибку через `<ApiErrorView>` который
+  использует `classifyError()` для category-aware copy.
+
+Mapping caveats (design-only blocks без canonical контрактов):
+
+- `ConsoleCandidate.enrollment` — defaults to `not-enrolled` /
+  `templateStatus: "—"` / `sourceDevice: "—"`; реальные template
+  данные подключатся когда biometry-service ship'нет
+  `GET /candidates/{id}/template`.
+- `ConsoleCandidate.category` — `"—"` (exam category outside
+  canonical Candidate DTO; backend planned, см. spec).
+- `ConsoleCandidate.maskedDob` — mask из `birthDate` (ISO →
+  `**.**.YYYY` privacy convention для регистра).
+- `ConsoleCandidate.eligibility` — derived из `CandidateStatus`
+  (registered/active → approved, suspended → pending decision,
+  archived → expired, deleted → denied).
+- `ConsoleVehicle.device` — derived из `VehicleStatus` +
+  `boundEdgeGateway`/`boundDevice` presence: оба bound → online,
+  частичный binding → degraded, decommissioned → offline,
+  maintenance → degraded.
+- `ConsoleVehicle.firmware` + `equipment[]` — design-only,
+  defaults `"—"` / `[]` пока vehicle-edge-gateway-service не
+  выставит telemetry endpoint.
+
+Browser smoke `e2e/candidate-vehicle-workflow.spec.ts` проверяет
+что live-loader code-path не ломает mock-mode workflows (registry
+rows render, row-selection → detail aside follows, enrollment
+chips filter narrows visible set, navigation Candidates →
+Vehicles → Candidates через sidebar). Live transport tested на
+unit layer (`live-candidates-loader.test.ts` /
+`live-vehicles-loader.test.ts`) с mocked openapi-fetch clients.
+
 ## Branch policy
 
 Frontend bootstrap rule:
