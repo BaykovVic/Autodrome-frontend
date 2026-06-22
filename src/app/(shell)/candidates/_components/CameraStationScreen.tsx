@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   ApiErrorView,
   Button,
+  buttonClassName,
   RefreshIcon,
   Skeleton,
 } from "@/components";
@@ -341,29 +342,32 @@ export function CameraStationScreen({ loader }: Props) {
                 Open capture window
               </Button>
             ) : (
+              // Render as a styled Link so the primary action is a
+              // single interactive element — nesting a real
+              // `<button>` inside an `<a>` is invalid HTML and breaks
+              // keyboard/focus on the wrapper. Visual styling reuses
+              // the Button design tokens via `buttonClassName()`.
               <Link
                 href={captureHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Open capture window in a new browser window"
+                title={openTitle}
+                className={buttonClassName({
+                  variant: "primary",
+                  size: "md",
+                })}
+                onClick={() => {
+                  // Optional mock-only side-effect: when the operator
+                  // opens the window from a `ready` override, flip
+                  // back to capturing so the station UI reflects a
+                  // running session.
+                  if (override?.scenario === "ready") {
+                    setOverride(null);
+                  }
+                }}
               >
-                <Button
-                  variant="primary"
-                  size="md"
-                  type="button"
-                  title={openTitle}
-                  onClick={() => {
-                    // Optional mock-only side-effect: when the
-                    // operator opens the window from a `ready`
-                    // override, flip back to capturing so the
-                    // station UI reflects a running session.
-                    if (override?.scenario === "ready") {
-                      setOverride(null);
-                    }
-                  }}
-                >
-                  Open capture window
-                </Button>
+                Open capture window
               </Link>
             )}
             <Button

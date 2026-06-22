@@ -62,6 +62,12 @@ describe("CameraStationScreen", () => {
     expect(open.getAttribute("href")).toBe("/capture/ENR-9F41");
     expect(open.getAttribute("target")).toBe("_blank");
     expect(open.getAttribute("rel") ?? "").toMatch(/noopener/);
+    // Regression guard (Codex R1): the enabled action must be a
+    // single interactive element. The link should NOT wrap a real
+    // `<button>` — that combination is invalid HTML and breaks
+    // keyboard/focus on the wrapper.
+    expect(open.querySelector("button")).toBeNull();
+    expect(open.tagName).toBe("A");
   });
 
   it("Retry on capturing transitions to ready committed-state with reset quality", async () => {
