@@ -176,15 +176,31 @@ describe("CandidatesScreen", () => {
         /Per-exam face verification and passive liveness checks/i,
       ),
     ).toBeDefined();
-    // Action buttons disabled per spec.
+    // Start enrollment remains disabled in the registry detail flow
+    // (the create screen at /candidates/new owns enrollment entry).
     const startBtn = within(detail).getByRole("button", {
       name: /start enrollment/i,
     }) as HTMLButtonElement;
     expect(startBtn.disabled).toBe(true);
+    // Sessions now navigates to the enrollment session monitor.
     const sessionsBtn = within(detail).getByRole("button", {
       name: /sessions/i,
     }) as HTMLButtonElement;
-    expect(sessionsBtn.disabled).toBe(true);
+    expect(sessionsBtn.disabled).toBe(false);
+  });
+
+  it("Sessions button navigates to the enrollment session monitor", async () => {
+    renderScreen("normal");
+    await screen.findAllByText("CND-1042");
+    fireEvent.click(screen.getByRole("button", { name: /K\. Lazareva/i }));
+    const detail = screen.getByRole("complementary", {
+      name: /Candidate CND-1046/i,
+    });
+    pushSpy.mockClear();
+    fireEvent.click(
+      within(detail).getByRole("button", { name: /sessions/i }),
+    );
+    expect(pushSpy).toHaveBeenCalledWith("/candidates/sessions/ENR-9F41");
   });
 
   it("represents all 9 enrollment states in the normal scenario fixtures", () => {

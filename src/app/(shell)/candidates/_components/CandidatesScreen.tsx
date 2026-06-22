@@ -472,8 +472,10 @@ export function CandidatesScreen({ loader }: Props) {
                   variant="secondary"
                   size="sm"
                   type="button"
-                  disabled
-                  title="Session monitor lands in a follow-up feature."
+                  onClick={() =>
+                    router.push("/candidates/sessions/ENR-9F41")
+                  }
+                  title="Open the enrollment session monitor for the reference mock session."
                 >
                   Sessions
                 </Button>

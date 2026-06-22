@@ -14,6 +14,7 @@ const ROUTES = [
   "/dashboard",
   "/candidates",
   "/candidates/new",
+  "/candidates/sessions/ENR-9F41",
   "/vehicles",
   "/exams",
   "/exercises",

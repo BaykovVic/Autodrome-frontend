@@ -99,10 +99,38 @@ App Router с route group `(shell)`:
   покрыты в `consoleEnrollmentChannelsFixtures.ts`:
   registrar-online / registrar-offline /
   local-camera-available / local-camera-unavailable /
-  attempt-active. Реальный Android command transport,
-  `getUserMedia` capture, session monitor, Web camera
-  station и Capture window per reference остаются вне scope
-  и должны быть отдельными фичами. `/vehicles`
+  attempt-active. `/candidates/sessions/[sessionId]` →
+  `EnrollmentSessionMonitor`: Web Operator Console
+  enrollment-session monitor surface поверх
+  `useConsoleEnrollmentSession` hook'а + scenario-driven
+  fixtures (`consoleEnrollmentSessionFixtures.ts`). Header
+  с breadcrumb (Candidates registry › Enrollment session
+  monitor), title, ENR-id chip (mono), state badge + TTL
+  (mono, muted в terminal states). Body — 2-col grid: левая
+  карточка Session facts (Candidate name + mono CND id /
+  Channel / Target device mono + station / Last event mono)
+  с actions row Retry (refresh icon, secondary) и Cancel
+  session (X icon, danger); правая карточка Timeline ·
+  audit с per-entry StatusDot rail + label + note + mono
+  time. 8 scenarios покрыты в фикстурах (queued / accepted
+  / capturing / ttl-warning / quality-failed / finalized
+  / expired / cancelled) — каждая разворачивает session
+  state в полную audit timeline до этого момента. Retry
+  enabled на queued/accepted/ttl-warning/quality-failed,
+  Cancel enabled на любом non-terminal state, оба disabled
+  на terminal (finalized/expired/cancelled) с visible
+  reason note. Клик Retry / Cancel транзитит state в
+  `queued · retry` / `cancelled` соответственно, добавляет
+  timeline entry, показывает committed status panel —
+  никакого реального Android command transport / backend
+  orchestration не вызывается. R1/R2 patterns: Skeleton
+  + ApiErrorView early returns; навигация на monitor через
+  `router.push("/candidates/sessions/ENR-9F41")` с Sessions
+  кнопки в candidate detail pane. Реальный Android command
+  transport, `getUserMedia` capture, WebSocket/SSE/live
+  polling, Web camera station и Capture window per
+  reference остаются вне scope и должны быть отдельными
+  фичами. `/vehicles`
   использует `VehiclesScreen` — тот же visual pattern
   поверх `useConsoleVehicles`: header с totals (vehicles +
   degraded + offline), filters (search / device state),
