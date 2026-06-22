@@ -661,6 +661,59 @@ workspace mirror cache не терял идентичность после inser
 или patch. Остальные методы интегрируются по мере появления
 новых доменных страниц.
 
+### Web enrollment view-model + adapter boundary
+
+Web enrollment surfaces (`/candidates` registry, candidate
+create at `/candidates/new`, enrollment session monitor at
+`/candidates/sessions/[id]`, camera station at
+`/candidates/sessions/[id]/camera-station`, capture window at
+`/capture/[sessionId]`) consume **typed view-models**, не raw
+OpenAPI DTOs. Boundary живёт в
+`src/app/(shell)/candidates/_adapter/`:
+
+- `webEnrollmentViewModels.ts` — barrel re-export всех 8
+  view-model типов из spec'а (candidate registry row /
+  candidate detail / enrollment state с 9-value union /
+  enrollment channel / registrar device / local camera station /
+  enrollment session / session timeline event). UI-компоненты
+  импортируют типы только отсюда (или транзитивно из
+  per-surface snapshot файлов, которые barrel re-export'ит).
+  Импорт raw OpenAPI DTO из `@/contracts/types/*` в render-слой
+  запрещён.
+- `webEnrollmentAdapter.ts` — `WebEnrollmentAdapter` interface
+  объявляет 4 read-метода (`loadCandidates` /
+  `loadEnrollmentChannels` / `loadEnrollmentSession(id)` /
+  `loadCameraStation`) и 2 command-метода
+  (`retryEnrollmentSession(id)` /
+  `cancelEnrollmentSession(id)`). Read-методы возвращают
+  view-models. Command-методы возвращают результирующий
+  snapshot c делтой (transition + audit append), чтобы экран
+  рендерил новый state без отдельного refetch'а.
+- `createMockWebEnrollmentAdapter({ scenarios })` + default
+  `mockWebEnrollmentAdapter` — production-by-default
+  mock implementation, обёртка над per-surface scenario
+  fixtures. Все hooks (`useConsoleCandidates`,
+  `useConsoleEnrollmentChannels`, `useConsoleEnrollmentSession`,
+  `useConsoleCameraStation`) пока продолжают использовать
+  `loader` DI prop (простая форма того же boundary'а — один
+  метод на hook) — это сохраняет existing test setup; следующий
+  refactor сможет привязать hooks к одному адаптерному инстансу
+  без переписывания view-models или тестов.
+- `README.md` в `_adapter/` — детальная mapping таблица + список
+  отсутствующих canonical backend контрактов (`GET /candidates`,
+  `GET /enrollment-channels`, `GET /enrollment-sessions/{id}`,
+  `POST /enrollment-sessions/{id}/commands/{retry|cancel}`,
+  `GET /camera-stations/{id}`, live event stream). Когда
+  backend orchestration ships эти endpoints, live-adapter
+  реализует `WebEnrollmentAdapter` поверх типизированного
+  клиента — render-слой не меняется.
+
+Web enrollment адаптер отделён от broader `AutodromeApi`
+namespace (раздел выше) — он покрывает только enrollment
+surfaces; `candidate-service` / `vehicle-service` / `exam-service`
+domain mutations всё ещё проходят через `AutodromeApi` когда
+будут реализованы.
+
 ## Branch policy
 
 Frontend bootstrap rule:
