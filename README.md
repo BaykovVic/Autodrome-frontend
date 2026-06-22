@@ -870,6 +870,71 @@ aside, sidebar navigation round-trip). Live transport tested на
 unit layer (`live-exam-loader.test.ts`) с mocked openapi-fetch
 client.
 
+### Exercise live API integration
+
+`/exercises` workspace подключён к live `exercise-service`:
+combined catalog+groups read, exercise detail / create / publish,
+version read, exercise group create. Backend gap для update
+operation surfaces'ится через явный `ExerciseUpdateUnsupportedError`
+(не silent success).
+
+- `src/app/(shell)/exercises/_components/liveExerciseLoader.ts` —
+  pure mappers (`mapExerciseDtoToConsole`,
+  `mapExerciseGroupDtoToConsole`, `mapExerciseStatus`) + commands:
+  - `liveExercisesLoader(adapter)` — combined `GET /exercises` +
+    `GET /exercise-groups` (parallel), снапшот собирается из обоих
+    с lookup index `exerciseId → groupId`.
+  - `liveExerciseGroupsLoader(adapter)` — groups-only read.
+  - `liveExerciseGet(adapter, id)` — `GET /exercises/{id}`.
+  - `liveExerciseCreate(adapter, creation)` — `POST /exercises` с
+    `Idempotency-Key` per call.
+  - `liveExercisePublish(adapter, id, draft)` —
+    `POST /exercises/{id}/publish`.
+  - `liveExerciseGetVersion(adapter, id, versionId)` —
+    `GET /exercises/{id}/versions/{versionId}` (raw DTO).
+  - `liveExerciseGroupCreate(adapter, creation)` —
+    `POST /exercise-groups`.
+  - `liveExerciseUpdate(adapter, id, update)` — **throws
+    `ExerciseUpdateUnsupportedError`** (canonical
+    exercise-service не выставил update endpoint; UI surfaces
+    degraded state через ApiErrorView, не fake success).
+- `useConsoleExercises` defaultLoader переключается по
+  `resolveRuntimeMode()`:
+  - `mock` (default) → `consoleExercisesFor(scenario)` fixtures.
+  - `live` → `liveExercisesLoader(getApiAdapter({mode:"live"}))`.
+
+Mapping caveats (design-only blocks):
+
+- `ConsoleExercise.difficulty` / `maxDuration` / `linkedRuleId` —
+  defaults to `"—"`; canonical `Exercise` DTO ещё не содержит этих
+  полей. Когда backend extension доедет, mapper заполнит без
+  изменения view-model shape.
+- `ConsoleExercise.groupId` — derived из `ExerciseGroup.exerciseOrder`
+  через lookup index в `liveExercisesLoader`; orphan exercises
+  получают `"—"`.
+- `ConsoleExercise.version` — `v{versionNumber}` из
+  `currentVersion`, иначе `"—"`.
+- Canonical `ExerciseStatus` (`draft` / `published` / `archived`)
+  → console `ConsoleExerciseStatus` (`draft` / `published` /
+  `retired`); `archived` mapping в `retired` через
+  `mapExerciseStatus` (total).
+
+Backend gap (документирован):
+
+- `PUT/PATCH /exercises/{id}` — отсутствует в canonical contract.
+  `liveExerciseUpdate` всегда бросает
+  `ExerciseUpdateUnsupportedError` (code
+  `EXERCISE_UPDATE_UNSUPPORTED`). Когда backend ship'нет update,
+  функция превратится в реальный POST/PATCH wiring.
+
+Browser smoke `e2e/exercise-workflow.spec.ts` (4 chromium tests)
+проверяет, что live-loader code-path не регрессит mock-mode
+workflow (heading + groups + catalog render, group filter
+narrows visible set, row selection switches detail aside,
+sidebar navigation round-trip с `aria-current="page"`). Live
+transport tested на unit layer
+(`live-exercise-loader.test.ts`) с mocked openapi-fetch client.
+
 ## Branch policy
 
 Frontend bootstrap rule:

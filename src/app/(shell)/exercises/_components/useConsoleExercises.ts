@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { getApiAdapter } from "@/api/get-api-adapter";
 import {
   DEFAULT_SCENARIO,
   isMockScenario,
   type MockScenario,
 } from "@/api/mock/scenarios";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 import { consoleExercisesFor } from "./consoleExercisesFixtures";
+import { liveExercisesLoader } from "./liveExerciseLoader";
 import type { ConsoleExercisesSnapshot } from "./consoleExercisesSnapshot";
 
 export type ConsoleExercisesLoader = () =>
@@ -21,7 +24,13 @@ export type ConsoleExercisesState = {
   reload: () => void;
 };
 
-function defaultLoader(): ConsoleExercisesSnapshot {
+async function defaultLoader(): Promise<ConsoleExercisesSnapshot> {
+  // Live mode: route through the typed exercise-service client.
+  // Mock mode (default): keep using scenario fixtures so `pnpm dev`
+  // and gates stay backend-free.
+  if (resolveRuntimeMode() === "live") {
+    return liveExercisesLoader(getApiAdapter({ mode: "live" }));
+  }
   const env = process.env.NEXT_PUBLIC_MOCK_SCENARIO;
   const scenario: MockScenario = isMockScenario(env)
     ? env
