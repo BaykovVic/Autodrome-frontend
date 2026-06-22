@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import {
@@ -164,6 +165,7 @@ function FaceIcon() {
 
 export function CandidatesScreen({ loader }: Props) {
   const state = useConsoleCandidates(loader);
+  const router = useRouter();
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<EnrollmentFilter>("all");
@@ -249,8 +251,8 @@ export function CandidatesScreen({ loader }: Props) {
             variant="primary"
             size="sm"
             type="button"
-            disabled
-            title="Registration flow lands in a follow-up feature."
+            onClick={() => router.push("/candidates/new")}
+            title="Open the candidate registration form."
           >
             <PlusIcon />
             Register candidate

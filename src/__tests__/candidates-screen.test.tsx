@@ -1,5 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
+
+const { pushSpy } = vi.hoisted(() => ({ pushSpy: vi.fn() }));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: pushSpy,
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => "/candidates",
+}));
 
 import { CandidatesScreen } from "@/app/(shell)/candidates/_components/CandidatesScreen";
 import { consoleCandidatesFor } from "@/app/(shell)/candidates/_components/consoleRegistryFixtures";
@@ -35,12 +49,14 @@ describe("CandidatesScreen", () => {
     expect(screen.getByRole("columnheader", { name: /face template/i })).toBeDefined();
   });
 
-  it("disables the Register candidate action (out-of-scope for this feature)", async () => {
+  it("Register candidate navigates to the create screen at /candidates/new", async () => {
     renderScreen("normal");
     const btn = (await screen.findByRole("button", {
       name: /register candidate/i,
     })) as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
+    expect(btn.disabled).toBe(false);
+    fireEvent.click(btn);
+    expect(pushSpy).toHaveBeenCalledWith("/candidates/new");
   });
 
   it("filters via enrollment chips (In progress narrows to capturing/command-sent/ready-to-enroll/needs-retry)", async () => {

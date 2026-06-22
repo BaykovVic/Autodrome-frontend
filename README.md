@@ -72,10 +72,27 @@ App Router с route group `(shell)`:
   ready-to-enroll / not-enrolled / quality-failed /
   needs-retry / device-unavailable / session-expired.
   Separation сохранена: enrollment-only surface; per-exam
-  face verification, passive liveness, candidate
-  create/edit flow, start enrollment dialog, session
-  monitor и camera station / capture window намеренно вне
-  scope и должны быть отдельными фичами. `/vehicles`
+  face verification и passive liveness намеренно вне
+  scope. `Register candidate` ведёт на `/candidates/new`
+  → `CandidateCreateScreen` с формой (full name / DOB
+  как `DD.MM.YYYY` со скрытием в реестре / document
+  reference / exam category / eligibility) и client-side
+  валидацией; save транзитит в `saved` state с
+  моковым assigned id; `Save and start enrollment`
+  открывает `StartEnrollmentDialog` модалку с channel
+  selection (Android registrar / Local Web camera),
+  per-channel device state card (registrar device id /
+  station / last seen / battery & network; local camera
+  model / detection / second-monitor copy) и actions
+  (Send to registrar, Use local camera, Retry — disabled
+  с visible reason note когда current attempt active,
+  Cancel). 5 enrollment scenarios покрыты в
+  `consoleEnrollmentChannelsFixtures.ts`:
+  registrar-online / registrar-offline /
+  local-camera-available / local-camera-unavailable /
+  attempt-active. Session monitor, Web camera station и
+  Capture window per reference остаются вне scope и
+  должны быть отдельными фичами. `/vehicles`
   использует `VehiclesScreen` — тот же visual pattern
   поверх `useConsoleVehicles`: header с totals (vehicles +
   degraded + offline), filters (search / device state),
