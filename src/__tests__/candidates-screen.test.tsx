@@ -3,6 +3,10 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 
 import { CandidatesScreen } from "@/app/(shell)/candidates/_components/CandidatesScreen";
 import { consoleCandidatesFor } from "@/app/(shell)/candidates/_components/consoleRegistryFixtures";
+import type {
+  CandidateEnrollmentState,
+  ConsoleCandidate,
+} from "@/app/(shell)/candidates/_components/consoleRegistrySnapshot";
 import type { MockScenario } from "@/api/mock/scenarios";
 
 function renderScreen(scenario: MockScenario) {
@@ -12,7 +16,7 @@ function renderScreen(scenario: MockScenario) {
 }
 
 describe("CandidatesScreen", () => {
-  it("renders header, totals subtitle and a row per candidate from the normal scenario", async () => {
+  it("renders header, totals subtitle and 4-column table", async () => {
     renderScreen("normal");
     expect(
       await screen.findByRole("heading", {
@@ -20,15 +24,18 @@ describe("CandidatesScreen", () => {
         name: /candidates/i,
       }),
     ).toBeDefined();
-    // Totals: 7 records · 4 awaiting face verification (3 pending +
-    // 1 unverified registered + 1 unverified incomplete + 1 unverified
-    // pending). Fixture has 7 candidates; awaiting count derives.
+    // 9 candidates in the normal scenario; 8 awaiting enrollment
+    // (everyone except CND-1042 which is `enrolled`).
     expect(
-      await screen.findByText(/7 records/),
+      await screen.findByText(/9 records · 8 awaiting enrollment/i),
     ).toBeDefined();
+    expect(screen.getByRole("columnheader", { name: /candidate/i })).toBeDefined();
+    expect(screen.getByRole("columnheader", { name: /masked dob/i })).toBeDefined();
+    expect(screen.getByRole("columnheader", { name: /eligibility/i })).toBeDefined();
+    expect(screen.getByRole("columnheader", { name: /face template/i })).toBeDefined();
   });
 
-  it("disables the Register candidate action (out-of-scope for design feature)", async () => {
+  it("disables the Register candidate action (out-of-scope for this feature)", async () => {
     renderScreen("normal");
     const btn = (await screen.findByRole("button", {
       name: /register candidate/i,
@@ -36,26 +43,34 @@ describe("CandidatesScreen", () => {
     expect(btn.disabled).toBe(true);
   });
 
-  it("filters by registration state via the dropdown", async () => {
+  it("filters via enrollment chips (In progress narrows to capturing/command-sent/ready-to-enroll/needs-retry)", async () => {
     renderScreen("normal");
-    // CND-1042 is the first row + default detail (so appears twice).
-    expect(
-      (await screen.findAllByText("CND-1042")).length,
-    ).toBeGreaterThan(0);
-    const select = screen.getByRole("combobox", {
-      name: /registration/i,
-    }) as HTMLSelectElement;
-    fireEvent.change(select, { target: { value: "incomplete" } });
+    await screen.findAllByText("CND-1042");
+    fireEvent.click(
+      screen.getByRole("tab", { name: /^in progress$/i }),
+    );
+    // CND-1043 (capturing), CND-1044 (command-sent), CND-1045
+    // (ready-to-enroll) and CND-1048 (needs-retry) should remain;
+    // CND-1042 (enrolled) and CND-1047 (quality-failed) shouldn't.
+    expect(screen.getAllByText("CND-1043").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("CND-1044").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("CND-1045").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("CND-1048").length).toBeGreaterThan(0);
     expect(screen.queryByText("CND-1042")).toBeNull();
-    expect(screen.getAllByText("CND-1047").length).toBeGreaterThan(0);
+    expect(screen.queryByText("CND-1047")).toBeNull();
   });
 
-  it("filters by search substring (case-insensitive)", async () => {
+  it("filters by search substring across name, id and document", async () => {
     renderScreen("normal");
     await screen.findAllByText("CND-1042");
     const search = screen.getByRole("textbox", { name: /search/i });
     fireEvent.change(search, { target: { value: "lazar" } });
     expect(screen.getAllByText("CND-1046").length).toBeGreaterThan(0);
+    expect(screen.queryByText("CND-1042")).toBeNull();
+
+    // Document substring also matches.
+    fireEvent.change(search, { target: { value: "DL-77-211" } });
+    expect(screen.getAllByText("CND-1048").length).toBeGreaterThan(0);
     expect(screen.queryByText("CND-1042")).toBeNull();
   });
 
@@ -66,26 +81,68 @@ describe("CandidatesScreen", () => {
     ).toBeDefined();
   });
 
-  it("opens face-verification block in detail when a row is selected", async () => {
+  it("opens detail with Identity dl + Face enrollment panel (no verification UI)", async () => {
     renderScreen("normal");
     await screen.findAllByText("CND-1042");
-    fireEvent.click(screen.getByText("K. Lazareva"));
+    fireEvent.click(screen.getByRole("button", { name: /K\. Lazareva/i }));
     const detail = screen.getByRole("complementary", {
       name: /Candidate CND-1046/i,
     });
+    // Identity block.
+    expect(within(detail).getByText(/^Identity$/i)).toBeDefined();
+    expect(within(detail).getByText("DL-77-008822")).toBeDefined();
+    expect(within(detail).getByText(/Masked DOB/i)).toBeDefined();
+    expect(within(detail).getByText(/Last enrollment/i)).toBeDefined();
+    // Face enrollment panel (NOT face verification).
     expect(
-      within(detail).getByText(/Face verification/i),
+      within(detail).getByText(/^Face enrollment$/i),
     ).toBeDefined();
-    expect(within(detail).getByText("0.99")).toBeDefined();
-    expect(within(detail).getByText("+7 999 211 64 09")).toBeDefined();
-    // All action buttons disabled per scope.
+    // The enrollment-only note mentions "verification" in prose,
+    // but no section title or heading labelled exactly
+    // "Face verification" exists (legacy mixed-UI removed).
+    expect(within(detail).queryByText(/^Face verification$/i)).toBeNull();
+    expect(
+      within(detail).getByText(/Template status/i),
+    ).toBeDefined();
+    expect(within(detail).getByText(/Source device/i)).toBeDefined();
+    expect(
+      within(detail).getByText(
+        /Per-exam face verification and passive liveness checks/i,
+      ),
+    ).toBeDefined();
+    // Action buttons disabled per spec.
     const startBtn = within(detail).getByRole("button", {
-      name: /start exam/i,
+      name: /start enrollment/i,
     }) as HTMLButtonElement;
     expect(startBtn.disabled).toBe(true);
+    const sessionsBtn = within(detail).getByRole("button", {
+      name: /sessions/i,
+    }) as HTMLButtonElement;
+    expect(sessionsBtn.disabled).toBe(true);
   });
 
-  it("renders Skeleton while loader is pending", () => {
+  it("represents all 9 enrollment states in the normal scenario fixtures", () => {
+    const snapshot = consoleCandidatesFor("normal");
+    const required: CandidateEnrollmentState[] = [
+      "enrolled",
+      "capturing",
+      "command-sent",
+      "ready-to-enroll",
+      "not-enrolled",
+      "quality-failed",
+      "needs-retry",
+      "device-unavailable",
+      "session-expired",
+    ];
+    const present = new Set(
+      snapshot.candidates.map((c: ConsoleCandidate) => c.enrollment.state),
+    );
+    for (const state of required) {
+      expect(present.has(state)).toBe(true);
+    }
+  });
+
+  it("renders Skeleton while loader is pending (R1 pattern)", () => {
     const pending = new Promise<never>(() => {});
     render(
       <CandidatesScreen
@@ -97,7 +154,7 @@ describe("CandidatesScreen", () => {
     ).toBeDefined();
   });
 
-  it("renders ApiErrorView with retry when loader rejects", async () => {
+  it("renders ApiErrorView with retry when loader rejects (R1 pattern)", async () => {
     const error = Object.assign(new Error("loader failed"), {
       code: "LOADER_FAIL",
       status: 500,
@@ -115,7 +172,7 @@ describe("CandidatesScreen", () => {
     ).toBeDefined();
   });
 
-  it("selects a row when its primary-cell button is activated by keyboard", async () => {
+  it("selects a row when its primary-cell button is activated (R2 pattern)", async () => {
     renderScreen("normal");
     await screen.findAllByText("CND-1042");
     const row = screen.getByRole("button", { name: /K\. Lazareva/i });

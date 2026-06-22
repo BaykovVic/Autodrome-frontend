@@ -4,116 +4,230 @@ import type {
   ConsoleCandidatesSnapshot,
 } from "./consoleRegistrySnapshot";
 
+/**
+ * Per spec: all nine enrollment states must be represented across
+ * scenario fixtures. The `NORMAL` set below covers eight candidates,
+ * each tagged with a distinct enrollment state. Scenarios like
+ * `violations-detected` and `exam-in-progress` derive from `NORMAL`
+ * and adjust eligibility/labels without losing state coverage.
+ */
 const NORMAL_CANDIDATES: ConsoleCandidate[] = [
   {
     id: "CND-1042",
     name: "A. Nikitin",
     category: "Cat B",
     registration: { state: "registered", label: "registered" },
-    face: { state: "verified", label: "verified", confidence: "0.97" },
-    examCount: 3,
-    dateOfBirth: "1991-04-08",
-    phone: "+7 999 014 22 41",
-    lastActivity: "today 11:42",
+    maskedDob: "**.**.1991",
+    document: "DL-77-014562",
+    eligibility: { state: "approved", label: "approved" },
+    enrollment: {
+      state: "enrolled",
+      label: "enrolled",
+      templateStatus: "tpl-7 · current",
+      sourceDevice: "CAM-A2-01",
+      lastEnrollment: "today 09:30",
+    },
   },
   {
     id: "CND-1043",
     name: "M. Volkova",
     category: "Cat B",
     registration: { state: "registered", label: "registered" },
-    face: { state: "verified", label: "verified", confidence: "0.94" },
-    examCount: 2,
-    dateOfBirth: "1995-09-21",
-    phone: "+7 999 045 11 12",
-    lastActivity: "today 10:08",
+    maskedDob: "**.**.1995",
+    document: "DL-77-019811",
+    eligibility: { state: "approved", label: "approved" },
+    enrollment: {
+      state: "capturing",
+      label: "capturing",
+      templateStatus: "session live",
+      sourceDevice: "CAM-A2-02",
+      lastEnrollment: "in progress",
+    },
   },
   {
     id: "CND-1044",
     name: "S. Belov",
     category: "Cat A",
     registration: { state: "registered", label: "registered" },
-    face: { state: "pending", label: "pending", confidence: "0.61" },
-    examCount: 1,
-    dateOfBirth: "1990-02-14",
-    phone: "+7 999 002 88 30",
-    lastActivity: "yesterday 17:14",
+    maskedDob: "**.**.1990",
+    document: "DL-77-020118",
+    eligibility: { state: "approved", label: "approved" },
+    enrollment: {
+      state: "command-sent",
+      label: "command sent",
+      templateStatus: "—",
+      sourceDevice: "CAM-A2-01",
+      lastEnrollment: "queued · 11:42",
+    },
   },
   {
     id: "CND-1045",
     name: "I. Pavlov",
     category: "Cat C",
-    registration: { state: "pending", label: "pending" },
-    face: { state: "unverified", label: "unverified" },
-    examCount: 0,
-    dateOfBirth: "1988-12-03",
-    phone: "+7 999 070 55 18",
-    lastActivity: "—",
+    registration: { state: "registered", label: "registered" },
+    maskedDob: "**.**.1988",
+    document: "DL-77-031044",
+    eligibility: { state: "approved", label: "approved" },
+    enrollment: {
+      state: "ready-to-enroll",
+      label: "ready to enroll",
+      templateStatus: "—",
+      sourceDevice: "CAM-A2-01",
+      lastEnrollment: "—",
+    },
   },
   {
     id: "CND-1046",
     name: "K. Lazareva",
     category: "Cat B",
-    registration: { state: "registered", label: "registered" },
-    face: { state: "verified", label: "verified", confidence: "0.99" },
-    examCount: 5,
-    dateOfBirth: "1993-06-30",
-    phone: "+7 999 211 64 09",
-    lastActivity: "today 09:30",
+    registration: { state: "incomplete", label: "incomplete" },
+    maskedDob: "**.**.1993",
+    document: "DL-77-008822",
+    eligibility: { state: "pending", label: "pending decision" },
+    enrollment: {
+      state: "not-enrolled",
+      label: "not enrolled",
+      templateStatus: "—",
+      sourceDevice: "—",
+      lastEnrollment: "—",
+    },
   },
   {
     id: "CND-1047",
     name: "D. Sokolov",
     category: "Cat B",
-    registration: { state: "incomplete", label: "incomplete" },
-    face: { state: "unverified", label: "unverified" },
-    examCount: 0,
-    dateOfBirth: "1992-08-17",
-    phone: "+7 999 311 12 88",
-    lastActivity: "3d ago",
+    registration: { state: "pending", label: "pending" },
+    maskedDob: "**.**.1992",
+    document: "DL-77-105410",
+    eligibility: { state: "denied", label: "denied" },
+    enrollment: {
+      state: "quality-failed",
+      label: "quality failed",
+      templateStatus: "rejected · low light",
+      sourceDevice: "CAM-A2-02",
+      lastEnrollment: "yesterday 17:14",
+    },
   },
   {
     id: "CND-1048",
     name: "E. Orlov",
     category: "Cat A",
     registration: { state: "registered", label: "registered" },
-    face: { state: "pending", label: "pending", confidence: "0.72" },
-    examCount: 1,
-    dateOfBirth: "1989-11-09",
-    phone: "+7 999 411 77 55",
-    lastActivity: "today 08:14",
+    maskedDob: "**.**.1989",
+    document: "DL-77-211044",
+    eligibility: { state: "approved", label: "approved" },
+    enrollment: {
+      state: "needs-retry",
+      label: "needs retry",
+      templateStatus: "1/3 attempts used",
+      sourceDevice: "CAM-A2-01",
+      lastEnrollment: "today 08:14",
+    },
+  },
+  {
+    id: "CND-1049",
+    name: "N. Petrova",
+    category: "Cat B",
+    registration: { state: "registered", label: "registered" },
+    maskedDob: "**.**.1997",
+    document: "DL-77-307712",
+    eligibility: { state: "approved", label: "approved" },
+    enrollment: {
+      state: "device-unavailable",
+      label: "device unavailable",
+      templateStatus: "—",
+      sourceDevice: "CAM-A2-03 · offline",
+      lastEnrollment: "—",
+    },
   },
 ];
 
-function awaitingFaceCount(candidates: ConsoleCandidate[]): number {
+const SESSION_EXPIRED_CANDIDATE: ConsoleCandidate = {
+  id: "CND-1050",
+  name: "R. Aksyonov",
+  category: "Cat C",
+  registration: { state: "incomplete", label: "incomplete" },
+  maskedDob: "**.**.1986",
+  document: "DL-77-410988",
+  eligibility: { state: "expired", label: "expired" },
+  enrollment: {
+    state: "session-expired",
+    label: "session expired",
+    templateStatus: "—",
+    sourceDevice: "CAM-A2-02",
+    lastEnrollment: "2d ago",
+  },
+};
+
+function awaitingEnrollmentCount(candidates: ConsoleCandidate[]): number {
   return candidates.filter(
-    (c) => c.face.state === "pending" || c.face.state === "unverified",
+    (c) =>
+      c.enrollment.state !== "enrolled",
   ).length;
 }
 
+const NORMAL_FULL: ConsoleCandidate[] = [
+  ...NORMAL_CANDIDATES,
+  SESSION_EXPIRED_CANDIDATE,
+];
+
 const NORMAL: ConsoleCandidatesSnapshot = {
   totals: {
-    total: NORMAL_CANDIDATES.length,
-    awaitingFaceVerification: awaitingFaceCount(NORMAL_CANDIDATES),
+    total: NORMAL_FULL.length,
+    awaitingEnrollment: awaitingEnrollmentCount(NORMAL_FULL),
   },
-  candidates: NORMAL_CANDIDATES,
+  candidates: NORMAL_FULL,
 };
 
 const EMPTY: ConsoleCandidatesSnapshot = {
-  totals: { total: 0, awaitingFaceVerification: 0 },
+  totals: { total: 0, awaitingEnrollment: 0 },
   candidates: [],
 };
 
 const VIOLATIONS_DETECTED: ConsoleCandidatesSnapshot = {
-  totals: {
-    total: NORMAL_CANDIDATES.length,
-    awaitingFaceVerification:
-      awaitingFaceCount(NORMAL_CANDIDATES) + 1,
-  },
-  candidates: NORMAL_CANDIDATES.map((c) =>
+  ...NORMAL,
+  candidates: NORMAL_FULL.map((c) =>
     c.id === "CND-1044"
       ? {
           ...c,
-          face: { state: "unverified", label: "unverified" },
+          enrollment: {
+            ...c.enrollment,
+            state: "quality-failed",
+            label: "quality failed · review",
+            templateStatus: "rejected · motion",
+          },
+        }
+      : c,
+  ),
+};
+
+const EXAM_IN_PROGRESS: ConsoleCandidatesSnapshot = {
+  ...NORMAL,
+  candidates: NORMAL_FULL.map((c) =>
+    c.id === "CND-1042"
+      ? {
+          ...c,
+          enrollment: {
+            ...c.enrollment,
+            label: "enrolled · in exam",
+            lastEnrollment: "today 09:30 (linked to EXM-0118)",
+          },
+        }
+      : c,
+  ),
+};
+
+const SERVICE_DEGRADED: ConsoleCandidatesSnapshot = {
+  ...NORMAL,
+  candidates: NORMAL_FULL.map((c) =>
+    c.id === "CND-1049"
+      ? {
+          ...c,
+          enrollment: {
+            ...c.enrollment,
+            label: "device unavailable · all cams",
+            sourceDevice: "no available device",
+          },
         }
       : c,
   ),
@@ -128,7 +242,9 @@ export function consoleCandidatesFor(
     case "violations-detected":
       return VIOLATIONS_DETECTED;
     case "exam-in-progress":
+      return EXAM_IN_PROGRESS;
     case "service-degraded":
+      return SERVICE_DEGRADED;
     case "normal":
     default:
       return NORMAL;
