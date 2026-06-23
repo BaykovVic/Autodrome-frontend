@@ -1015,6 +1015,69 @@ nav round-trip). Live transport tested на unit layer
 (`live-rules-loader.test.ts` + `live-violations-loader.test.ts`)
 с mocked openapi-fetch clients.
 
+### Android Devices admin workspace (mock-first baseline)
+
+`/devices` workspace добавлен в Web Operator Console как
+mock-first baseline для cross-scope Android device-management
+track. Никаких live API вызовов в этой фиче — workspace работает
+через scenario fixtures + view-model boundary; live wiring
+лансит в `feature/frontend-android-device-management-live-api-integration`.
+
+Canonical naming (per
+`Управление реализацией/feature/android-device-management-cross-scope-feature-map.md`
++ canonical `android-device-management-service` OpenAPI v1):
+
+- Lifecycle: `pending` / `active` / `retired`.
+- Roles: `registrar` / `vehicleVerifier`.
+- Binding types: `receptionPoint` / `workstation` / `vehicle`.
+  - `registrar` → `receptionPoint` или `workstation`.
+  - `vehicleVerifier` → `vehicle`.
+- Capability policy: `disabledCapabilities[]` (positive-list
+  "everything not disabled is allowed"), `policyVersion`
+  (monotonic int ≥ 1), `policyReason` (operator audit note, no
+  PII).
+- Capabilities: `enrollmentCapture`, `verificationCapture`,
+  `passiveFaceCheck`, `devicePairing`, `diagnostics`, `settings`
+  (enum additive — UI ignores unknown strings forward-compat).
+- Heartbeat: `lastSeenAt`, `status` (`online`/`offline`/
+  `degraded`), `batteryLevel` (0..1), `batteryCharging`,
+  `networkType`.
+
+Source values stay canonical; operator-friendly labels live in
+`ANDROID_CAPABILITY_LABELS` (rendered alongside monospace
+canonical chip).
+
+Файлы:
+
+- `src/app/(shell)/devices/_components/consoleAndroidDevicesSnapshot.ts`
+  — view-model types.
+- `src/app/(shell)/devices/_components/consoleAndroidDevicesFixtures.ts`
+  — `consoleAndroidDevicesFor(scenario)` (normal / empty /
+  service-degraded scenarios; default seed has pending + active
+  (registrar/vehicleVerifier) + retired examples).
+- `src/app/(shell)/devices/_components/useConsoleAndroidDevices.ts`
+  — mock-first hook (mirrors pre-live-integration
+  `useConsoleVehicles` pattern; live mode wiring in follow-up
+  feature).
+- `src/app/(shell)/devices/_components/AndroidDevicesScreen.tsx`
+  + `.module.css` — table + detail aside; canonical names
+  surfaced как mono chips next to operator labels.
+- `src/app/(shell)/devices/page.tsx` + sidebar entry under
+  `SYSTEM`.
+
+Assign / edit policy / retire affordances — все 3 unconditionally
+**disabled** в baseline с operator-visible `title`
+explanations. Per spec rule "не притворяться live success":
+никаких mock-backed click handlers, имитирующих live mutation;
+real wiring лансит с
+`feature/frontend-android-device-management-live-api-integration`.
+
+Browser smoke `e2e/android-devices-workflow.spec.ts` (5
+chromium tests) проверяет heading + status tabs + rows render,
+Pending filter narrows visible set, row selection switches
+detail aside, disabled affordances surface, sidebar nav
+round-trip.
+
 ## Branch policy
 
 Frontend bootstrap rule:
