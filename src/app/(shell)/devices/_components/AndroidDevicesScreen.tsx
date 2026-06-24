@@ -155,13 +155,19 @@ export function AndroidDevicesScreen({
     retired: 0,
   };
 
-  // All assign/policy/retire affordances are unconditionally
-  // disabled in this baseline feature — no live admin commands
-  // ship until `frontend-android-device-management-live-api-integration`
-  // (cross-scope feature map). The per-button `title` carries the
-  // operator-visible reason: status-specific where applicable, or
-  // "live integration upcoming" by default. Per spec rule:
-  // "не притворяться live success".
+  // Affordance enablement rules (live API integration feature):
+  //   - "Edit policy" is enabled for active devices and opens the
+  //     mock-first policy editor; in live mode the editor's Save
+  //     dispatches POST /admin/devices/{deviceId}/assign with the
+  //     updated capability policy through
+  //     `state.applyPolicyEdit`. Pending / retired stay disabled
+  //     with status-specific tooltips.
+  //   - "Assign" and "Retire" remain disabled in this feature —
+  //     dedicated UI flows for role/binding assignment and retire
+  //     ship as separate follow-up features. The disabled tooltip
+  //     references the upcoming work. Per spec rule "не
+  //     притворяться live success" — no mock-backed click handler
+  //     pretends a successful assign/retire mutation.
   const isRetired = selected?.status === "retired";
   const isPending = selected?.status === "pending";
 

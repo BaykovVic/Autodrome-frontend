@@ -4,6 +4,7 @@ import {
   DEFAULT_LIVE_BASE_URLS,
   type ServiceName,
 } from "./runtime-config";
+import type { AndroidDevicePaths } from "./services/android-device-management";
 import type { CandidatePaths } from "./services/candidate";
 import type { ExamPaths } from "./services/exam";
 import type { ExercisePaths } from "./services/exercise";
@@ -32,6 +33,9 @@ export function createLiveAdapter(
     }),
     mediaArchive: createAutodromeClient<MediaArchivePaths>({
       baseUrl: baseUrls.mediaArchive,
+    }),
+    androidDevice: createAutodromeClient<AndroidDevicePaths>({
+      baseUrl: baseUrls.androidDevice,
     }),
   };
 }

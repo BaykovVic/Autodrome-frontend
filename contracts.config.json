@@ -8,6 +8,7 @@
     { "name": "exam", "openapi": "openapi/exam-service/v1/openapi.yaml" },
     { "name": "exercise", "openapi": "openapi/exercise-service/v1/openapi.yaml" },
     { "name": "violation-rule", "openapi": "openapi/violation-rule-service/v1/openapi.yaml" },
-    { "name": "media-archive", "openapi": "openapi/media-archive-service/v1/openapi.yaml" }
+    { "name": "media-archive", "openapi": "openapi/media-archive-service/v1/openapi.yaml" },
+    { "name": "android-device-management", "openapi": "openapi/android-device-management-service/v1/openapi.yaml" }
   ]
 }

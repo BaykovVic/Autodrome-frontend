@@ -1164,6 +1164,95 @@ preset triggers safe-confirm + Confirm & save bumps
 names в editor state — capability tokens единственная mobile
 coupling, per cross-scope decision.
 
+### Android device management live API integration
+
+`/devices` workspace + policy editor wired через generated
+OpenAPI client `@/contracts/types/android-device-management`
+(сгенерирован из canonical `android-device-management-service`
+OpenAPI v1). Mock mode остается default-safe; live mode opt-in
+через `NEXT_PUBLIC_API_ADAPTER=live`.
+
+Generated client + adapter:
+
+- `src/contracts/types/android-device-management.ts` — generated
+  via `pnpm contracts:generate` (canonical types added к
+  contracts.config.json services list; total 7 services).
+- `src/api/services/android-device-management.ts` — typed
+  openapi-fetch client wrapper.
+- `AutodromeApi.androidDevice` added к adapter; live + mock
+  adapters extended; `ServiceName` + `DEFAULT_LIVE_BASE_URLS`
+  + `SERVICE_ENV_KEYS` (`NEXT_PUBLIC_API_ANDROID_DEVICE_BASE_URL`)
+  + Operations diagnostics labels extended.
+
+Live loader + commands (`liveAndroidDevicesLoader.ts`):
+
+- `liveAndroidDevicesLoader(adapter)` — `GET /admin/devices` →
+  `ConsoleAndroidDevicesSnapshot`. Totals derived от lifecycle
+  status counts.
+- `liveAndroidDeviceGet(adapter, deviceId)` —
+  `GET /admin/devices/{deviceId}`.
+- `liveAndroidDeviceAssign(adapter, deviceId, assignment)` —
+  `POST /admin/devices/{deviceId}/assign` с `Idempotency-Key`
+  per call. Canonical body: `role`, `binding`, optional
+  `policy` (operator-side write shape —
+  `disabledCapabilities` + `policyReason`; backend owns
+  `policyVersion`/`updatedAt`), optional operator audit `notes`.
+- `liveAndroidDeviceRetire(adapter, deviceId, request?)` —
+  `POST /admin/devices/{deviceId}/retire` с `Idempotency-Key`
+  per call. Optional operator audit `reason`.
+- `policyUpdateBody(policy)` — pure helper trimming
+  `ConsoleAndroidDeviceCapabilityPolicy` to canonical
+  `AndroidDeviceCapabilityPolicyUpdate` write shape.
+- `liveAndroidDeviceApplyPolicy(adapter, device, nextPolicy)` —
+  composes role + binding from current device with the
+  operator-side policy body; throws explicit Error if device
+  has no role/binding (canonical contract requires both для
+  POST /assign).
+- Mappers (pure): `mapAndroidDeviceDtoToConsole`,
+  `mapAndroidDeviceBindingDtoToConsole`,
+  `mapAndroidDeviceCapabilityPolicyDtoToConsole`. Source values
+  preserved canonical-as-is; no transformation.
+
+Hook integration (`useConsoleAndroidDevices`):
+
+- `defaultLoader()` async + `resolveRuntimeMode()` switch —
+  live mode → `liveAndroidDevicesLoader(getApiAdapter({mode:
+  "live"}))`. Mock mode default-safe.
+- `applyPolicyEdit(deviceId, nextPolicy)` теперь dual-path:
+  - Mock mode: immutable snapshot update с locally-bumped
+    `policyVersion` from editor.
+  - Live mode: dispatches
+    `liveAndroidDeviceApplyPolicy(adapter, device, nextPolicy)`;
+    on success replaces snapshot device с backend-stamped
+    response (real monotonic `policyVersion` from backend); on
+    failure surfaces ApiError через standard fatalError path.
+- Backend lag handling: `503 ANDROID_DEVICE_NOT_IMPLEMENTED`
+  surfaces через ApiError → `<ApiErrorView>` (existing taxonomy
+  primitives) — explicit degraded state, not fake success.
+
+Не реализовано в этой фиче (отложенные):
+
+- **Assign + Retire UI flows** — loader-layer commands wired,
+  но dedicated UI (role/binding assignment dialog, retire
+  confirmation flow) лансит как отдельные следующие фичи; baseline
+  affordances остаются disabled с operator-visible tooltips.
+- **Live e2e workflow** — `pnpm e2e` runs против mock build;
+  real-tablet и backend-stack e2e tracked в cross-scope feature
+  map (steps 14-16).
+- **Pagination** — admin list берёт первую страницу; production
+  scale потребует `pageSize`/`pageToken` query wiring.
+- **Anchor label resolution** — `binding.anchorLabel` defaults
+  к `anchorId` пока reference-data-service / vehicle-service
+  endpoints не выставят anchor metadata read.
+
+Browser smoke `e2e/android-devices-live-integration.spec.ts` (3
+chromium tests) проверяет mock-mode regression после live
+wiring: workspace rows render, policy editor saves through the
+mock branch of `applyPolicyEdit`, sidebar entry reachable. Live
+transport tested на unit layer
+(`live-android-devices-loader.test.ts`) с mocked openapi-fetch
+client включая 503 backend-lag propagation.
+
 ## Branch policy
 
 Frontend bootstrap rule:

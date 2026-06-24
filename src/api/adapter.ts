@@ -1,4 +1,5 @@
 import type { AutodromeClient } from "./client";
+import type { AndroidDevicePaths } from "./services/android-device-management";
 import type { CandidatePaths } from "./services/candidate";
 import type { ExamPaths } from "./services/exam";
 import type { ExercisePaths } from "./services/exercise";
@@ -15,6 +16,7 @@ export interface AutodromeApi {
   exercise: AutodromeClient<ExercisePaths>;
   violationRule: AutodromeClient<ViolationRulePaths>;
   mediaArchive: AutodromeClient<MediaArchivePaths>;
+  androidDevice: AutodromeClient<AndroidDevicePaths>;
 }
 
 export type ApiAdapterOptions = {

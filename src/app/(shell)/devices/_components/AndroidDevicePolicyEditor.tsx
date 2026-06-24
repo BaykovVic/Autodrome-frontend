@@ -84,10 +84,18 @@ export function AndroidDevicePolicyEditor({
     setConfirmOpen(false);
   }
 
-  const prevDisabled = device?.policy?.disabledCapabilities ?? [];
+  // `prevDisabled` is computed inside the useMemo callback to
+  // avoid a new array allocation on every render making the
+  // memo deps unstable. Addresses review N1 from
+  // `review-feature-frontend-android-device-policy-editor-baseline`.
+  const prevPolicyCapabilities = device?.policy?.disabledCapabilities;
   const needsConfirm = useMemo(
-    () => requiresConfirm(prevDisabled, draft.disabledCapabilities),
-    [prevDisabled, draft.disabledCapabilities],
+    () =>
+      requiresConfirm(
+        prevPolicyCapabilities ?? [],
+        draft.disabledCapabilities,
+      ),
+    [prevPolicyCapabilities, draft.disabledCapabilities],
   );
 
   if (!device) return null;

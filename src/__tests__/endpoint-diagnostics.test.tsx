@@ -51,7 +51,7 @@ describe("EndpointDiagnostics", () => {
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(6);
+    expect(checkBtns).toHaveLength(7);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(true);
     }
@@ -65,18 +65,18 @@ describe("EndpointDiagnostics", () => {
     const section = screen.getByRole("region", {
       name: /service endpoint diagnostics/i,
     });
-    // One configured override, five defaults. The column header
+    // One configured override, six defaults. The column header
     // "Configured" also matches /^configured$/i, hence +1.
     expect(
       within(section).getAllByText(/^configured$/i),
     ).toHaveLength(2);
     expect(
       within(section).getAllByText(/^default$/i),
-    ).toHaveLength(5);
+    ).toHaveLength(6);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(6);
+    expect(checkBtns).toHaveLength(7);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(false);
     }

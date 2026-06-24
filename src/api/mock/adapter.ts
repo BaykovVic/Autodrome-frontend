@@ -2,6 +2,7 @@ import type { AutodromeApi } from "../adapter";
 import { createAutodromeClient } from "../client";
 import { createMockFetch } from "./fetch";
 import { DEFAULT_SCENARIO, type MockScenario } from "./scenarios";
+import type { AndroidDevicePaths } from "../services/android-device-management";
 import type { CandidatePaths } from "../services/candidate";
 import type { ExamPaths } from "../services/exam";
 import type { ExercisePaths } from "../services/exercise";
@@ -37,6 +38,10 @@ export function createMockAdapter(
     }),
     mediaArchive: createAutodromeClient<MediaArchivePaths>({
       baseUrl: "/api/media-archive/v1",
+      fetch: mockFetch,
+    }),
+    androidDevice: createAutodromeClient<AndroidDevicePaths>({
+      baseUrl: "/api/android-device-management/v1",
       fetch: mockFetch,
     }),
   };
