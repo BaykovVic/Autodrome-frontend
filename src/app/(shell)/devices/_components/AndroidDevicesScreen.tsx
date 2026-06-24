@@ -22,11 +22,21 @@ import {
   type ConsoleAndroidDeviceCapability,
   type ConsoleAndroidDeviceStatus,
 } from "./consoleAndroidDevicesSnapshot";
+import { AndroidDevicePolicyEditor } from "./AndroidDevicePolicyEditor";
 import styles from "./AndroidDevicesScreen.module.css";
 
 type Props = {
   loader?: ConsoleAndroidDevicesLoader;
+  /**
+   * Stable "now" timestamp injected into the policy editor for
+   * deterministic mock state. Falls back to a fixed pilot-window
+   * value so non-test consumers also see a stable snapshot until
+   * live wiring lands.
+   */
+  policyEditorNow?: string;
 };
+
+const DEFAULT_POLICY_EDITOR_NOW = "2026-06-24T00:00:00Z";
 
 type StatusFilter = ConsoleAndroidDeviceStatus | "all";
 
@@ -88,13 +98,17 @@ function capabilityLabel(cap: ConsoleAndroidDeviceCapability): string {
   return ANDROID_CAPABILITY_LABELS[cap] ?? cap;
 }
 
-export function AndroidDevicesScreen({ loader }: Props) {
+export function AndroidDevicesScreen({
+  loader,
+  policyEditorNow = DEFAULT_POLICY_EDITOR_NOW,
+}: Props) {
   const state = useConsoleAndroidDevices(loader);
 
   const [tab, setTab] = useState<StatusFilter>("all");
   const [selectedId, setSelectedId] = useState<string | undefined>(
     undefined,
   );
+  const [policyEditorOpen, setPolicyEditorOpen] = useState(false);
 
   const devices = useMemo(
     () => state.snapshot?.devices ?? [],
@@ -498,14 +512,15 @@ export function AndroidDevicesScreen({ loader }: Props) {
                 variant="secondary"
                 size="sm"
                 type="button"
-                disabled
+                disabled={isPending || isRetired}
                 title={
                   isPending
                     ? "Capability policy is set once the device transitions pending → active."
                     : isRetired
                       ? "Capability policy is read-only for retired devices."
-                      : "Policy editor lands with the upcoming Android device policy editor feature."
+                      : "Open the mock-first capability policy editor for this device."
                 }
+                onClick={() => setPolicyEditorOpen(true)}
               >
                 Edit policy
               </Button>
@@ -526,6 +541,16 @@ export function AndroidDevicesScreen({ loader }: Props) {
           </aside>
         ) : null}
       </div>
+
+      <AndroidDevicePolicyEditor
+        open={policyEditorOpen}
+        device={selected ?? null}
+        now={policyEditorNow}
+        onSave={(deviceId, nextPolicy) => {
+          state.applyPolicyEdit(deviceId, nextPolicy);
+        }}
+        onClose={() => setPolicyEditorOpen(false)}
+      />
     </section>
   );
 }

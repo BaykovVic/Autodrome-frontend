@@ -1,0 +1,205 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  letter-spacing: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.deviceMeta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 12px;
+  row-gap: 4px;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0;
+}
+
+.deviceMetaLabel {
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.deviceMetaValue {
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.deviceMetaMono {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+  margin: 8px 0 0;
+}
+
+.presetRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  letter-spacing: 0;
+}
+
+.capabilityList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  letter-spacing: 0;
+}
+
+.capabilityRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  letter-spacing: 0;
+}
+
+.capabilityCheckbox {
+  margin-top: 3px;
+  letter-spacing: 0;
+}
+
+.capabilityText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  letter-spacing: 0;
+}
+
+.capabilityLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.capabilityCode {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.criticalChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  height: 16px;
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-soft, transparent);
+  margin-left: 6px;
+}
+
+.reasonField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  letter-spacing: 0;
+}
+
+.reasonLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.reasonHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.reasonTextarea {
+  font: inherit;
+  font-size: var(--font-size-md);
+  padding: 8px 10px;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  resize: vertical;
+  min-height: 60px;
+  letter-spacing: 0;
+}
+
+.versionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-soft);
+  border: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  letter-spacing: 0;
+}
+
+.confirmBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  letter-spacing: 0;
+}
+
+.confirmTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+.confirmText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.confirmList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0;
+}
+
+.confirmList li {
+  letter-spacing: 0;
+}

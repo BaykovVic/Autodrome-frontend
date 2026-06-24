@@ -1078,6 +1078,92 @@ Pending filter narrows visible set, row selection switches
 detail aside, disabled affordances surface, sidebar nav
 round-trip.
 
+### Android device capability policy editor (mock-first baseline)
+
+`Edit policy` affordance в detail aside Android Devices
+workspace разблокирована для **active** devices: открывает
+mock-first capability policy editor через `<Modal>` primitive.
+Pending / retired остаются disabled с tooltip-explanation.
+
+Никаких live API calls в этой фиче — editor мутирует только
+local mock snapshot через `useConsoleAndroidDevices.applyPolicyEdit`.
+Backend wiring (`POST /admin/devices/{deviceId}/assign` с
+обновлённой `policy`) лансит в
+`feature/frontend-android-device-management-live-api-integration`.
+
+Editor surfaces:
+
+- Текущий `policyVersion` (read-only pill `v{N}`).
+- Device metadata: id (monospace canonical), role.
+- Presets row:
+  - "Apply registrar preset" — disables verifier-side +
+    operator-sensitive surfaces (`verificationCapture`,
+    `passiveFaceCheck`, `diagnostics`, `settings`).
+  - "Apply vehicleVerifier preset" — disables enrollment +
+    operator-sensitive surfaces (`enrollmentCapture`,
+    `devicePairing`, `settings`).
+  - "Clear all" — empties `disabledCapabilities` ("everything
+    not in the disabled set is allowed" canonical semantics).
+- `disabledCapabilities` checkbox list: 6 canonical capabilities
+  с operator-friendly label + monospace canonical token +
+  "critical" chip для operator-critical capabilities
+  (`enrollmentCapture`, `verificationCapture`,
+  `passiveFaceCheck`, `devicePairing`, `settings`;
+  `diagnostics` non-critical).
+- `policyReason` textarea (max 2000 chars; пустое значение
+  collapses к canonical "absent" semantics).
+- Cancel / Save.
+
+Safe confirm dialog появляется когда `requiresConfirm(prev, next)`
+возвращает true:
+
+- Newly-disabled critical capability OR
+- Disable-all heuristic (next set covers все critical + ≥5
+  canonical capabilities).
+
+Confirm dialog показывает full list of would-be-disabled
+capabilities + "Keep editing" / "Confirm & save" actions.
+Re-enabling critical capabilities НЕ triggers confirm (additive
+restoration).
+
+`applyPolicyEdit(prev, draft, now)` (pure helper):
+
+- Bumps `policyVersion` to `prev.policyVersion + 1` (mock mode
+  preserves canonical monotonic invariant; live mode will
+  replace с backend-stamped value).
+- Trims `policyReason`; empty → field omitted entirely.
+- Uses caller-supplied `now` timestamp (no `Date.now()` reads;
+  deterministic test output).
+
+Файлы:
+
+- `src/app/(shell)/devices/_components/androidPolicyEditorHelpers.ts`
+  — pure helpers (`ANDROID_CAPABILITIES`,
+  `isCriticalCapability`, `REGISTRAR_PRESET`,
+  `VEHICLE_VERIFIER_PRESET`, `CLEAR_ALL_PRESET`,
+  `presetForRole`, `buildEditorDraft`, `toggleCapability`,
+  `applyPreset`, `requiresConfirm`, `applyPolicyEdit`).
+- `src/app/(shell)/devices/_components/AndroidDevicePolicyEditor.tsx`
+  + `.module.css` — modal component (single `<Modal>` switches
+  body между editor view и confirm view, чтобы избежать
+  modal-close cascade).
+- `src/app/(shell)/devices/_components/useConsoleAndroidDevices.ts`
+  — extended с `applyPolicyEdit(deviceId, nextPolicy)` mock
+  mutation (immutable snapshot update).
+- `src/app/(shell)/devices/_components/AndroidDevicesScreen.tsx`
+  — wired `Edit policy` affordance с `policyEditorNow` prop
+  (stable injected timestamp).
+
+Browser smoke `e2e/android-devices-policy-editor.spec.ts` (3
+chromium tests) проверяет editor opens с current
+`policyVersion` + canonical chips, Cancel не мутирует snapshot,
+preset triggers safe-confirm + Confirm & save bumps
+`policyVersion` в detail aside.
+
+Никаких Android Activity / Fragment / Composable / View class
+names в editor state — capability tokens единственная mobile
+coupling, per cross-scope decision.
+
 ## Branch policy
 
 Frontend bootstrap rule:

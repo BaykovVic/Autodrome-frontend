@@ -8,7 +8,10 @@ import {
   type MockScenario,
 } from "@/api/mock/scenarios";
 import { consoleAndroidDevicesFor } from "./consoleAndroidDevicesFixtures";
-import type { ConsoleAndroidDevicesSnapshot } from "./consoleAndroidDevicesSnapshot";
+import type {
+  ConsoleAndroidDeviceCapabilityPolicy,
+  ConsoleAndroidDevicesSnapshot,
+} from "./consoleAndroidDevicesSnapshot";
 
 export type ConsoleAndroidDevicesLoader = () =>
   | ConsoleAndroidDevicesSnapshot
@@ -19,6 +22,23 @@ export type ConsoleAndroidDevicesState = {
   snapshot: ConsoleAndroidDevicesSnapshot | null;
   fatalError: unknown | null;
   reload: () => void;
+  /**
+   * Mock-only policy mutation. Replaces the target device's
+   * `policy` with the supplied value and leaves the rest of the
+   * snapshot intact. NOT a live API call — this is the local
+   * mock state hook used by the policy editor baseline feature.
+   *
+   * Live wiring lands in
+   * `feature/frontend-android-device-management-live-api-integration`
+   * — at that point this method delegates to
+   * `liveAndroidDeviceAssign(adapter, deviceId, { policy })` and
+   * uses the backend-stamped `policyVersion` from the response
+   * instead of the locally-bumped version.
+   */
+  applyPolicyEdit: (
+    deviceId: string,
+    nextPolicy: ConsoleAndroidDeviceCapabilityPolicy,
+  ) => void;
 };
 
 function defaultLoader(): ConsoleAndroidDevicesSnapshot {
@@ -71,5 +91,20 @@ export function useConsoleAndroidDevices(
     };
   }, [loader, tick]);
 
-  return { loading, snapshot, fatalError, reload };
+  const applyPolicyEdit = useCallback(
+    (deviceId: string, nextPolicy: ConsoleAndroidDeviceCapabilityPolicy) => {
+      setSnapshot((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          devices: prev.devices.map((d) =>
+            d.id === deviceId ? { ...d, policy: nextPolicy } : d,
+          ),
+        };
+      });
+    },
+    [],
+  );
+
+  return { loading, snapshot, fatalError, reload, applyPolicyEdit };
 }
