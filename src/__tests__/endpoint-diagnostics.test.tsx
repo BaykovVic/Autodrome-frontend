@@ -40,14 +40,15 @@ describe("EndpointDiagnostics", () => {
     const section = screen.getByRole("region", {
       name: /service endpoint diagnostics/i,
     });
-    // 6 service rows.
+    // 7 service rows (incl. android-device-management added in
+    // the live integration feature).
     expect(
       within(section).getAllByText(/^mock$/i).length,
-    ).toBeGreaterThanOrEqual(6);
+    ).toBeGreaterThanOrEqual(7);
     // "n/a" badge in the configured column for every row.
     expect(
       within(section).getAllByText(/^n\/a$/i).length,
-    ).toBeGreaterThanOrEqual(6);
+    ).toBeGreaterThanOrEqual(7);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];

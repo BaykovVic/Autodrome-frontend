@@ -1,0 +1,115 @@
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  letter-spacing: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.deviceMeta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 12px;
+  row-gap: 4px;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0;
+}
+
+.deviceMetaLabel {
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.deviceMetaValue {
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.deviceMetaMono {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  letter-spacing: 0;
+}
+
+.fieldLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.fieldHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.fieldError {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  letter-spacing: 0;
+}
+
+.select,
+.input,
+.textarea {
+  font: inherit;
+  font-size: var(--font-size-md);
+  padding: 6px 10px;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.input {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+.textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.canonicalChip {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  margin-left: 6px;
+  letter-spacing: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  letter-spacing: 0;
+}
+
+.confirmText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  letter-spacing: 0;
+}

@@ -22,13 +22,16 @@ import {
   type ConsoleAndroidDeviceCapability,
   type ConsoleAndroidDeviceStatus,
 } from "./consoleAndroidDevicesSnapshot";
+import { AndroidDeviceAssignDialog } from "./AndroidDeviceAssignDialog";
 import { AndroidDevicePolicyEditor } from "./AndroidDevicePolicyEditor";
+import { AndroidDeviceRetireDialog } from "./AndroidDeviceRetireDialog";
 import styles from "./AndroidDevicesScreen.module.css";
 
 type Props = {
   loader?: ConsoleAndroidDevicesLoader;
   /**
-   * Stable "now" timestamp injected into the policy editor for
+   * Stable "now" timestamp injected into the policy editor +
+   * mock assign/retire mutations (assignedAt / retiredAt) for
    * deterministic mock state. Falls back to a fixed pilot-window
    * value so non-test consumers also see a stable snapshot until
    * live wiring lands.
@@ -102,13 +105,18 @@ export function AndroidDevicesScreen({
   loader,
   policyEditorNow = DEFAULT_POLICY_EDITOR_NOW,
 }: Props) {
-  const state = useConsoleAndroidDevices(loader);
+  const state = useConsoleAndroidDevices({
+    loader,
+    now: policyEditorNow,
+  });
 
   const [tab, setTab] = useState<StatusFilter>("all");
   const [selectedId, setSelectedId] = useState<string | undefined>(
     undefined,
   );
   const [policyEditorOpen, setPolicyEditorOpen] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [retireDialogOpen, setRetireDialogOpen] = useState(false);
 
   const devices = useMemo(
     () => state.snapshot?.devices ?? [],
@@ -155,19 +163,22 @@ export function AndroidDevicesScreen({
     retired: 0,
   };
 
-  // Affordance enablement rules (live API integration feature):
-  //   - "Edit policy" is enabled for active devices and opens the
-  //     mock-first policy editor; in live mode the editor's Save
-  //     dispatches POST /admin/devices/{deviceId}/assign with the
-  //     updated capability policy through
-  //     `state.applyPolicyEdit`. Pending / retired stay disabled
-  //     with status-specific tooltips.
-  //   - "Assign" and "Retire" remain disabled in this feature —
-  //     dedicated UI flows for role/binding assignment and retire
-  //     ship as separate follow-up features. The disabled tooltip
-  //     references the upcoming work. Per spec rule "не
-  //     притворяться live success" — no mock-backed click handler
-  //     pretends a successful assign/retire mutation.
+  // Affordance enablement rules (assign + retire command UI):
+  //   - "Edit policy" is enabled for active devices; pending and
+  //     retired stay disabled with status-specific tooltips.
+  //   - "Assign" is enabled for pending OR active devices and
+  //     opens the dedicated assignment dialog. Retired devices
+  //     cannot be re-bound (canonical lifecycle: retire is
+  //     terminal).
+  //   - "Retire" is enabled for non-retired devices and opens the
+  //     dedicated retire dialog (two-step flow с safe-confirm).
+  //     Already-retired devices show the "already retired"
+  //     tooltip.
+  //   - Both dialogs dispatch through the hook's dual-path
+  //     `assignDevice` / `retireDevice` API — mock mode mutates
+  //     the local snapshot; live mode dispatches POST /assign or
+  //     POST /retire and surfaces `503 ANDROID_DEVICE_NOT_IMPLEMENTED`
+  //     through `<ApiErrorView>` instead of fake success.
   const isRetired = selected?.status === "retired";
   const isPending = selected?.status === "pending";
 
@@ -505,12 +516,13 @@ export function AndroidDevicesScreen({
                 variant="primary"
                 size="sm"
                 type="button"
-                disabled
+                disabled={isRetired}
                 title={
                   isRetired
                     ? "Retired devices cannot be reassigned."
-                    : "Assign role + binding flow lands with the upcoming Android device live API integration feature."
+                    : "Assign role + binding for this device."
                 }
+                onClick={() => setAssignDialogOpen(true)}
               >
                 Assign
               </Button>
@@ -534,12 +546,13 @@ export function AndroidDevicesScreen({
                 variant="secondary"
                 size="sm"
                 type="button"
-                disabled
+                disabled={isRetired}
                 title={
                   isRetired
                     ? "Device is already retired."
-                    : "Retire flow lands with the upcoming Android device live API integration feature."
+                    : "Retire this device (terminal lifecycle transition)."
                 }
+                onClick={() => setRetireDialogOpen(true)}
               >
                 Retire
               </Button>
@@ -556,6 +569,24 @@ export function AndroidDevicesScreen({
           state.applyPolicyEdit(deviceId, nextPolicy);
         }}
         onClose={() => setPolicyEditorOpen(false)}
+      />
+
+      <AndroidDeviceAssignDialog
+        open={assignDialogOpen}
+        device={selected ?? null}
+        onSubmit={(deviceId, assignment) => {
+          state.assignDevice(deviceId, assignment);
+        }}
+        onClose={() => setAssignDialogOpen(false)}
+      />
+
+      <AndroidDeviceRetireDialog
+        open={retireDialogOpen}
+        device={selected ?? null}
+        onSubmit={(deviceId, request) => {
+          state.retireDevice(deviceId, request);
+        }}
+        onClose={() => setRetireDialogOpen(false)}
       />
     </section>
   );

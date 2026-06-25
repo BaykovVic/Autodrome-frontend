@@ -89,7 +89,7 @@ test.describe("android devices workspace (mock-mode baseline)", () => {
     ).toBeVisible();
   });
 
-  test("/devices: assign / edit policy / retire affordances are disabled with operator tooltips", async ({
+  test("/devices: pending device — Assign + Retire enabled (open dialogs); Edit policy disabled until active", async ({
     page,
   }) => {
     await page.goto("/devices");
@@ -97,15 +97,18 @@ test.describe("android devices workspace (mock-mode baseline)", () => {
       name: /Device AD-7F02-PEND/i,
     });
     await expect(detail).toBeVisible();
+    // After the assign-retire command UI feature: Assign + Retire
+    // open dedicated dialogs; Edit policy остаётся disabled until
+    // pending → active transition (canonical policy semantics).
     await expect(
-      detail.getByRole("button", { name: /assign/i }),
-    ).toBeDisabled();
+      detail.getByRole("button", { name: /^assign$/i }),
+    ).toBeEnabled();
     await expect(
       detail.getByRole("button", { name: /edit policy/i }),
     ).toBeDisabled();
     await expect(
       detail.getByRole("button", { name: /^retire$/i }),
-    ).toBeDisabled();
+    ).toBeEnabled();
   });
 
   test("Sidebar round-trip Dashboard → Android Devices → Dashboard", async ({

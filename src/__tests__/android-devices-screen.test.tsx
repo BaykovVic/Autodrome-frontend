@@ -91,15 +91,16 @@ describe("AndroidDevicesScreen", () => {
     expect(within(detail).getByText(/disabledCapabilities/i)).toBeDefined();
   });
 
-  it("assign / edit policy / retire affordances are disabled in the baseline (no fake live success)", async () => {
+  it("pending device: assign + retire enabled (command dialogs available), edit policy disabled until active", async () => {
     render(<AndroidDevicesScreen loader={() => consoleAndroidDevicesFor("normal")} />);
     await screen.findByRole("button", { name: /AD-7F02-PEND/ });
     const detail = screen.getByRole("complementary", {
       name: /Device AD-7F02-PEND/i,
     });
-    // Pending device: assign + retire enabled? No — all three are
-    // disabled in this baseline feature per spec ("не притворяться
-    // live success"); only their tooltips explain why.
+    // Pending device after the assignment-retire command UI
+    // feature: Assign + Retire дispatch dedicated dialogs;
+    // Edit policy остаётся disabled until pending → active
+    // transition (canonical policy semantics).
     const assign = within(detail).getByRole("button", {
       name: /assign/i,
     }) as HTMLButtonElement;
@@ -109,9 +110,9 @@ describe("AndroidDevicesScreen", () => {
     const retire = within(detail).getByRole("button", {
       name: /retire/i,
     }) as HTMLButtonElement;
-    expect(assign.disabled).toBe(true);
+    expect(assign.disabled).toBe(false);
     expect(editPolicy.disabled).toBe(true);
-    expect(retire.disabled).toBe(true);
+    expect(retire.disabled).toBe(false);
   });
 
   it("retired device disables retire affordance with a 'already retired' tooltip", async () => {
