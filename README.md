@@ -1253,6 +1253,83 @@ transport tested на unit layer
 (`live-android-devices-loader.test.ts`) с mocked openapi-fetch
 client включая 503 backend-lag propagation.
 
+### Android device assignment + retire command UI
+
+Detail aside `Assign` и `Retire` affordances теперь enabled
+(вместо disabled-with-tooltip из workspace baseline) и
+открывают dedicated mock-first dialogs. Live mode wires the
+same dialogs к canonical mutations через existing
+`liveAndroidDeviceAssign` / `liveAndroidDeviceRetire` commands.
+
+- **Pure helpers**
+  (`src/app/(shell)/devices/_components/androidAssignmentHelpers.ts`):
+  - `BINDING_TYPES_FOR_ROLE` — canonical role↔binding compat
+    map (`registrar` → `receptionPoint` | `workstation`;
+    `vehicleVerifier` → `vehicle`).
+  - `validateAssignmentDraft(draft)` — returns
+    `AssignmentValidationIssue[]` covering role_missing,
+    binding_missing, binding_incompatible (с reference на role),
+    anchor_missing.
+  - `buildAssignmentBody(draft)` — canonical
+    `AndroidDeviceAssignment` body (omits `policy` —
+    assign-only; capability policy editor changes policy
+    separately).
+  - `buildRetireBody(draft)` — canonical
+    `AndroidDeviceRetireRequest`; empty reason collapses к
+    canonical "absent" semantics.
+- **AssignDialog**
+  (`AndroidDeviceAssignDialog.tsx`): role select с canonical chip
+  next to operator label; binding-type select **filtered by
+  role** через `BINDING_TYPES_FOR_ROLE`; role switch clears
+  incompatible binding; anchor ID input; optional operator audit
+  notes; validation gate Save (errors surface after submit
+  attempt).
+- **RetireDialog**
+  (`AndroidDeviceRetireDialog.tsx`): reason textarea (optional,
+  canonical "absent" semantics); **two-step safe-confirm**
+  inside single `<Modal>` (avoids close-cascade race): operator
+  clicks "Retire device" → confirm view explaining terminal
+  nature + audit reason summary → "Confirm & retire" dispatches
+  OR "Keep editing" returns.
+- **Hook dual-path** (`useConsoleAndroidDevices`):
+  - `assignDevice(deviceId, assignment)` — mock: snapshot
+    update (status → active, sets role + binding + default
+    empty policy at v1 если pending, stamps `assignedAt` из
+    injected `now`); live: `liveAndroidDeviceAssign`; on
+    failure setFatalError.
+  - `retireDevice(deviceId, request)` — mock: snapshot update
+    (status → retired, stamps `retiredAt`, drops heartbeat
+    status to offline per canonical contract); live:
+    `liveAndroidDeviceRetire`; on failure setFatalError.
+  - Hook signature backward compatible: accepts either bare
+    loader function OR `{loader, now}` options object.
+- **Screen wiring**: Assign enabled для non-retired devices
+  (canonical: retire is terminal). Retire enabled для
+  non-retired devices с "already retired" tooltip on retired
+  selection. Edit policy enable rule from policy editor
+  baseline preserved.
+
+Canonical lifecycle invariants enforced UI-side + re-checked
+backend-side:
+
+| Pre-state | Allowed transition | Affordances enabled |
+|---|---|---|
+| `pending` | `→ active` via assign | Assign ✅, Retire ✅, Edit policy ❌ (pending → active sets policy) |
+| `active` | `→ active` (re-bind) OR `→ retired` | Assign ✅, Retire ✅, Edit policy ✅ |
+| `retired` | (terminal) | All disabled с status-specific tooltips |
+
+Backend-lag handling: `503 ANDROID_DEVICE_NOT_IMPLEMENTED`
+surfaces через `setFatalError` → `<ApiErrorView>` per existing
+taxonomy convention; mock branch unaffected.
+
+Browser smoke
+`e2e/android-devices-assignment-retire.spec.ts` (4 chromium
+tests) проверяет: Assign dialog flow (pending → active +
+binding + default v1 policy), validation rejection, Retire
+two-step safe-confirm + lockdown after success, "Keep editing"
+returns без mutation. Pre-existing smoke files updated к new
+enable rules.
+
 ## Branch policy
 
 Frontend bootstrap rule:

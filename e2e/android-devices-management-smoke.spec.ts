@@ -94,7 +94,7 @@ test.describe("android devices management e2e smoke", () => {
     ).toBeVisible();
   });
 
-  test("guarded assign affordance: disabled with operator tooltip", async ({
+  test("Assign affordance: enabled for non-retired devices and opens the dedicated dialog", async ({
     page,
   }) => {
     await page.goto("/devices");
@@ -104,13 +104,14 @@ test.describe("android devices management e2e smoke", () => {
     });
     const assign = detail.getByRole("button", { name: /^assign$/i });
     await expect(assign).toBeVisible();
-    await expect(assign).toBeDisabled();
-    // Tooltip references the upcoming dedicated UI feature
-    // (per spec "не притворяться live success").
-    await expect(assign).toHaveAttribute(
-      "title",
-      /upcoming|integration feature/i,
-    );
+    await expect(assign).toBeEnabled();
+    // Now opens the canonical assignment dialog.
+    await assign.click();
+    await expect(
+      page.getByRole("dialog", {
+        name: /Assign Android device · AD-3A11-REG/i,
+      }),
+    ).toBeVisible();
   });
 
   test("policy editor flow: open active device editor, see canonical chip, save bumps policyVersion", async ({
@@ -181,7 +182,7 @@ test.describe("android devices management e2e smoke", () => {
     ).toBeVisible();
   });
 
-  test("guarded retire affordance: disabled with operator tooltip", async ({
+  test("Retire affordance: enabled for non-retired and opens the dedicated dialog; retired tooltip remains 'already retired'", async ({
     page,
   }) => {
     await page.goto("/devices");
@@ -191,14 +192,19 @@ test.describe("android devices management e2e smoke", () => {
     });
     const retire = detail.getByRole("button", { name: /^retire$/i });
     await expect(retire).toBeVisible();
-    await expect(retire).toBeDisabled();
-    await expect(retire).toHaveAttribute(
-      "title",
-      /upcoming|integration feature/i,
-    );
+    await expect(retire).toBeEnabled();
+    await retire.click();
+    await expect(
+      page.getByRole("dialog", {
+        name: /Retire Android device · AD-3A11-REG/i,
+      }),
+    ).toBeVisible();
+    // Cancel out so we don't mutate the snapshot for downstream
+    // assertions in this suite.
+    await page.getByRole("button", { name: /^cancel$/i }).click();
 
-    // For an already-retired device the tooltip switches to
-    // "already retired".
+    // For an already-retired device the tooltip stays "already
+    // retired".
     await page.getByRole("button", { name: /AD-2E55-RET/ }).first().click();
     const retiredDetail = page.getByRole("complementary", {
       name: /Device AD-2E55-RET/i,
