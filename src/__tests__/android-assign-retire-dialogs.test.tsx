@@ -11,6 +11,14 @@ import { AndroidDevicesScreen } from "@/app/(shell)/devices/_components/AndroidD
 import { consoleAndroidDevicesFor } from "@/app/(shell)/devices/_components/consoleAndroidDevicesFixtures";
 import type { ConsoleAndroidDevice } from "@/app/(shell)/devices/_components/consoleAndroidDevicesSnapshot";
 
+// Canonical UUID v4 anchor inputs (per
+// AndroidDeviceBinding.anchorId format: uuid contract). Used in
+// success-path tests; the negative test below covers operator-
+// friendly labels being rejected.
+const ANCHOR_UUID_A = "11111111-1111-4111-8111-111111111111";
+const ANCHOR_UUID_WS = "33333333-3333-4333-8333-333333333333";
+const ANCHOR_UUID_NEW = "44444444-4444-4444-8444-444444444444";
+
 // happy-dom <dialog> stub (showModal / close + dispatch close event).
 const dialogProto = (
   globalThis.HTMLDialogElement as unknown as { prototype: HTMLElement }
@@ -66,7 +74,7 @@ function makeActiveDevice(
     roleLabel: "registrar",
     binding: {
       type: "receptionPoint",
-      anchorId: "RPT-A",
+      anchorId: ANCHOR_UUID_A,
       anchorLabel: "Reception A",
     },
     policy: {
@@ -179,7 +187,7 @@ describe("AndroidDeviceAssignDialog", () => {
           role: "registrar",
           binding: {
             type: "receptionPoint",
-            anchorId: "RPT-A",
+            anchorId: ANCHOR_UUID_A,
             anchorLabel: "Reception A",
           },
         })}
@@ -216,7 +224,7 @@ describe("AndroidDeviceAssignDialog", () => {
       target: { value: "workstation" },
     });
     fireEvent.change(screen.getByLabelText(/anchor id/i), {
-      target: { value: "  WS-1  " },
+      target: { value: `  ${ANCHOR_UUID_WS}  ` },
     });
     fireEvent.change(screen.getByLabelText(/operator audit notes/i), {
       target: { value: "Pilot" },
@@ -228,10 +236,41 @@ describe("AndroidDeviceAssignDialog", () => {
     expect(onSubmit.mock.calls[0][0]).toBe("AD-TEST-PEND");
     expect(onSubmit.mock.calls[0][1]).toEqual({
       role: "registrar",
-      binding: { type: "workstation", anchorId: "WS-1" },
+      binding: { type: "workstation", anchorId: ANCHOR_UUID_WS },
       notes: "Pilot",
     });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("rejects non-UUID anchorId before dispatch (R1 contract guard)", () => {
+    const onSubmit = vi.fn();
+    render(
+      <AndroidDeviceAssignDialog
+        open
+        device={makePendingDevice()}
+        onSubmit={onSubmit}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText(/^role$/i), {
+      target: { value: "registrar" },
+    });
+    fireEvent.change(screen.getByLabelText(/binding type/i), {
+      target: { value: "workstation" },
+    });
+    // Operator-friendly label — must be rejected per canonical
+    // AndroidDeviceBinding.anchorId (format: uuid).
+    fireEvent.change(screen.getByLabelText(/anchor id/i), {
+      target: { value: "WS-PILOT-1" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /save assignment/i }),
+    );
+    expect(onSubmit).not.toHaveBeenCalled();
+    // Specific UUID error message surfaces.
+    expect(
+      screen.getByText(/anchor id must be a canonical uuid/i),
+    ).toBeDefined();
   });
 
   it("Cancel closes the dialog without calling onSubmit", () => {
@@ -383,7 +422,7 @@ describe("AndroidDevicesScreen integration: assign + retire flows mutate snapsho
       target: { value: "receptionPoint" },
     });
     fireEvent.change(within(dialog).getByLabelText(/anchor id/i), {
-      target: { value: "RPT-NEW" },
+      target: { value: ANCHOR_UUID_NEW },
     });
     fireEvent.click(
       within(dialog).getByRole("button", { name: /save assignment/i }),
@@ -394,7 +433,9 @@ describe("AndroidDevicesScreen integration: assign + retire flows mutate snapsho
       name: /Device AD-7F02-PEND/i,
     });
     expect(within(after).getAllByText("active")[0]).toBeDefined();
-    expect(within(after).getAllByText(/RPT-NEW/).length).toBeGreaterThanOrEqual(1);
+    expect(
+      within(after).getAllByText(new RegExp(ANCHOR_UUID_NEW)).length,
+    ).toBeGreaterThanOrEqual(1);
     expect(within(after).getByText(/v1/)).toBeDefined();
   });
 

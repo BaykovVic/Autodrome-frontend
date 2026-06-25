@@ -7,8 +7,16 @@ import {
   buildRetireBody,
   emptyAssignmentDraft,
   emptyRetireDraft,
+  isUuid,
   validateAssignmentDraft,
 } from "@/app/(shell)/devices/_components/androidAssignmentHelpers";
+
+// Canonical UUID v4 examples used as valid anchor inputs in the
+// success cases. Mirrors what the live backend would accept per
+// the canonical `AndroidDeviceBinding.anchorId` (format: uuid)
+// declaration in the android-device-management OpenAPI spec.
+const VALID_UUID = "11111111-1111-4111-8111-111111111111";
+const VALID_UUID_2 = "22222222-2222-4222-8222-222222222222";
 
 describe("BINDING_TYPES_FOR_ROLE (canonical compatibility map)", () => {
   it("registrar accepts receptionPoint + workstation only", () => {
@@ -40,12 +48,12 @@ describe("validateAssignmentDraft", () => {
     expect(codes).toContain("anchor_missing");
   });
 
-  it("returns empty list when role + compatible binding + anchor are present", () => {
+  it("returns empty list when role + compatible binding + canonical UUID anchor are present", () => {
     expect(
       validateAssignmentDraft({
         role: "registrar",
         bindingType: "receptionPoint",
-        anchorId: "RPT-A",
+        anchorId: VALID_UUID,
         notes: "",
       }),
     ).toEqual([]);
@@ -55,7 +63,7 @@ describe("validateAssignmentDraft", () => {
     const issues = validateAssignmentDraft({
       role: "registrar",
       bindingType: "vehicle",
-      anchorId: "VEH-1",
+      anchorId: VALID_UUID,
       notes: "",
     });
     const incompat = issues.find(
@@ -71,7 +79,7 @@ describe("validateAssignmentDraft", () => {
     const issues = validateAssignmentDraft({
       role: "vehicleVerifier",
       bindingType: "receptionPoint",
-      anchorId: "RPT-A",
+      anchorId: VALID_UUID,
       notes: "",
     });
     const incompat = issues.find(
@@ -87,7 +95,7 @@ describe("validateAssignmentDraft", () => {
     const issues = validateAssignmentDraft({
       role: "vehicleVerifier",
       bindingType: "workstation",
-      anchorId: "WS-1",
+      anchorId: VALID_UUID,
       notes: "",
     });
     const incompat = issues.find(
@@ -104,13 +112,62 @@ describe("validateAssignmentDraft", () => {
       notes: "",
     });
     expect(issues.find((i) => i.code === "anchor_missing")).toBeDefined();
+    // anchor_missing alone — should not also flag invalid UUID for
+    // an empty input.
+    expect(
+      issues.find((i) => i.code === "anchor_invalid_uuid"),
+    ).toBeUndefined();
+  });
+
+  it("flags anchor_invalid_uuid for operator-friendly labels (R1 contract guard)", () => {
+    // Operator-friendly labels like `WS-PILOT-1` / `RPT-A` /
+    // `VEH-100` were accepted in iter 1 — closing that mock/live
+    // split (canonical `AndroidDeviceBinding.anchorId` is
+    // `format: uuid`).
+    for (const fakeAnchor of [
+      "WS-PILOT-1",
+      "RPT-A",
+      "VEH-100",
+      "not-a-uuid",
+      "00000000-0000-0000-0000",
+      "11111111-1111-4111-8111-1111111111111",
+    ]) {
+      const issues = validateAssignmentDraft({
+        role: "registrar",
+        bindingType: "receptionPoint",
+        anchorId: fakeAnchor,
+        notes: "",
+      });
+      const invalid = issues.find(
+        (i) => i.code === "anchor_invalid_uuid",
+      );
+      expect(invalid, `should reject "${fakeAnchor}"`).toBeDefined();
+    }
+  });
+
+  it("accepts canonical UUID variants v1-v5 including upper-case input", () => {
+    for (const validAnchor of [
+      "11111111-1111-1111-8111-111111111111", // v1
+      "11111111-1111-4111-8111-111111111111", // v4 lower
+      "11111111-1111-5111-9111-111111111111", // v5 + variant 9
+      "11111111-1111-4111-A111-111111111111".toUpperCase(),
+    ]) {
+      expect(
+        validateAssignmentDraft({
+          role: "registrar",
+          bindingType: "workstation",
+          anchorId: validAnchor,
+          notes: "",
+        }),
+      ).toEqual([]);
+    }
   });
 
   it("does not flag binding_incompatible when role is missing", () => {
     const issues = validateAssignmentDraft({
       role: null,
       bindingType: "vehicle",
-      anchorId: "VEH-1",
+      anchorId: VALID_UUID,
       notes: "",
     });
     expect(
@@ -119,29 +176,58 @@ describe("validateAssignmentDraft", () => {
   });
 });
 
+describe("isUuid (canonical UUID format guard)", () => {
+  it("accepts canonical UUID v1-v5", () => {
+    expect(isUuid("11111111-1111-1111-8111-111111111111")).toBe(true);
+    expect(isUuid("22222222-2222-4222-9222-222222222222")).toBe(true);
+    expect(isUuid("33333333-3333-5333-a333-333333333333")).toBe(true);
+  });
+
+  it("tolerates surrounding whitespace (trimmed before match)", () => {
+    expect(isUuid("  11111111-1111-4111-8111-111111111111  ")).toBe(true);
+  });
+
+  it("tolerates upper-case hex digits", () => {
+    expect(isUuid("AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE")).toBe(true);
+  });
+
+  it("rejects operator-friendly labels (WS-PILOT-1, RPT-A, VEH-100)", () => {
+    expect(isUuid("WS-PILOT-1")).toBe(false);
+    expect(isUuid("RPT-A")).toBe(false);
+    expect(isUuid("VEH-100")).toBe(false);
+  });
+
+  it("rejects malformed UUIDs (wrong length / wrong version / wrong variant)", () => {
+    expect(isUuid("11111111-1111-1111-1111-111111111111")).toBe(false); // version 1 nibble = 1, but variant 1 (not 8-b)
+    expect(isUuid("11111111-1111-4111-7111-111111111111")).toBe(false); // variant nibble 7
+    expect(isUuid("11111111-1111-6111-8111-111111111111")).toBe(false); // version 6
+    expect(isUuid("11111111-1111-4111-8111-11111111111")).toBe(false); // short
+  });
+});
+
 describe("buildAssignmentBody", () => {
   it("builds canonical AndroidDeviceAssignment for valid draft", () => {
     const body = buildAssignmentBody({
       role: "registrar",
       bindingType: "receptionPoint",
-      anchorId: "RPT-A",
+      anchorId: VALID_UUID,
       notes: "Pilot rollout",
     });
     expect(body).toEqual({
       role: "registrar",
-      binding: { type: "receptionPoint", anchorId: "RPT-A" },
+      binding: { type: "receptionPoint", anchorId: VALID_UUID },
       notes: "Pilot rollout",
     });
   });
 
-  it("trims anchorId and notes", () => {
+  it("trims anchorId and notes (UUID input preserved)", () => {
     const body = buildAssignmentBody({
       role: "vehicleVerifier",
       bindingType: "vehicle",
-      anchorId: "  VEH-1  ",
+      anchorId: `  ${VALID_UUID_2}  `,
       notes: "  audit  ",
     });
-    expect(body.binding.anchorId).toBe("VEH-1");
+    expect(body.binding.anchorId).toBe(VALID_UUID_2);
     expect(body.notes).toBe("audit");
   });
 
@@ -149,7 +235,7 @@ describe("buildAssignmentBody", () => {
     const body = buildAssignmentBody({
       role: "registrar",
       bindingType: "workstation",
-      anchorId: "WS-1",
+      anchorId: VALID_UUID,
       notes: "    ",
     });
     expect("notes" in body).toBe(false);
@@ -159,7 +245,7 @@ describe("buildAssignmentBody", () => {
     const body = buildAssignmentBody({
       role: "registrar",
       bindingType: "receptionPoint",
-      anchorId: "RPT-A",
+      anchorId: VALID_UUID,
       notes: "",
     });
     expect("policy" in body).toBe(false);
@@ -170,7 +256,7 @@ describe("buildAssignmentBody", () => {
       buildAssignmentBody({
         role: null,
         bindingType: "receptionPoint",
-        anchorId: "RPT-A",
+        anchorId: VALID_UUID,
         notes: "",
       }),
     ).toThrow(/role.*binding required/i);
@@ -178,7 +264,7 @@ describe("buildAssignmentBody", () => {
       buildAssignmentBody({
         role: "registrar",
         bindingType: null,
-        anchorId: "RPT-A",
+        anchorId: VALID_UUID,
         notes: "",
       }),
     ).toThrow(/role.*binding required/i);

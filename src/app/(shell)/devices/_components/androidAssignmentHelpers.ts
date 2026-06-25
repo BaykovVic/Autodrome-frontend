@@ -64,7 +64,29 @@ export type AssignmentValidationIssue =
   | { code: "role_missing" }
   | { code: "binding_missing" }
   | { code: "binding_incompatible"; role: ConsoleAndroidDeviceRole }
-  | { code: "anchor_missing" };
+  | { code: "anchor_missing" }
+  | { code: "anchor_invalid_uuid" };
+
+/**
+ * Canonical UUID v1-v5 regex. The canonical
+ * `AndroidDeviceBinding.anchorId` is declared `type: string,
+ * format: uuid` in the android-device-management OpenAPI spec
+ * (`/components/schemas/AndroidDeviceBinding.anchorId`), so the
+ * UI rejects non-UUID input client-side to avoid a mock/live
+ * split where mock would pretend success on values the live
+ * backend would reject.
+ *
+ * Matches the case-insensitive `xxxxxxxx-xxxx-Vxxx-Yxxx-xxxxxxxxxxxx`
+ * shape where `V` is the version nibble (1-5) and `Y` is the
+ * variant nibble (8/9/a/b). Tolerates upper-case input — operator
+ * paste from external systems often uses upper-case hex.
+ */
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: string): boolean {
+  return UUID_REGEX.test(value.trim());
+}
 
 export type AssignmentDraft = {
   role: ConsoleAndroidDeviceRole | null;
@@ -91,7 +113,13 @@ export function emptyAssignmentDraft(): AssignmentDraft {
  *   1. role required;
  *   2. binding type required;
  *   3. binding type compatible with role;
- *   4. anchor id non-empty after trim.
+ *   4. anchor id non-empty after trim;
+ *   5. anchor id matches canonical UUID format.
+ *
+ * Anchor UUID enforcement closes the mock/live split — the
+ * canonical contract requires `anchorId` to be `format: uuid`,
+ * and the live backend will reject non-UUID values. Validating
+ * client-side keeps the operator UX honest before dispatch.
  */
 export function validateAssignmentDraft(
   draft: AssignmentDraft,
@@ -113,8 +141,11 @@ export function validateAssignmentDraft(
       role: draft.role,
     });
   }
-  if (draft.anchorId.trim().length === 0) {
+  const trimmedAnchor = draft.anchorId.trim();
+  if (trimmedAnchor.length === 0) {
     issues.push({ code: "anchor_missing" });
+  } else if (!isUuid(trimmedAnchor)) {
+    issues.push({ code: "anchor_invalid_uuid" });
   }
   return issues;
 }

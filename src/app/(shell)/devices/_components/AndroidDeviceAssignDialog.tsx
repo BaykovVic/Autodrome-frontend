@@ -103,7 +103,13 @@ export function AndroidDeviceAssignDialog({
   const bindingIncompatibleIssue = visibleIssues.find(
     (i) => i.code === "binding_incompatible",
   );
-  const anchorIssue = visibleIssues.find((i) => i.code === "anchor_missing");
+  const anchorMissingIssue = visibleIssues.find(
+    (i) => i.code === "anchor_missing",
+  );
+  const anchorInvalidUuidIssue = visibleIssues.find(
+    (i) => i.code === "anchor_invalid_uuid",
+  );
+  const anchorIssue = anchorMissingIssue ?? anchorInvalidUuidIssue;
 
   function handleRoleChange(next: ConsoleAndroidDeviceRole) {
     setDraft((d) => {
@@ -286,23 +292,33 @@ export function AndroidDeviceAssignDialog({
             onChange={(e) =>
               setDraft((d) => ({ ...d, anchorId: e.target.value }))
             }
-            placeholder="UUID of the owning anchor (reception point / workstation / vehicle)"
+            placeholder="00000000-0000-0000-0000-000000000000 (canonical UUID — operator-friendly label NOT accepted)"
             aria-invalid={anchorIssue ? "true" : undefined}
             aria-describedby={
               anchorIssue ? "assign-anchor-error" : undefined
             }
           />
-          {anchorIssue ? (
+          {anchorMissingIssue ? (
             <span
               id="assign-anchor-error"
               className={styles.fieldError}
             >
               Anchor ID is required.
             </span>
+          ) : anchorInvalidUuidIssue ? (
+            <span
+              id="assign-anchor-error"
+              className={styles.fieldError}
+            >
+              Anchor ID must be a canonical UUID (the
+              owning service&apos;s opaque reference). Operator-
+              friendly labels live in the owning service and are
+              not accepted here.
+            </span>
           ) : (
             <span className={styles.fieldHint}>
-              Opaque reference into the owning service
-              (reference-data-service for{" "}
+              Opaque <strong>UUID</strong> reference into the
+              owning service (reference-data-service for{" "}
               <code>receptionPoint</code> /{" "}
               <code>workstation</code>, vehicle-service for{" "}
               <code>vehicle</code>).
