@@ -43,6 +43,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   reportingDocument: "Reporting document",
   deploymentOperations: "Deployment operations",
   vehicleTelemetry: "Vehicle telemetry",
+  identitySecurity: "Identity & security",
 };
 
 function configuredBaseUrl(

@@ -145,6 +145,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/exams/{examId}/violation-facts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: string;
+            };
+            cookie?: never;
+        };
+        /** List persisted violation facts for an exam. */
+        get: operations["examViolationFacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -348,6 +367,26 @@ export interface components {
             occurredAt: string;
             severity: components["schemas"]["Severity"];
             evidenceRefs?: components["schemas"]["EvidenceRef"][];
+        };
+        ViolationFactView: {
+            /** Format: uuid */
+            factId: string;
+            examRef: components["schemas"]["ExamRef"];
+            violationRef: components["schemas"]["ViolationRef"];
+            violationCode: string;
+            /** Format: uuid */
+            ruleId?: string;
+            ruleVersion: number;
+            severity: components["schemas"]["Severity"];
+            /** Format: uuid */
+            telemetrySessionId?: string;
+            /** Format: int64 */
+            sampleSequence?: number;
+            /** Format: date-time */
+            occurredAt: string;
+        };
+        ExamViolationFactsPage: {
+            items: components["schemas"]["ViolationFactView"][];
         };
         ActorContext: {
             /** @enum {string} */
@@ -706,6 +745,34 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examViolationFacts: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                examId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Violation facts for the exam. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamViolationFactsPage"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             500: components["responses"]["InternalServerError"];
         };
     };

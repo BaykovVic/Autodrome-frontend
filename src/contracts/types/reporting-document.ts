@@ -25,6 +25,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/exams/{examId}/protocol": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Compose an exam protocol with evidence references. */
+        post: operations["reportExamProtocol"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reports/{reportId}": {
         parameters: {
             query?: never;
@@ -148,6 +167,43 @@ export interface components {
             options?: {
                 [key: string]: unknown;
             };
+        };
+        ProtocolResultRef: {
+            /** @enum {string} */
+            result: "passed" | "failed";
+            score?: number;
+        };
+        ProtocolEvidenceRef: {
+            refId: string;
+            label?: string;
+            severity?: string;
+        };
+        ExamProtocolRequest: {
+            format: components["schemas"]["ReportFormat"];
+            templateRef?: components["schemas"]["TemplateRef"];
+            result?: components["schemas"]["ProtocolResultRef"];
+            candidateRef?: components["schemas"]["CandidateRef"];
+            vehicleRef?: components["schemas"]["VehicleRef"];
+            violations?: components["schemas"]["ProtocolEvidenceRef"][];
+            media?: components["schemas"]["ProtocolEvidenceRef"][];
+            audio?: components["schemas"]["ProtocolEvidenceRef"][];
+            biometry?: components["schemas"]["ProtocolEvidenceRef"][];
+        };
+        ExamProtocolResult: {
+            /** Format: uuid */
+            reportId: string;
+            /** Format: uuid */
+            examId: string;
+            status: components["schemas"]["ReportStatus"];
+            degraded: boolean;
+            missingEvidence: string[];
+            snapshotHash: string;
+            violationCount: number;
+            mediaCount: number;
+            audioCount: number;
+            biometryCount: number;
+            /** Format: date-time */
+            generatedAt: string;
         };
         Report: {
             /** Format: uuid */
@@ -334,6 +390,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Report"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    reportExamProtocol: {
+        parameters: {
+            query?: never;
+            header: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamProtocolRequest"];
+            };
+        };
+        responses: {
+            /** @description Protocol composed (document request/result metadata). */
+            201: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamProtocolResult"];
                 };
             };
             400: components["responses"]["BadRequest"];

@@ -13,6 +13,7 @@ import type { VirtualVehiclePaths } from "../services/virtual-vehicle";
 import type { ReportingDocumentPaths } from "../services/reporting-document";
 import type { DeploymentOperationsPaths } from "../services/deployment-operations";
 import type { VehicleTelemetryPaths } from "../services/vehicle-telemetry";
+import type { IdentitySecurityPaths } from "../services/identity-security";
 
 export function createMockAdapter(
   scenario: MockScenario = DEFAULT_SCENARIO,
@@ -62,6 +63,10 @@ export function createMockAdapter(
     }),
     vehicleTelemetry: createAutodromeClient<VehicleTelemetryPaths>({
       baseUrl: "/api/vehicle-telemetry/v1",
+      fetch: mockFetch,
+    }),
+    identitySecurity: createAutodromeClient<IdentitySecurityPaths>({
+      baseUrl: "/api/identity-security/v1",
       fetch: mockFetch,
     }),
   };
