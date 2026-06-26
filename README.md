@@ -1330,6 +1330,42 @@ two-step safe-confirm + lockdown after success, "Keep editing"
 returns без mutation. Pre-existing smoke files updated к new
 enable rules.
 
+### Android device heartbeat live API integration
+
+После approval backend
+`feature/android-device-management-heartbeat-baseline` canonical
+heartbeat shape стабилизирован, mapper
+(`mapAndroidDeviceDtoToConsole` в `liveAndroidDevicesLoader.ts`)
+проверен на canonical соответствие — все 5 полей `lastSeenAt` +
+`lastHeartbeat.{status,batteryLevel,batteryCharging,networkType}`
+mapped end-to-end.
+
+Mapping rules (focused unit regression tests):
+
+- **Empty**: `lastSeenAt = undefined` AND `lastHeartbeat =
+  undefined` → console `heartbeat = undefined`.
+- **Partial — `lastSeenAt` only** или **`lastHeartbeat` без
+  `status`**: honest fallback к `offline` (не fake online).
+- **Partial — `lastHeartbeat` missing optional fields**:
+  `batteryLevel` / `batteryCharging` / `networkType`
+  пропускаются из console view-model, не coerced к defaults.
+- **Edge cases**: `batteryLevel = 0` preserved (typeof number),
+  `batteryCharging = false` preserved (не coerced к undefined),
+  `networkType = "none"` preserved (canonical enum value).
+- **Full**: все 5 canonical fields propagate end-to-end +
+  все 3 status enum (`online`/`offline`/`degraded`) и 5
+  networkType enum (`wifi`/`cellular`/`ethernet`/`none`/`other`)
+  pass through unchanged.
+
+Detail aside rendering verified component tests across
+full/degraded/offline matrices.
+
+Никаких production code changes не потребовалось — mapper уже
+handles canonical shapes с live API integration baseline. Эта
+фича — focused regression coverage (+13 unit + screen cases)
+locking mapping against silent contract drift после backend
+heartbeat baseline ships its application layer.
+
 ## Branch policy
 
 Frontend bootstrap rule:
