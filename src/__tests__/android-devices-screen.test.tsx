@@ -133,4 +133,52 @@ describe("AndroidDevicesScreen", () => {
     render(<AndroidDevicesScreen loader={() => consoleAndroidDevicesFor("empty")} />);
     expect(await screen.findByText(/no devices/i)).toBeDefined();
   });
+
+  // Track 1 / Heartbeat reconciliation: detail-aside Heartbeat
+  // section regression tests across full / degraded / offline
+  // matrices, locked to the canonical fixture rows.
+  it("detail aside Heartbeat section renders all canonical fields for full heartbeat snapshot", async () => {
+    render(<AndroidDevicesScreen loader={() => consoleAndroidDevicesFor("normal")} />);
+    await screen.findByRole("button", { name: /AD-7F02-PEND/ });
+    fireEvent.click(screen.getByRole("button", { name: /AD-3A11-REG/ }));
+    const detail = screen.getByRole("complementary", {
+      name: /Device AD-3A11-REG/i,
+    });
+    expect(within(detail).getByText(/Heartbeat/i)).toBeDefined();
+    // Last seen timestamp surfaces.
+    expect(
+      within(detail).getByText("2026-06-22T11:42:18Z"),
+    ).toBeDefined();
+    // Battery formatted as percent + charging marker.
+    expect(within(detail).getByText(/62%.*charging/i)).toBeDefined();
+    // Network type surfaces.
+    expect(within(detail).getByText("wifi")).toBeDefined();
+    // App version (from platform, surfaced in heartbeat-adjacent
+    // section).
+    expect(within(detail).getByText("0.9.0")).toBeDefined();
+  });
+
+  it("detail aside Heartbeat section honestly surfaces degraded status (low battery)", async () => {
+    render(<AndroidDevicesScreen loader={() => consoleAndroidDevicesFor("normal")} />);
+    await screen.findByRole("button", { name: /AD-7F02-PEND/ });
+    fireEvent.click(screen.getByRole("button", { name: /AD-5C82-REG/ }));
+    const detail = screen.getByRole("complementary", {
+      name: /Device AD-5C82-REG/i,
+    });
+    expect(within(detail).getAllByText(/degraded/i)[0]).toBeDefined();
+    expect(within(detail).getByText("18%")).toBeDefined();
+    expect(within(detail).getByText("cellular")).toBeDefined();
+  });
+
+  it("detail aside Heartbeat section honestly surfaces offline status with near-dead battery", async () => {
+    render(<AndroidDevicesScreen loader={() => consoleAndroidDevicesFor("normal")} />);
+    await screen.findByRole("button", { name: /AD-7F02-PEND/ });
+    fireEvent.click(screen.getByRole("button", { name: /AD-1B40-VV/ }));
+    const detail = screen.getByRole("complementary", {
+      name: /Device AD-1B40-VV/i,
+    });
+    expect(within(detail).getAllByText(/offline/i)[0]).toBeDefined();
+    expect(within(detail).getByText("4%")).toBeDefined();
+    expect(within(detail).getAllByText("none")[0]).toBeDefined();
+  });
 });

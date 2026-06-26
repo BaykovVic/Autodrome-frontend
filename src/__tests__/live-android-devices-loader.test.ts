@@ -564,3 +564,158 @@ describe("liveAndroidDeviceRetire", () => {
     ).rejects.toBeInstanceOf(ApiError);
   });
 });
+
+// Track 1 / Android Device Heartbeat Reconciliation focused
+// regression suite. The mapper already handles the canonical
+// heartbeat projection (since the live API integration baseline);
+// these cases lock the empty / partial / full / edge-case
+// behaviour against silent drift after the backend heartbeat
+// baseline ships its application layer.
+describe("heartbeat projection (empty / partial / full DTO shapes)", () => {
+  it("empty: no lastSeenAt AND no lastHeartbeat → console heartbeat undefined", () => {
+    const v = mapAndroidDeviceDtoToConsole(
+      makeDto({ lastSeenAt: undefined, lastHeartbeat: undefined }),
+    );
+    expect(v.heartbeat).toBeUndefined();
+  });
+
+  it("partial: only lastSeenAt (no lastHeartbeat) → honest offline fallback", () => {
+    const v = mapAndroidDeviceDtoToConsole(
+      makeDto({
+        lastSeenAt: "2026-06-22T12:00:00Z",
+        lastHeartbeat: undefined,
+      }),
+    );
+    expect(v.heartbeat).toBeDefined();
+    expect(v.heartbeat?.lastSeenAt).toBe("2026-06-22T12:00:00Z");
+    expect(v.heartbeat?.status).toBe("offline");
+    expect(v.heartbeat?.batteryLevel).toBeUndefined();
+    expect(v.heartbeat?.batteryCharging).toBeUndefined();
+    expect(v.heartbeat?.networkType).toBeUndefined();
+  });
+
+  it("partial: lastHeartbeat without status → falls back to offline", () => {
+    const v = mapAndroidDeviceDtoToConsole(
+      makeDto({
+        lastSeenAt: "2026-06-22T12:00:00Z",
+        lastHeartbeat: { capturedAt: "2026-06-22T11:59:00Z" },
+      }),
+    );
+    expect(v.heartbeat?.status).toBe("offline");
+  });
+
+  it("partial: lastHeartbeat with only status (no battery/network) → optional fields omitted", () => {
+    const v = mapAndroidDeviceDtoToConsole(
+      makeDto({
+        lastSeenAt: "2026-06-22T12:00:00Z",
+        lastHeartbeat: {
+          capturedAt: "2026-06-22T11:59:00Z",
+          status: "online",
+        },
+      }),
+    );
+    expect(v.heartbeat?.status).toBe("online");
+    expect(v.heartbeat?.batteryLevel).toBeUndefined();
+    expect(v.heartbeat?.batteryCharging).toBeUndefined();
+    expect(v.heartbeat?.networkType).toBeUndefined();
+  });
+
+  it("edge: batteryLevel=0 preserved (regression guard against truthy-skip)", () => {
+    const v = mapAndroidDeviceDtoToConsole(
+      makeDto({
+        lastSeenAt: "2026-06-22T12:00:00Z",
+        lastHeartbeat: {
+          capturedAt: "2026-06-22T11:59:00Z",
+          status: "offline",
+          batteryLevel: 0,
+        },
+      }),
+    );
+    expect(v.heartbeat?.batteryLevel).toBe(0);
+  });
+
+  it("edge: batteryCharging=false preserved (not coerced to undefined)", () => {
+    const v = mapAndroidDeviceDtoToConsole(
+      makeDto({
+        lastSeenAt: "2026-06-22T12:00:00Z",
+        lastHeartbeat: {
+          capturedAt: "2026-06-22T11:59:00Z",
+          status: "online",
+          batteryLevel: 0.5,
+          batteryCharging: false,
+        },
+      }),
+    );
+    expect(v.heartbeat?.batteryCharging).toBe(false);
+  });
+
+  it("edge: networkType='none' preserved (offline-network device)", () => {
+    const v = mapAndroidDeviceDtoToConsole(
+      makeDto({
+        lastSeenAt: "2026-06-22T12:00:00Z",
+        lastHeartbeat: {
+          capturedAt: "2026-06-22T11:59:00Z",
+          status: "degraded",
+          networkType: "none",
+        },
+      }),
+    );
+    expect(v.heartbeat?.networkType).toBe("none");
+  });
+
+  it("full: all canonical heartbeat fields propagate end-to-end", () => {
+    const v = mapAndroidDeviceDtoToConsole(
+      makeDto({
+        lastSeenAt: "2026-06-22T12:00:00Z",
+        lastHeartbeat: {
+          capturedAt: "2026-06-22T11:59:00Z",
+          status: "online",
+          batteryLevel: 0.84,
+          batteryCharging: true,
+          networkType: "wifi",
+        },
+      }),
+    );
+    expect(v.heartbeat).toEqual({
+      lastSeenAt: "2026-06-22T12:00:00Z",
+      status: "online",
+      batteryLevel: 0.84,
+      batteryCharging: true,
+      networkType: "wifi",
+    });
+  });
+
+  it("full: all canonical networkType enum values pass through unchanged", () => {
+    for (const networkType of [
+      "wifi",
+      "cellular",
+      "ethernet",
+      "none",
+      "other",
+    ] as const) {
+      const v = mapAndroidDeviceDtoToConsole(
+        makeDto({
+          lastSeenAt: "2026-06-22T12:00:00Z",
+          lastHeartbeat: {
+            capturedAt: "2026-06-22T11:59:00Z",
+            status: "online",
+            networkType,
+          },
+        }),
+      );
+      expect(v.heartbeat?.networkType).toBe(networkType);
+    }
+  });
+
+  it("full: all canonical heartbeat status enum values pass through unchanged", () => {
+    for (const status of ["online", "offline", "degraded"] as const) {
+      const v = mapAndroidDeviceDtoToConsole(
+        makeDto({
+          lastSeenAt: "2026-06-22T12:00:00Z",
+          lastHeartbeat: { capturedAt: "now", status },
+        }),
+      );
+      expect(v.heartbeat?.status).toBe(status);
+    }
+  });
+});
