@@ -1847,6 +1847,32 @@ Screen-level "Aggregate playback state taxonomy" group
 - `e2e/evidence-detail.spec.ts` — smoke aggregate group +
   canonical state tokens.
 
+### Evidence + reporting composite workflow E2E
+
+`e2e/evidence-reporting-workflow.spec.ts` композирует
+multi-step browser workflows:
+
+- A: evidence list → detail (`Open evidence detail →`) →
+  aggregate playback state taxonomy → sidebar navigation
+  к reporting (disabled `Generate report`).
+- B: failed evidence `EVD-77204` — `retentionChecksumIssue`
+  pill + manifest error panel + report error panel.
+- C: active recording `EVD-77212` — `manifestUnavailable`
+  pill + `no linked reporting documents` empty note.
+- D: media metadata sealed recording `EVD-77210` —
+  segments + timeline + canonical source chips +
+  `recordingMetadataAvailable` pill.
+- E: reporting catalog → recent reports → disabled
+  submission affordances.
+- Mobile: evidence detail + reporting accessible на
+  375x812 без horizontal overflow.
+
+Deterministic mock mode: fixtures keyed по canonical ids
+(`EVD-77210` / `EVD-77204` / `EVD-77212` / `RPT-EXM-*`),
+e2e не зависит от live backend. Live opt-in через
+`NEXT_PUBLIC_API_ADAPTER=live` свитчит loaders без
+изменения workflow.
+
 ## Branch policy
 
 Frontend bootstrap rule:
