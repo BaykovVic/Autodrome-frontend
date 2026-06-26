@@ -1873,6 +1873,27 @@ e2e не зависит от live backend. Live opt-in через
 `NEXT_PUBLIC_API_ADAPTER=live` свитчит loaders без
 изменения workflow.
 
+### Operations composite workflow E2E
+
+`e2e/operations-workflow.spec.ts` композирует 6 chromium
+сценариев для Operations tabs (Service health /
+Diagnostics / Backups / Logs):
+
+- A: Service health dashboard region visible.
+- B: Diagnostics tab — runtime mode + endpoint
+  diagnostics (9 reachability probes).
+- C: Backups overview region reachable (никаких
+  destructive button clicks per safety spec).
+- D: Logs / export hand-off region visible.
+- E: Cross-tab navigation — tab `selected` state +
+  active panel switches correctly.
+- Mobile: 375x812 без horizontal overflow.
+
+Mock-deterministic. Track 5 / F1–F3 (canonical
+operations health / diagnostics / backup APIs)
+зафиксированы как BLOCKED reports — workflow e2e
+проверяет существующие mock-first degraded surfaces.
+
 ## Branch policy
 
 Frontend bootstrap rule:
