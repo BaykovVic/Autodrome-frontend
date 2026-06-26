@@ -366,6 +366,18 @@ export function VirtualVehiclesScreen({ loader }: Props) {
             </div>
 
             <div className={styles.detailActions}>
+              <Link
+                href={`/virtual-vehicles/sessions/${selected.id}`}
+                style={{
+                  color: "var(--color-accent)",
+                  textDecoration: "none",
+                  fontSize: "var(--font-size-sm)",
+                  fontWeight: "var(--font-weight-medium)",
+                  alignSelf: "center",
+                }}
+              >
+                Open session monitor →
+              </Link>
               <Button
                 variant="secondary"
                 size="sm"
