@@ -1464,6 +1464,49 @@ Draft filter narrowing; detail aside compatibility fields +
 no-raw-editor note; breadcrumb back к workspace; workspace
 header link к catalog.
 
+### Virtual Vehicle Session Monitor (mock-first baseline)
+
+Dynamic sub-route `/virtual-vehicles/sessions/[sessionId]`
+шипает per-session monitor с runtime status cards + event log
++ Start/Pause/Resume/Stop command affordances (все disabled с
+operator tooltip, live wiring лансит в Track 3).
+
+Canonical naming (mirrors planned
+`virtual-vehicle-service-session-event-log-baseline` shape):
+
+- `ConsoleSessionState`: `running` / `paused` / `stopped` /
+  `starting` / `degraded` / `unknown`.
+- `ConsoleSessionEventSeverity`: `info` / `warning` / `error`
+  / `telemetry`.
+- Event `kind` canonical camelCase tokens
+  (`sessionStarted`, `sessionPaused`, `sessionStopped`,
+  `scenarioBound`, `telemetryTick`, `degraded`,
+  `operatorPaused`).
+
+Файлы:
+
+- `src/app/(shell)/virtual-vehicles/sessions/_components/consoleVirtualVehicleSessionMonitorSnapshot.ts`
+  — view-model + canonical label maps.
+- `src/app/(shell)/virtual-vehicles/sessions/_components/consoleVirtualVehicleSessionMonitorFixtures.ts`
+  — fixtures keyed by session id covering running / paused /
+  stopped / degraded states; unknown ids → honest "no data"
+  stub без invented telemetry.
+- `src/app/(shell)/virtual-vehicles/sessions/_components/useConsoleVirtualVehicleSessionMonitor.ts`
+  — mock-first per-session hook (loader DI + reload +
+  fatalError).
+- `src/app/(shell)/virtual-vehicles/sessions/_components/VirtualVehicleSessionMonitorScreen.tsx`
+  + CSS module — breadcrumb + canonical id title + state
+  badge + runtime cards grid + event log list + command
+  affordance group (all disabled).
+- `src/app/(shell)/virtual-vehicles/sessions/[sessionId]/page.tsx`
+  — dynamic route entry.
+- `VirtualVehiclesScreen.tsx` — detail aside surfaces "Open
+  session monitor →" link to sub-route.
+
+Browser smoke `e2e/virtual-vehicle-session-monitor.spec.ts`
+(5 chromium tests) verifies running / paused / degraded /
+unknown sessions и workspace detail aside link.
+
 ## Branch policy
 
 Frontend bootstrap rule:
