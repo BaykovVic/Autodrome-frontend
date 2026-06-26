@@ -1366,6 +1366,56 @@ handles canonical shapes с live API integration baseline. Эта
 locking mapping against silent contract drift после backend
 heartbeat baseline ships its application layer.
 
+### Virtual Vehicles workspace (mock-first baseline)
+
+`/virtual-vehicles` workspace добавлен в Web Operator Console
+как mock-first baseline для virtual-vehicle track. Никаких live
+API вызовов в этой фиче — workspace работает через scenario
+fixtures + view-model boundary; live wiring (Track 3) лансит
+после canonical OpenAPI шипнется в backend repo.
+
+Canonical naming (mirrors planned
+`virtual-vehicle-service-contracts-baseline` shape):
+
+- `ConsoleVirtualVehicleStatus`: `idle` / `running` / `paused` /
+  `stopped` / `degraded`.
+- `ConsoleVirtualVehicleSource`: `simulator` / `legacyReplay` /
+  `operatorManual` — operator-visible markers, rendered как
+  monospace canonical chip alongside operator-friendly label.
+- View-model fields: `id`, `label`, `source`, `sourceLabel`,
+  `status`, `statusLabel`, `scenarioId`, `scenarioLabel`,
+  `startedAt`, `lastTelemetryAt`, `notes?`.
+
+Файлы:
+
+- `src/app/(shell)/virtual-vehicles/_components/consoleVirtualVehiclesSnapshot.ts`
+  — view-model types + `VIRTUAL_VEHICLE_SOURCE_LABELS` lookup.
+- `src/app/(shell)/virtual-vehicles/_components/consoleVirtualVehiclesFixtures.ts`
+  — `consoleVirtualVehiclesFor(scenario)` (default seed
+  covering all 3 sources + 5 statuses; `empty` /
+  `service-degraded` collapse к empty list).
+- `src/app/(shell)/virtual-vehicles/_components/useConsoleVirtualVehicles.ts`
+  — mock-first hook (loader injection prop; future live mode
+  switch wiring deferred к Track 3).
+- `src/app/(shell)/virtual-vehicles/_components/VirtualVehiclesScreen.tsx`
+  + CSS module — table + detail aside (Identity + Scenario +
+  Telemetry sections) + disabled Stop/Pause affordances с
+  tooltip explaining upcoming live API integration.
+- `src/app/(shell)/virtual-vehicles/page.tsx` — route entry.
+- `SidebarNav.tsx` — entry под REGISTRY group ("Virtual
+  Vehicles").
+
+`New session` / `Stop` / `Pause` affordances unconditionally
+disabled per spec rule — никаких mock-backed click handlers,
+имитирующих successful mutation; реальное wiring лансит в Track
+3 live API integration feature.
+
+Browser smoke `e2e/virtual-vehicles-workspace.spec.ts` (5
+chromium tests) проверяет: heading + status tabs + canonical
+rows render; canonical source tokens visible alongside labels;
+Running filter narrows list; row click switches detail aside;
+sidebar nav round-trip Dashboard → Virtual Vehicles → Dashboard.
+
 ## Branch policy
 
 Frontend bootstrap rule:
