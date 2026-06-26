@@ -15,6 +15,7 @@ const ANNA: Candidate = {
     documentNumber: "MK4422119",
   },
   status: "active",
+  enrollmentState: "completed",
   createdAt: NOW,
 };
 
@@ -28,6 +29,7 @@ const BORIS: Candidate = {
     documentNumber: "DL7790314",
   },
   status: "registered",
+  enrollmentState: "notStarted",
   createdAt: NOW,
 };
 

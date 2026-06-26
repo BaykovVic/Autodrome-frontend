@@ -38,24 +38,28 @@ describe("DiagnosticsPanel", () => {
     expect(screen.getByText(/^380 GB$/)).toBeDefined();
   });
 
-  it("Run diagnostics check button is disabled until the service is wired", () => {
+  it("Run diagnostics check button is enabled and dispatches via mock/live switch", () => {
     render(<DiagnosticsPanel info={FIXTURE} />);
     const btn = screen.getByRole("button", {
       name: /run diagnostics check/i,
     }) as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
+    // After live wiring (T5-F2) the button is enabled; mock
+    // mode records a local timestamp, live mode dispatches
+    // POST /ops/diagnostics with default scope.
+    expect(btn.disabled).toBe(false);
   });
 
-  it("records a preview diagnostics request with pending-wiring badge", () => {
+  it("records a mock-mode diagnostics request with timestamp badge", () => {
     render(<DiagnosticsPanel info={FIXTURE} />);
     fireEvent.click(
       screen.getByRole("button", {
-        name: /record a diagnostics request/i,
+        name: /dispatch diagnostics request/i,
       }),
     );
-    expect(screen.getByText(/pending wiring/i)).toBeDefined();
+    // Mock mode surfaces "recorded" badge with timestamp.
+    expect(screen.getByText(/^recorded$/i)).toBeDefined();
     expect(
-      screen.getByText(/not yet connected to the local node/i),
+      screen.getByText(/Mock mode does not call the backend/i),
     ).toBeDefined();
   });
 

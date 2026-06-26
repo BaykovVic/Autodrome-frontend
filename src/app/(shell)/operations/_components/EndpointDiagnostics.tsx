@@ -41,6 +41,8 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   androidDevice: "Android device management",
   virtualVehicle: "Virtual vehicle",
   reportingDocument: "Reporting document",
+  deploymentOperations: "Deployment operations",
+  vehicleTelemetry: "Vehicle telemetry",
 };
 
 function configuredBaseUrl(

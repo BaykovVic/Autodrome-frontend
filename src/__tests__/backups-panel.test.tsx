@@ -51,7 +51,7 @@ describe("BackupsPanel", () => {
     ).toBeDefined();
   });
 
-  it("create-backup confirm records pending-wiring entry without executing", () => {
+  it("create-backup confirm records mock-mode activity entry without backend dispatch", async () => {
     render(<BackupsPanel snapshots={SNAPSHOTS} />);
     fireEvent.click(
       screen.getByRole("button", { name: /create backup \(preview\)/i }),
@@ -59,15 +59,11 @@ describe("BackupsPanel", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /record backup request/i }),
     );
-    expect(screen.getByText(/pending wiring/i)).toBeDefined();
-    expect(
-      screen.getByText(
-        /Create backup request recorded at .* Nothing was changed/i,
-      ),
-    ).toBeDefined();
+    // Mock-mode activity log surfaces "(mock)" marker.
+    await screen.findByText(/Create backup request recorded \(mock\)/i);
   });
 
-  it("restore confirm includes destructive warning and snapshot id, then records pending-wiring", () => {
+  it("restore confirm includes destructive warning and snapshot id, then records mock-mode entry", async () => {
     render(<BackupsPanel snapshots={SNAPSHOTS} />);
     const restoreButtons = screen.getAllByRole("button", {
       name: /restore \(preview\)/i,
@@ -78,7 +74,6 @@ describe("BackupsPanel", () => {
     expect(
       screen.getByText(/Restore is destructive/i),
     ).toBeDefined();
-    // Snapshot id appears in the confirm description.
     expect(screen.getAllByText(/snap-test-complete/).length).toBeGreaterThan(
       1,
     );
@@ -86,10 +81,8 @@ describe("BackupsPanel", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /record restore request/i }),
     );
-    expect(
-      screen.getByText(
-        /Restore from snap-test-complete request recorded at .* Nothing was changed/i,
-      ),
-    ).toBeDefined();
+    await screen.findByText(
+      /Restore from snap-test-complete request recorded \(mock\)/i,
+    );
   });
 });

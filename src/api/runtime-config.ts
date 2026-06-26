@@ -30,7 +30,9 @@ export type ServiceName =
   | "mediaArchive"
   | "androidDevice"
   | "virtualVehicle"
-  | "reportingDocument";
+  | "reportingDocument"
+  | "deploymentOperations"
+  | "vehicleTelemetry";
 
 export const SERVICE_NAMES: readonly ServiceName[] = [
   "candidate",
@@ -42,6 +44,8 @@ export const SERVICE_NAMES: readonly ServiceName[] = [
   "androidDevice",
   "virtualVehicle",
   "reportingDocument",
+  "deploymentOperations",
+  "vehicleTelemetry",
 ] as const;
 
 export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
@@ -54,6 +58,8 @@ export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
   androidDevice: "/api/android-device-management/v1",
   virtualVehicle: "/api/virtual-vehicle/v1",
   reportingDocument: "/api/reporting-document/v1",
+  deploymentOperations: "/api/deployment-operations/v1",
+  vehicleTelemetry: "/api/vehicle-telemetry/v1",
 };
 
 export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
@@ -66,6 +72,8 @@ export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
   androidDevice: "NEXT_PUBLIC_API_ANDROID_DEVICE_BASE_URL",
   virtualVehicle: "NEXT_PUBLIC_API_VIRTUAL_VEHICLE_BASE_URL",
   reportingDocument: "NEXT_PUBLIC_API_REPORTING_DOCUMENT_BASE_URL",
+  deploymentOperations: "NEXT_PUBLIC_API_DEPLOYMENT_OPERATIONS_BASE_URL",
+  vehicleTelemetry: "NEXT_PUBLIC_API_VEHICLE_TELEMETRY_BASE_URL",
 };
 
 export type RuntimeConfigIssue = {

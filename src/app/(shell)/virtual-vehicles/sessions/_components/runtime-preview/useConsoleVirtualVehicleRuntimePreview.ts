@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { getApiAdapter } from "@/api/get-api-adapter";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 import { consoleVirtualVehicleRuntimePreviewFor } from "./consoleVirtualVehicleRuntimePreviewFixtures";
+import { liveVirtualVehicleRuntimePreviewLoader } from "./liveVirtualVehicleRuntimePreviewLoader";
 import type { ConsoleRuntimePreview } from "./consoleVirtualVehicleRuntimePreviewSnapshot";
 
 export type ConsoleRuntimePreviewLoader = (
@@ -16,7 +19,15 @@ export type ConsoleRuntimePreviewState = {
   reload: () => void;
 };
 
-function defaultLoader(sessionId: string): ConsoleRuntimePreview {
+async function defaultLoader(
+  sessionId: string,
+): Promise<ConsoleRuntimePreview> {
+  if (resolveRuntimeMode() === "live") {
+    return liveVirtualVehicleRuntimePreviewLoader(
+      getApiAdapter({ mode: "live" }),
+      sessionId,
+    );
+  }
   return consoleVirtualVehicleRuntimePreviewFor(sessionId);
 }
 
