@@ -127,6 +127,10 @@ Hand-off:
 - Передавать `.next/` + `package.json` + `pnpm-lock.yaml`.
 - Стартовать через `pnpm start` (Next.js standalone) или
   containerise через official Next.js Dockerfile.
+- Operator-readable hand-off surface: вкладка
+  **Release** в `/operations` (build metadata + checklist
+  highlights + hand-off status). Альтернативный канал
+  для release engineer без знания CLI.
 
 ## Rollback notes
 
