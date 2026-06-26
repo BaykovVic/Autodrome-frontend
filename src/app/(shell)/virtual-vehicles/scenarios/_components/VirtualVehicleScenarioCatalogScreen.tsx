@@ -14,101 +14,91 @@ import {
   type StatusDotVariant,
 } from "@/components";
 import {
-  useConsoleVirtualVehicles,
-  type ConsoleVirtualVehiclesLoader,
-} from "./useConsoleVirtualVehicles";
+  useConsoleVirtualVehicleScenarios,
+  type ConsoleVirtualVehicleScenariosLoader,
+} from "./useConsoleVirtualVehicleScenarios";
 import {
-  VIRTUAL_VEHICLE_SOURCE_LABELS,
-  type ConsoleVirtualVehicle,
-  type ConsoleVirtualVehicleSource,
-  type ConsoleVirtualVehicleStatus,
-} from "./consoleVirtualVehiclesSnapshot";
-import styles from "./VirtualVehiclesScreen.module.css";
+  SCENARIO_COORDINATE_FRAME_LABELS,
+  SCENARIO_SOURCE_LABELS,
+  SCENARIO_YAW_FRAME_LABELS,
+  type ConsoleScenarioStatus,
+  type ConsoleVirtualVehicleScenario,
+} from "./consoleVirtualVehicleScenariosSnapshot";
+import styles from "./VirtualVehicleScenarioCatalogScreen.module.css";
 
 type Props = {
-  loader?: ConsoleVirtualVehiclesLoader;
+  loader?: ConsoleVirtualVehicleScenariosLoader;
 };
 
-type StatusFilter = ConsoleVirtualVehicleStatus | "all";
+type StatusFilter = ConsoleScenarioStatus | "all";
 
 const STATUS_TABS: Array<{ id: StatusFilter; label: string }> = [
   { id: "all", label: "All" },
-  { id: "running", label: "Running" },
-  { id: "idle", label: "Idle" },
-  { id: "paused", label: "Paused" },
-  { id: "degraded", label: "Degraded" },
-  { id: "stopped", label: "Stopped" },
+  { id: "published", label: "Published" },
+  { id: "draft", label: "Draft" },
+  { id: "archived", label: "Archived" },
 ];
 
-function statusDot(state: ConsoleVirtualVehicleStatus): StatusDotVariant {
+function statusDot(state: ConsoleScenarioStatus): StatusDotVariant {
   switch (state) {
-    case "running":
+    case "published":
       return "online";
-    case "idle":
+    case "draft":
       return "standby";
-    case "paused":
-      return "standby";
-    case "degraded":
-      return "degraded";
-    case "stopped":
+    case "archived":
     default:
       return "offline";
   }
 }
 
 function statusBadge(
-  state: ConsoleVirtualVehicleStatus,
+  state: ConsoleScenarioStatus,
 ): StatusBadgeVariant {
   switch (state) {
-    case "running":
+    case "published":
       return "success";
-    case "idle":
-      return "neutral";
-    case "paused":
+    case "draft":
       return "info";
-    case "degraded":
-      return "warning";
-    case "stopped":
+    case "archived":
     default:
       return "neutral";
   }
 }
 
-function sourceLabel(src: ConsoleVirtualVehicleSource): string {
-  return VIRTUAL_VEHICLE_SOURCE_LABELS[src] ?? src;
-}
-
-export function VirtualVehiclesScreen({ loader }: Props) {
-  const state = useConsoleVirtualVehicles(loader);
+export function VirtualVehicleScenarioCatalogScreen({ loader }: Props) {
+  const state = useConsoleVirtualVehicleScenarios(loader);
 
   const [tab, setTab] = useState<StatusFilter>("all");
   const [selectedId, setSelectedId] = useState<string | undefined>(
     undefined,
   );
 
-  const vehicles = useMemo(
-    () => state.snapshot?.vehicles ?? [],
+  const scenarios = useMemo(
+    () => state.snapshot?.scenarios ?? [],
     [state.snapshot],
   );
 
   const visible = useMemo(() => {
-    if (tab === "all") return vehicles;
-    return vehicles.filter((v) => v.status === tab);
-  }, [vehicles, tab]);
+    if (tab === "all") return scenarios;
+    return scenarios.filter((s) => s.status === tab);
+  }, [scenarios, tab]);
 
-  const selected: ConsoleVirtualVehicle | undefined = useMemo(() => {
+  const selected: ConsoleVirtualVehicleScenario | undefined = useMemo(() => {
     if (selectedId) {
-      const match = vehicles.find((v) => v.id === selectedId);
+      const match = scenarios.find((s) => s.id === selectedId);
       if (match) return match;
     }
-    return visible[0] ?? vehicles[0];
-  }, [vehicles, visible, selectedId]);
+    return visible[0] ?? scenarios[0];
+  }, [scenarios, visible, selectedId]);
 
   if (state.loading) {
     return (
-      <section className={styles.screen} aria-label="Virtual Vehicles">
+      <section
+        className={styles.screen}
+        aria-label="Scenario catalog"
+      >
         <div className={styles.loadingPad}>
-          <Skeleton lines={6} label="Loading virtual vehicles" />
+          <Skeleton lines={6} label="Loading scenario catalog" />
         </div>
       </section>
     );
@@ -116,9 +106,15 @@ export function VirtualVehiclesScreen({ loader }: Props) {
 
   if (state.fatalError) {
     return (
-      <section className={styles.screen} aria-label="Virtual Vehicles">
+      <section
+        className={styles.screen}
+        aria-label="Scenario catalog"
+      >
         <div className={styles.loadingPad}>
-          <ApiErrorView error={state.fatalError} onRetry={state.reload} />
+          <ApiErrorView
+            error={state.fatalError}
+            onRetry={state.reload}
+          />
         </div>
       </section>
     );
@@ -126,49 +122,42 @@ export function VirtualVehiclesScreen({ loader }: Props) {
 
   const totals = state.snapshot?.totals ?? {
     total: 0,
-    running: 0,
-    idle: 0,
-    degraded: 0,
+    published: 0,
+    drafts: 0,
   };
 
   return (
-    <section className={styles.screen} aria-label="Virtual Vehicles">
+    <section className={styles.screen} aria-label="Scenario catalog">
       <header className={styles.header}>
+        <nav className={styles.crumbs} aria-label="Breadcrumb">
+          <Link href="/virtual-vehicles" className={styles.crumbsLink}>
+            Virtual Vehicles
+          </Link>
+          <span aria-hidden="true">›</span>
+          <span className={styles.crumbsCurrent}>Scenario catalog</span>
+        </nav>
         <div className={styles.titleRow}>
           <div>
-            <h1 className={styles.title}>Virtual Vehicles</h1>
+            <h1 className={styles.title}>Scenario catalog</h1>
             <p className={styles.subtitle}>
-              {totals.total} sessions · {totals.running} running ·{" "}
-              {totals.idle} idle · {totals.degraded} degraded
+              {totals.total} scenarios · {totals.published}{" "}
+              published · {totals.drafts} drafts
             </p>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <Link
-              href="/virtual-vehicles/scenarios"
-              style={{
-                color: "var(--color-accent)",
-                textDecoration: "none",
-                fontSize: "var(--font-size-sm)",
-                fontWeight: "var(--font-weight-medium)",
-              }}
-            >
-              Scenario catalog →
-            </Link>
-            <Button
-              variant="primary"
-              size="sm"
-              type="button"
-              disabled
-              title="Spawn a new virtual vehicle session — flow lands with the upcoming virtual-vehicle live API integration feature."
-            >
-              New session
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            type="button"
+            disabled
+            title="Create-scenario flow lands with the upcoming virtual-vehicle live API integration feature."
+          >
+            New scenario
+          </Button>
         </div>
         <div
           className={styles.filters}
           role="tablist"
-          aria-label="Virtual vehicle status filter"
+          aria-label="Scenario status filter"
         >
           {STATUS_TABS.map((t) => {
             const isActive = t.id === tab;
@@ -200,11 +189,11 @@ export function VirtualVehiclesScreen({ loader }: Props) {
           {visible.length === 0 ? (
             <div className={styles.emptyWrap}>
               <EmptyState
-                title="No virtual vehicles"
+                title="No scenarios"
                 description={
-                  vehicles.length === 0
-                    ? "No virtual vehicle sessions registered in this scenario."
-                    : "No virtual vehicles match this filter."
+                  scenarios.length === 0
+                    ? "No scenarios registered in this scenario."
+                    : "No scenarios match this filter."
                 }
               />
             </div>
@@ -213,13 +202,13 @@ export function VirtualVehiclesScreen({ loader }: Props) {
               <thead>
                 <tr>
                   <th scope="col" className={styles.th}>
-                    Vehicle
+                    Scenario
                   </th>
                   <th scope="col" className={styles.th}>
                     Source
                   </th>
                   <th scope="col" className={styles.th}>
-                    Scenario
+                    Frames
                   </th>
                   <th scope="col" className={styles.th}>
                     Status
@@ -227,11 +216,11 @@ export function VirtualVehiclesScreen({ loader }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {visible.map((v) => {
-                  const isSelected = v.id === selected?.id;
+                {visible.map((s) => {
+                  const isSelected = s.id === selected?.id;
                   return (
                     <tr
-                      key={v.id}
+                      key={s.id}
                       className={
                         isSelected
                           ? `${styles.row} ${styles.rowActive}`
@@ -242,38 +231,43 @@ export function VirtualVehiclesScreen({ loader }: Props) {
                       <td className={styles.td}>
                         <button
                           type="button"
-                          className={styles.vehicleBtn}
-                          onClick={() => setSelectedId(v.id)}
+                          className={styles.scenarioBtn}
+                          onClick={() => setSelectedId(s.id)}
                           aria-current={isSelected ? "true" : undefined}
                         >
-                          <span className={styles.vehicleId}>{v.id}</span>
-                          <span className={styles.vehicleLabel}>
-                            {v.label}
+                          <span className={styles.scenarioCode}>
+                            {s.code}
+                          </span>
+                          <span className={styles.scenarioName}>
+                            {s.name}
                           </span>
                         </button>
                       </td>
                       <td className={styles.td}>
                         <span className={styles.sourceCell}>
                           <span className={styles.sourceLabel}>
-                            {sourceLabel(v.source)}
+                            {SCENARIO_SOURCE_LABELS[s.source] ?? s.source}
                           </span>
-                          <span className={styles.sourceCanonicalChip}>
-                            ({v.source})
+                          <span className={styles.canonicalChip}>
+                            ({s.source})
                           </span>
                         </span>
                       </td>
                       <td className={styles.td}>
-                        <div>{v.scenarioLabel}</div>
-                        <div className={styles.mono}>{v.scenarioId}</div>
+                        <div>{s.yawFrameLabel} yaw</div>
+                        <div className={styles.mono}>
+                          {s.coordinateFrame} ·{" "}
+                          {s.yawFrame}
+                        </div>
                       </td>
                       <td className={styles.td}>
                         <span className={styles.statusCell}>
                           <StatusDot
-                            variant={statusDot(v.status)}
+                            variant={statusDot(s.status)}
                             halo={false}
                           />
-                          <StatusBadge variant={statusBadge(v.status)}>
-                            {v.statusLabel}
+                          <StatusBadge variant={statusBadge(s.status)}>
+                            {s.statusLabel}
                           </StatusBadge>
                         </span>
                       </td>
@@ -288,11 +282,12 @@ export function VirtualVehiclesScreen({ loader }: Props) {
         {selected ? (
           <aside
             className={styles.detail}
-            aria-label={`Virtual vehicle ${selected.id}`}
+            aria-label={`Scenario ${selected.code}`}
           >
             <div className={styles.detailHeader}>
               <div className={styles.detailIdentity}>
-                <span className={styles.detailId}>{selected.id}</span>
+                <span className={styles.detailCode}>{selected.code}</span>
+                <span className={styles.detailName}>{selected.name}</span>
                 <span className={styles.statusCell}>
                   <StatusDot
                     variant={statusDot(selected.status)}
@@ -306,63 +301,71 @@ export function VirtualVehiclesScreen({ loader }: Props) {
             </div>
 
             <div className={styles.detailSection}>
-              <div className={styles.sectionTitle}>Identity</div>
+              <div className={styles.sectionTitle}>Description</div>
+              <p className={styles.descriptionText}>
+                {selected.description}
+              </p>
+            </div>
+
+            <div className={styles.detailSection}>
+              <div className={styles.sectionTitle}>Source</div>
               <dl className={styles.detailsList}>
-                <div className={styles.detailRow}>
-                  <dt className={styles.detailLabel}>Label</dt>
-                  <dd className={styles.detailValue}>{selected.label}</dd>
-                </div>
                 <div className={styles.detailRow}>
                   <dt className={styles.detailLabel}>Source</dt>
                   <dd className={styles.detailValue}>
-                    {sourceLabel(selected.source)}{" "}
-                    <span className={styles.sourceCanonicalChip}>
+                    {SCENARIO_SOURCE_LABELS[selected.source] ??
+                      selected.source}{" "}
+                    <span className={styles.canonicalChip}>
                       ({selected.source})
                     </span>
                   </dd>
                 </div>
-              </dl>
-            </div>
-
-            <div className={styles.detailSection}>
-              <div className={styles.sectionTitle}>Scenario</div>
-              <dl className={styles.detailsList}>
                 <div className={styles.detailRow}>
-                  <dt className={styles.detailLabel}>Name</dt>
-                  <dd className={styles.detailValue}>
-                    {selected.scenarioLabel}
-                  </dd>
-                </div>
-                <div className={styles.detailRow}>
-                  <dt className={styles.detailLabel}>ID</dt>
+                  <dt className={styles.detailLabel}>Version</dt>
                   <dd
                     className={`${styles.detailValue} ${styles.detailValueMono}`}
                   >
-                    {selected.scenarioId}
+                    {selected.version}
+                  </dd>
+                </div>
+                <div className={styles.detailRow}>
+                  <dt className={styles.detailLabel}>Updated</dt>
+                  <dd
+                    className={`${styles.detailValue} ${styles.detailValueMono}`}
+                  >
+                    {selected.updatedAt}
                   </dd>
                 </div>
               </dl>
             </div>
 
             <div className={styles.detailSection}>
-              <div className={styles.sectionTitle}>Telemetry</div>
+              <div className={styles.sectionTitle}>
+                Coordinate / yaw frames
+              </div>
               <dl className={styles.detailsList}>
                 <div className={styles.detailRow}>
-                  <dt className={styles.detailLabel}>Started</dt>
+                  <dt className={styles.detailLabel}>Yaw frame</dt>
                   <dd className={styles.detailValue}>
-                    {selected.startedAt}
+                    {SCENARIO_YAW_FRAME_LABELS[selected.yawFrame] ??
+                      selected.yawFrame}{" "}
+                    <span className={styles.canonicalChip}>
+                      ({selected.yawFrame})
+                    </span>
                   </dd>
                 </div>
                 <div className={styles.detailRow}>
-                  <dt className={styles.detailLabel}>Last telemetry</dt>
+                  <dt className={styles.detailLabel}>Coordinate frame</dt>
                   <dd className={styles.detailValue}>
-                    {selected.lastTelemetryAt}
+                    {SCENARIO_COORDINATE_FRAME_LABELS[
+                      selected.coordinateFrame
+                    ] ?? selected.coordinateFrame}{" "}
+                    <span className={styles.canonicalChip}>
+                      ({selected.coordinateFrame})
+                    </span>
                   </dd>
                 </div>
               </dl>
-              {selected.notes ? (
-                <p className={styles.notesText}>{selected.notes}</p>
-              ) : null}
             </div>
 
             <div className={styles.detailActions}>
@@ -371,19 +374,28 @@ export function VirtualVehiclesScreen({ loader }: Props) {
                 size="sm"
                 type="button"
                 disabled
-                title="Stop the session — flow lands with the upcoming virtual-vehicle live API integration feature."
+                title="Edit scenario flow lands with the upcoming virtual-vehicle live API integration feature."
               >
-                Stop
+                Edit
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
                 type="button"
                 disabled
-                title="Pause/resume — flow lands with the upcoming virtual-vehicle live API integration feature."
+                title="Duplicate scenario flow lands with the upcoming virtual-vehicle live API integration feature."
               >
-                Pause
+                Duplicate
               </Button>
+            </div>
+
+            <div className={styles.detailSection}>
+              <p className={styles.noRawEditorNote}>
+                Raw protocol editor is intentionally not exposed —
+                scenario contents are operator-curated through the
+                live API once shipped, never edited as raw
+                trajectory payloads.
+              </p>
             </div>
           </aside>
         ) : null}

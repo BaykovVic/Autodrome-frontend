@@ -1416,6 +1416,54 @@ rows render; canonical source tokens visible alongside labels;
 Running filter narrows list; row click switches detail aside;
 sidebar nav round-trip Dashboard → Virtual Vehicles → Dashboard.
 
+### Virtual Vehicle Scenario Catalog (mock-first baseline)
+
+Sub-route `/virtual-vehicles/scenarios` шипает catalog of
+scenarios для virtual-vehicle sessions. Operator явно различает
+canonical sources (`simulator` / `liteReplay` / `fullReplay`) +
+coordinate-frame / yaw-frame fields per scenario, без
+доступа к raw protocol editor (spec rule "no raw protocol
+editor").
+
+Canonical naming (mirrors planned
+`virtual-vehicle-service-scenario-catalog-baseline` shape):
+
+- `ConsoleScenarioSource`: `simulator` / `liteReplay` /
+  `fullReplay`. Legacy Lite vs Full visibly distinguished
+  (`SCENARIO_SOURCE_LABELS` lookup рендерит "Legacy Lite
+  replay" / "Legacy Full replay" alongside monospace canonical
+  token).
+- `ConsoleScenarioYawFrame`: `relative` / `absolute` /
+  `compass` / `unknown`.
+- `ConsoleScenarioCoordinateFrame`: `local` / `world` / `geo`
+  / `unknown`.
+- `ConsoleScenarioStatus`: `draft` / `published` / `archived`.
+
+Файлы:
+
+- `src/app/(shell)/virtual-vehicles/scenarios/_components/consoleVirtualVehicleScenariosSnapshot.ts`
+  — view-model + 3 canonical label lookups.
+- `src/app/(shell)/virtual-vehicles/scenarios/_components/consoleVirtualVehicleScenariosFixtures.ts`
+  — `consoleVirtualVehicleScenariosFor(scenario)` (default seed
+  covering все 3 sources + 3 statuses + unknown frames edge
+  case).
+- `src/app/(shell)/virtual-vehicles/scenarios/_components/useConsoleVirtualVehicleScenarios.ts`
+  — mock-first hook.
+- `src/app/(shell)/virtual-vehicles/scenarios/_components/VirtualVehicleScenarioCatalogScreen.tsx`
+  + CSS module — breadcrumb + table + detail aside +
+  disabled Create/Edit/Duplicate + operator-visible "no raw
+  protocol editor" note.
+- `src/app/(shell)/virtual-vehicles/scenarios/page.tsx` —
+  route entry.
+- `VirtualVehiclesScreen.tsx` — header surfaces "Scenario
+  catalog →" link к sub-route.
+
+Browser smoke `e2e/virtual-vehicle-scenario-catalog.spec.ts`
+(5 chromium tests) verifies: heading + Lite/Full token chips;
+Draft filter narrowing; detail aside compatibility fields +
+no-raw-editor note; breadcrumb back к workspace; workspace
+header link к catalog.
+
 ## Branch policy
 
 Frontend bootstrap rule:
