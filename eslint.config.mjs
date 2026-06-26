@@ -13,6 +13,24 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Allow `_`-prefixed unused args/vars as intentional
+      // placeholders (canonical TS convention). Live loader
+      // stubs для future mutation paths используют этот
+      // pattern (см. liveExamLoader / liveExerciseLoader /
+      // liveRulesLoader update stubs).
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;
