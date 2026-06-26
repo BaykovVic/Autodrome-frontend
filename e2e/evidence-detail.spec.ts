@@ -55,6 +55,20 @@ test.describe("evidence detail (mock-mode baseline)", () => {
     ).toBeVisible();
   });
 
+  test("sealed evidence: segment table + timeline mapping table render", async ({
+    page,
+  }) => {
+    await page.goto("/evidence/EVD-77210");
+    await expect(
+      page.getByRole("table", { name: /segments for REC-77210-A/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("table", { name: /timeline for REC-77210-A/i }),
+    ).toBeVisible();
+    // Canonical source token visible in segment row.
+    await expect(page.getByText(/\(cabinFront\)/i).first()).toBeVisible();
+  });
+
   test("evidence list → detail link navigates", async ({ page }) => {
     await page.goto("/evidence");
     await page

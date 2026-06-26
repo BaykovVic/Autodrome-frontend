@@ -190,6 +190,43 @@
   letter-spacing: 0;
 }
 
+.segmentTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0;
+}
+
+.segmentTable th,
+.segmentTable td {
+  padding: 4px 8px;
+  border-bottom: var(--border-width) solid var(--color-border-divider);
+  text-align: left;
+  letter-spacing: 0;
+}
+
+.segmentTable th {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0;
+}
+
+.segmentTable td {
+  font-family: var(--font-family-mono);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.subSectionTitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-subtle);
+  margin: 6px 0 4px;
+  letter-spacing: 0;
+}
+
 @media (max-width: 720px) {
   .body {
     grid-template-columns: 1fr;

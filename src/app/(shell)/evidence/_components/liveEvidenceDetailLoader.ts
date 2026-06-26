@@ -39,7 +39,9 @@ import {
   EVIDENCE_REPORT_STATUS_LABELS,
   type ConsoleEvidenceDetail,
   type ConsoleEvidenceMediaRef,
+  type ConsoleEvidenceMediaSegment,
   type ConsoleEvidenceMediaSourceKind,
+  type ConsoleEvidenceMediaTimelineEntry,
   type ConsoleEvidenceReportRef,
   type ConsoleEvidenceReportStatus,
 } from "./consoleEvidenceSnapshot";
@@ -57,6 +59,16 @@ function isKnownSourceKind(
   return (
     k in EVIDENCE_MEDIA_SOURCE_LABELS
   );
+}
+
+/**
+ * Renders a hex SHA-256 checksum as compact `aaaa…bbbb` for
+ * operator display. Backend may already short-form, but we
+ * idempotently truncate to keep table rendering predictable.
+ */
+export function shortChecksum(raw: string): string {
+  if (raw.length <= 12) return raw;
+  return `${raw.slice(0, 4)}…${raw.slice(-4)}`;
 }
 
 export function mapReportStatusDtoToConsole(
@@ -79,18 +91,44 @@ export function applyManifestToMediaRef(
   base: ConsoleEvidenceMediaRef,
   manifest: PlaybackManifestDto,
 ): ConsoleEvidenceMediaRef {
-  const segmentCount = (manifest.segments ?? []).reduce(
-    (acc, entry) => acc + (entry.segments?.length ?? 0),
-    0,
+  const allRawSegments = (manifest.segments ?? []).flatMap(
+    (entry) => entry.segments ?? [],
   );
+  const segmentCount = allRawSegments.length;
   const sources = Array.from(
     new Set(
-      (manifest.segments ?? [])
-        .flatMap((entry) => entry.segments ?? [])
+      allRawSegments
         .map((s) => s.sourceId as MediaSourceKindDto)
         .filter(isKnownSourceKind),
     ),
   );
+  const segments: ConsoleEvidenceMediaSegment[] = allRawSegments
+    .filter((s) => isKnownSourceKind(s.sourceId))
+    .map((s) => {
+      const source = s.sourceId as ConsoleEvidenceMediaSourceKind;
+      return {
+        segmentId: s.segmentId,
+        source,
+        sourceLabel: EVIDENCE_MEDIA_SOURCE_LABELS[source],
+        startedAt: s.startedAt,
+        endedAt: s.endedAt,
+        checksumShort: shortChecksum(s.checksum),
+      };
+    });
+  const timeline: ConsoleEvidenceMediaTimelineEntry[] = (
+    manifest.timelineMap ?? []
+  )
+    .filter((t) => isKnownSourceKind(t.sourceId))
+    .map((t) => {
+      const source = t.sourceId as ConsoleEvidenceMediaSourceKind;
+      return {
+        timelineFrom: t.timelineFrom,
+        timelineTo: t.timelineTo,
+        source,
+        sourceLabel: EVIDENCE_MEDIA_SOURCE_LABELS[source],
+        segmentId: t.segmentId,
+      };
+    });
   return {
     ...base,
     recordingId: manifest.recordingId,
@@ -99,6 +137,8 @@ export function applyManifestToMediaRef(
     sources: sources.length > 0 ? sources : base.sources,
     segmentCount,
     manifestExpiresAt: manifest.expiresAt,
+    segments,
+    timeline,
     manifestError: undefined,
   };
 }

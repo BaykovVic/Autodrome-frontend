@@ -22,8 +22,42 @@ const LINKS: Record<string, EvidenceLinks> = {
         status: "finalized",
         statusLabel: EVIDENCE_MEDIA_STATUS_LABELS.finalized,
         sources: ["cabinFront", "exteriorFront"],
-        segmentCount: 14,
+        segmentCount: 2,
         manifestExpiresAt: "2026-06-26T18:00:00Z",
+        segments: [
+          {
+            segmentId: "SEG-77210-A-001",
+            source: "cabinFront",
+            sourceLabel: "Cabin front",
+            startedAt: "2026-06-19T12:10:50Z",
+            endedAt: "2026-06-19T12:11:50Z",
+            checksumShort: "a1f4…9c20",
+          },
+          {
+            segmentId: "SEG-77210-A-002",
+            source: "exteriorFront",
+            sourceLabel: "Exterior front",
+            startedAt: "2026-06-19T12:11:50Z",
+            endedAt: "2026-06-19T12:12:50Z",
+            checksumShort: "5b07…d11a",
+          },
+        ],
+        timeline: [
+          {
+            timelineFrom: "2026-06-19T12:10:50Z",
+            timelineTo: "2026-06-19T12:11:50Z",
+            source: "cabinFront",
+            sourceLabel: "Cabin front",
+            segmentId: "SEG-77210-A-001",
+          },
+          {
+            timelineFrom: "2026-06-19T12:11:50Z",
+            timelineTo: "2026-06-19T12:12:50Z",
+            source: "exteriorFront",
+            sourceLabel: "Exterior front",
+            segmentId: "SEG-77210-A-002",
+          },
+        ],
       },
     ],
     reportRefs: [
