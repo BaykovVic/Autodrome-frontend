@@ -28,7 +28,8 @@ export type ServiceName =
   | "exercise"
   | "violationRule"
   | "mediaArchive"
-  | "androidDevice";
+  | "androidDevice"
+  | "virtualVehicle";
 
 export const SERVICE_NAMES: readonly ServiceName[] = [
   "candidate",
@@ -38,6 +39,7 @@ export const SERVICE_NAMES: readonly ServiceName[] = [
   "violationRule",
   "mediaArchive",
   "androidDevice",
+  "virtualVehicle",
 ] as const;
 
 export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
@@ -48,6 +50,7 @@ export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
   violationRule: "/api/violation-rule/v1",
   mediaArchive: "/api/media-archive/v1",
   androidDevice: "/api/android-device-management/v1",
+  virtualVehicle: "/api/virtual-vehicle/v1",
 };
 
 export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
@@ -58,6 +61,7 @@ export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
   violationRule: "NEXT_PUBLIC_API_VIOLATION_RULE_BASE_URL",
   mediaArchive: "NEXT_PUBLIC_API_MEDIA_ARCHIVE_BASE_URL",
   androidDevice: "NEXT_PUBLIC_API_ANDROID_DEVICE_BASE_URL",
+  virtualVehicle: "NEXT_PUBLIC_API_VIRTUAL_VEHICLE_BASE_URL",
 };
 
 export type RuntimeConfigIssue = {

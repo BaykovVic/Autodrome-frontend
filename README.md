@@ -1612,6 +1612,59 @@ Browser smoke `e2e/virtual-vehicle-runtime-preview.spec.ts`
 session-monitor → runtime-preview navigation + mobile
 (375x812) horizontal-overflow gate.
 
+### Virtual Vehicle live API integration
+
+`virtual-vehicle-service` (canonical OpenAPI at
+`contracts/openapi/virtual-vehicle-service/v1/openapi.yaml`)
+теперь подключён к workspace + scenario catalog + session
+monitor. Mock fallback остаётся default: `pnpm dev` без
+`NEXT_PUBLIC_API_ADAPTER=live` продолжает рендерить fixtures.
+Live mode подменяет default loaders trio:
+
+- `liveVirtualVehiclesLoader` —
+  `GET /virtual-vehicles`. Маппер переводит
+  `VirtualVehicleStatus` (`draft|ready|running|paused|stopped|
+  failed`) → `ConsoleVirtualVehicleStatus` (`idle|running|
+  paused|stopped|degraded`); `SimulatorSource`
+  (`webVirtual|rpiHardware|importedLegacy`) →
+  `ConsoleVirtualVehicleSource`.
+- `liveVirtualVehicleScenariosLoader` — `GET /scenarios`.
+  Маппер переводит `ScenarioSource`, `CoordinateFrame`,
+  `YawProfile` в canonical console tokens.
+- `liveVirtualVehicleSessionMonitorLoader` — reverse-lookup
+  parent vehicle через `GET /virtual-vehicles`
+  (`currentSessionId` match) + затем
+  `GET /virtual-vehicles/{virtualVehicleId}/sessions/{sessionId}/events`.
+  Unknown ids рендерят честный "unknown" state без
+  invented telemetry.
+
+Error taxonomy:
+- Non-2xx ответ → `ApiError` от shared client middleware →
+  hook layer ловит и рендерит `<ApiErrorView>` (degraded
+  surface). Backend lag (`503 VIRTUAL_VEHICLE_NOT_IMPLEMENTED`)
+  обрабатывается так же, без silent success.
+
+Service registry:
+- `src/api/services/virtual-vehicle.ts` — typed client.
+- `contracts.config.json` — entry `virtual-vehicle`.
+- `src/api/{adapter,live,mock/adapter,runtime-config}.ts`
+  — добавлен `virtualVehicle` сервис; mock adapter
+  возвращает stub responses через общий mock fetch.
+- `src/app/(shell)/operations/_components/{DiagnosticsPanel,EndpointDiagnostics}.tsx`
+  — service registry includes "Virtual vehicle".
+
+Tech debt:
+- `scenarioLabel` в workspace mapper равен `scenarioId`
+  пока scenario catalog resolution не подключён в той же
+  сессии (отдельный roundtrip к `/scenarios/{id}` или
+  клиентский кеш).
+- `liveVirtualVehicleSessionMonitorLoader` использует
+  reverse lookup через `/virtual-vehicles` пока backend не
+  выставит top-level `/sessions/{sessionId}` resolver.
+- Manual control + Runtime preview остаются mock-first;
+  телеметрию подцепит следующая фича Track 3 —
+  `frontend-virtual-vehicle-telemetry-live-binding`.
+
 ## Branch policy
 
 Frontend bootstrap rule:

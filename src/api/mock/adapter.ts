@@ -9,6 +9,7 @@ import type { ExercisePaths } from "../services/exercise";
 import type { MediaArchivePaths } from "../services/media-archive";
 import type { VehiclePaths } from "../services/vehicle";
 import type { ViolationRulePaths } from "../services/violation-rule";
+import type { VirtualVehiclePaths } from "../services/virtual-vehicle";
 
 export function createMockAdapter(
   scenario: MockScenario = DEFAULT_SCENARIO,
@@ -42,6 +43,10 @@ export function createMockAdapter(
     }),
     androidDevice: createAutodromeClient<AndroidDevicePaths>({
       baseUrl: "/api/android-device-management/v1",
+      fetch: mockFetch,
+    }),
+    virtualVehicle: createAutodromeClient<VirtualVehiclePaths>({
+      baseUrl: "/api/virtual-vehicle/v1",
       fetch: mockFetch,
     }),
   };

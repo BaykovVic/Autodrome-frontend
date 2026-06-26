@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { getApiAdapter } from "@/api/get-api-adapter";
 import {
   DEFAULT_SCENARIO,
   isMockScenario,
   type MockScenario,
 } from "@/api/mock/scenarios";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 import { consoleVirtualVehiclesFor } from "./consoleVirtualVehiclesFixtures";
+import { liveVirtualVehiclesLoader } from "./liveVirtualVehiclesLoader";
 import type { ConsoleVirtualVehiclesSnapshot } from "./consoleVirtualVehiclesSnapshot";
 
 export type ConsoleVirtualVehiclesLoader = () =>
@@ -21,7 +24,10 @@ export type ConsoleVirtualVehiclesState = {
   reload: () => void;
 };
 
-function defaultLoader(): ConsoleVirtualVehiclesSnapshot {
+async function defaultLoader(): Promise<ConsoleVirtualVehiclesSnapshot> {
+  if (resolveRuntimeMode() === "live") {
+    return liveVirtualVehiclesLoader(getApiAdapter({ mode: "live" }));
+  }
   const env = process.env.NEXT_PUBLIC_MOCK_SCENARIO;
   const scenario: MockScenario = isMockScenario(env)
     ? env
