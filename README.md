@@ -1912,6 +1912,25 @@ chromium сценариев через core registry workspaces
 Mock-deterministic; live opt-in через
 `NEXT_PUBLIC_API_ADAPTER=live pnpm e2e`.
 
+### Pilot composite workflows (Track 6 / F2–F4)
+
+Pilot-level специализированные E2E specs поверх
+существующих per-workspace coverage:
+
+- `e2e/pilot-core-workflow.spec.ts` — linked candidate →
+  vehicle → exam pilot path без dead-end navigations.
+- `e2e/pilot-evidence-report-workflow.spec.ts` — pilot
+  happy path (sealed evidence → reporting catalog) +
+  degraded path (failed evidence → retentionChecksumIssue)
+  + media unavailable path (active recording →
+  manifestUnavailable).
+- `e2e/pilot-operations-workflow.spec.ts` — operations
+  tabs в pilot order + safety constraint test (никаких
+  destructive backup/restore submissions).
+
+Все три mock-deterministic, live opt-in через
+`NEXT_PUBLIC_API_ADAPTER=live pnpm e2e`.
+
 ## Branch policy
 
 Frontend bootstrap rule:
