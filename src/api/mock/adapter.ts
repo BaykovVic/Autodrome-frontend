@@ -14,6 +14,7 @@ import type { ReportingDocumentPaths } from "../services/reporting-document";
 import type { DeploymentOperationsPaths } from "../services/deployment-operations";
 import type { VehicleTelemetryPaths } from "../services/vehicle-telemetry";
 import type { IdentitySecurityPaths } from "../services/identity-security";
+import type { AuditPaths } from "../services/audit";
 
 export function createMockAdapter(
   scenario: MockScenario = DEFAULT_SCENARIO,
@@ -67,6 +68,10 @@ export function createMockAdapter(
     }),
     identitySecurity: createAutodromeClient<IdentitySecurityPaths>({
       baseUrl: "/api/identity-security/v1",
+      fetch: mockFetch,
+    }),
+    audit: createAutodromeClient<AuditPaths>({
+      baseUrl: "/api/audit/v1",
       fetch: mockFetch,
     }),
   };
