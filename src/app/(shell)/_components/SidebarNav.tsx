@@ -209,6 +209,24 @@ function SecurityIcon() {
   );
 }
 
+function AuditIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
+      <path d="M5 4h11l3 3v13H5z" />
+      <path d="M9 9h7M9 13h7M9 17h4" />
+    </svg>
+  );
+}
+
 function DevicesIcon() {
   return (
     <svg
@@ -304,6 +322,7 @@ export const SHELL_NAV_GROUPS: ShellNavGroup[] = [
       { href: "/evidence", label: "Evidence", icon: <EvidenceIcon /> },
       { href: "/reporting", label: "Reporting", icon: <ReportingIcon /> },
       { href: "/security", label: "Security", icon: <SecurityIcon /> },
+      { href: "/audit", label: "Audit", icon: <AuditIcon /> },
       { href: "/operations", label: "Operations", icon: <OperationsIcon /> },
     ],
   },

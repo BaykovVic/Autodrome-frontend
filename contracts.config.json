@@ -14,6 +14,7 @@
     { "name": "reporting-document", "openapi": "openapi/reporting-document-service/v1/openapi.yaml" },
     { "name": "deployment-operations", "openapi": "openapi/deployment-operations-service/v1/openapi.yaml" },
     { "name": "vehicle-telemetry", "openapi": "openapi/vehicle-telemetry-service/v1/openapi.yaml" },
-    { "name": "identity-security", "openapi": "openapi/identity-security-service/v1/openapi.yaml" }
+    { "name": "identity-security", "openapi": "openapi/identity-security-service/v1/openapi.yaml" },
+    { "name": "audit", "openapi": "openapi/audit-service/v1/openapi.yaml" }
   ]
 }

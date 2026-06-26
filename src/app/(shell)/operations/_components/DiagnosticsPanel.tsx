@@ -37,6 +37,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   deploymentOperations: "Deployment operations",
   vehicleTelemetry: "Vehicle telemetry",
   identitySecurity: "Identity & security",
+  audit: "Audit",
 };
 
 function modeVariant(
