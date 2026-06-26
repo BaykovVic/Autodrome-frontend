@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {
@@ -274,6 +275,12 @@ export function EvidenceScreen({ loader }: Props) {
                   </StatusBadge>
                 </span>
               </div>
+              <Link
+                href={`/evidence/${selected.id}`}
+                className={styles.detailLink}
+              >
+                Open evidence detail →
+              </Link>
               <div className={styles.detailTypeRow}>
                 <span className={styles.statusCell}>
                   <StatusDot

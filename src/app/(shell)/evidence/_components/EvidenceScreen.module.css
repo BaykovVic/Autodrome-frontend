@@ -192,6 +192,20 @@
   letter-spacing: 0;
 }
 
+.detailLink {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  letter-spacing: 0;
+}
+
+.detailLink:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
 .detailSection {
   padding: 14px 16px;
   border-bottom: var(--border-width) solid var(--color-border-divider);

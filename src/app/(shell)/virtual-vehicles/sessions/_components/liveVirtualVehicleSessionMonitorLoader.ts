@@ -86,6 +86,7 @@ const EVENT_SEVERITY_BY_KIND: Record<
   sensorStateChanged: "warning",
   resetPosition: "info",
   telemetrySampleEmitted: "telemetry",
+  scenarioImportFailed: "error",
 };
 
 const EVENT_LABELS: Record<SessionEventTypeDto, string> = {
@@ -99,6 +100,7 @@ const EVENT_LABELS: Record<SessionEventTypeDto, string> = {
   sensorStateChanged: "Sensor state changed",
   resetPosition: "Position reset",
   telemetrySampleEmitted: "Telemetry sample emitted",
+  scenarioImportFailed: "Scenario import failed",
 };
 
 export function mapSessionEventDtoToConsole(

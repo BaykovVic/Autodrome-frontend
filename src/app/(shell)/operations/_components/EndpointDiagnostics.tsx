@@ -40,6 +40,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   mediaArchive: "Media archive",
   androidDevice: "Android device management",
   virtualVehicle: "Virtual vehicle",
+  reportingDocument: "Reporting document",
 };
 
 function configuredBaseUrl(
