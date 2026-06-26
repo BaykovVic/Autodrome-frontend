@@ -85,6 +85,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/media/exams/{examId}/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: string;
+            };
+            cookie?: never;
+        };
+        /** Look up evidence media (recordings) for an exam. */
+        get: operations["mediaExamLookup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/media/exports": {
         parameters: {
             query?: never;
@@ -135,6 +154,9 @@ export interface components {
         MediaRecordingStart: {
             examRef: components["schemas"]["ExamRef"];
             sources: components["schemas"]["MediaSource"][];
+            /** Format: uuid */
+            sessionId?: string;
+            evidenceType?: string;
         };
         MediaRecording: {
             /** Format: uuid */
@@ -146,6 +168,27 @@ export interface components {
             startedAt: string;
             /** Format: date-time */
             finalizedAt?: string;
+            /** Format: uuid */
+            sessionId?: string;
+            evidenceType?: string;
+        };
+        ExamMediaRecording: {
+            /** Format: uuid */
+            recordingId: string;
+            /** Format: uuid */
+            sessionId?: string;
+            evidenceType?: string;
+            status: components["schemas"]["MediaRecordingStatus"];
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            finalizedAt?: string;
+            segmentCount: number;
+        };
+        ExamMediaIndex: {
+            /** Format: uuid */
+            examId: string;
+            recordings: components["schemas"]["ExamMediaRecording"][];
         };
         MediaSegmentRegister: {
             sourceId: string;
@@ -429,6 +472,34 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    mediaExamLookup: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                examId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Exam media index. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamMediaIndex"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
             500: components["responses"]["InternalServerError"];
         };
     };

@@ -140,12 +140,31 @@ export interface components {
             /** Format: date-time */
             checkedAt: string;
         };
+        /**
+         * @description One bootstrap precondition checked by the web installer:
+         *     PostgreSQL, object storage, or any configured service.
+         *     `status` shares the health-aggregator vocabulary.
+         *     `reason` is populated only when the status is not
+         *     `healthy`.
+         */
+        InstallPrerequisite: {
+            name: string;
+            /** @enum {string} */
+            status: "healthy" | "degraded" | "offline" | "unknown";
+            reason?: string;
+        };
         InstallState: {
             /** @enum {string} */
             phase: "not_installed" | "installing" | "installed" | "failed";
             version: string;
             /** Format: date-time */
             updatedAt?: string;
+            /** @enum {string} */
+            overallStatus?: "healthy" | "degraded" | "offline" | "unknown";
+            prerequisites?: components["schemas"]["InstallPrerequisite"][];
+            degradedReasons?: string[];
+            /** Format: date-time */
+            checkedAt?: string;
         };
         BackupRequest: {
             scope: ("postgres" | "media" | "config" | "audit_chain")[];

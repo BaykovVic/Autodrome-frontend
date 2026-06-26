@@ -99,6 +99,159 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/exams/{examId}/exercises": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        /** Get the exam's assigned exercises. */
+        get: operations["examExercisesGet"];
+        /** Replace the exam's assigned exercises (snapshot of catalog version refs). */
+        put: operations["examExercisesAssign"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exams/{examId}/telemetry-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attach a telemetry-session reference to an exam. */
+        post: operations["examTelemetryLinkAdd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exams/{examId}/violation-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attach a violation-fact reference snapshot to an exam. */
+        post: operations["examViolationLinkAdd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exams/{examId}/evidence-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        /** Exam evidence summary (telemetry + violation references). */
+        get: operations["examEvidenceSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exams/{examId}/evidence-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record an immutable evidence reference (media/audio/biometry/…) on an exam. */
+        post: operations["examEvidenceEventAdd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exams/{examId}/evidence-timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        /** Composed exam evidence timeline (lifecycle + external references), keyset-paginated. */
+        get: operations["examEvidenceTimeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exams/{examId}/calculate-result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Calculate the final exam result (idempotent; requires completed lifecycle). */
+        post: operations["examResultCalculate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exams/{examId}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        /** Get the calculated exam result. */
+        get: operations["examResultGet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/exams/{examId}/timeline": {
         parameters: {
             query?: never;
@@ -203,6 +356,128 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        /**
+         * @description Reference snapshot to an exercise catalog version owned by
+         *     `exercise-service`. Only the reference (id + optional pinned
+         *     version + optional display code/title) is stored; the catalog is
+         *     never copied.
+         */
+        ExerciseAssignmentItem: {
+            /** Format: uuid */
+            exerciseId: string;
+            /** Format: uuid */
+            exerciseVersionId?: string;
+            versionNumber?: number;
+            code?: string;
+            title?: string;
+        };
+        /** @description Replace-the-whole-set request for an exam's assigned exercises. */
+        ExamExerciseAssignmentRequest: {
+            exercises: components["schemas"]["ExerciseAssignmentItem"][];
+        };
+        AssignedExercise: {
+            /** Format: uuid */
+            exerciseId: string;
+            /** Format: uuid */
+            exerciseVersionId?: string;
+            versionNumber?: number;
+            code?: string;
+            title?: string;
+            orderIndex: number;
+        };
+        ExamExerciseAssignment: {
+            /** Format: uuid */
+            examId: string;
+            exercises: components["schemas"]["AssignedExercise"][];
+            /** Format: date-time */
+            assignedAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        /** @enum {string} */
+        ExamViolationSeverity: "low" | "medium" | "high" | "critical";
+        ExamTelemetryLinkRequest: {
+            /** Format: uuid */
+            telemetrySessionId: string;
+            /** Format: uuid */
+            vehicleId?: string;
+        };
+        ExamTelemetryLink: {
+            /** Format: uuid */
+            telemetrySessionId: string;
+            /** Format: uuid */
+            vehicleId?: string;
+            /** Format: date-time */
+            linkedAt: string;
+        };
+        ExamViolationLinkRequest: {
+            /** Format: uuid */
+            factId: string;
+            /** Format: uuid */
+            violationId: string;
+            violationCode: string;
+            severity: components["schemas"]["ExamViolationSeverity"];
+            ruleVersion: number;
+            /** Format: date-time */
+            occurredAt: string;
+            /** Format: uuid */
+            telemetrySessionId?: string;
+        };
+        ExamViolationLink: {
+            /** Format: uuid */
+            factId: string;
+            /** Format: uuid */
+            violationId: string;
+            violationCode: string;
+            severity: components["schemas"]["ExamViolationSeverity"];
+            ruleVersion: number;
+            /** Format: date-time */
+            occurredAt: string;
+            /** Format: uuid */
+            telemetrySessionId?: string;
+            /** Format: date-time */
+            linkedAt: string;
+        };
+        ExamEvidenceSummary: {
+            /** Format: uuid */
+            examId: string;
+            telemetrySessions: components["schemas"]["ExamTelemetryLink"][];
+            violations: components["schemas"]["ExamViolationLink"][];
+            violationCount: number;
+        };
+        ExamEvidenceEventRequest: {
+            sourceType: string;
+            refKind: string;
+            refId: string;
+            /** Format: date-time */
+            occurredAt: string;
+            label?: string;
+            severity?: string;
+        };
+        ExamEvidenceTimelineEntry: {
+            sourceType: string;
+            /** Format: date-time */
+            occurredAt: string;
+            refKind: string;
+            refId?: string;
+            label?: string;
+            severity?: string;
+        };
+        ExamEvidenceTimelinePage: {
+            items: components["schemas"]["ExamEvidenceTimelineEntry"][];
+            nextPageToken?: string;
+        };
+        ExamResult: {
+            /** Format: uuid */
+            examId: string;
+            result: components["schemas"]["ExamOutcome"];
+            score?: number;
+            violationCount: number;
+            criticalViolationCount: number;
+            calculatedFromStatus: components["schemas"]["ExamStatus"];
+            /** Format: date-time */
+            calculatedAt: string;
         };
         /** @enum {string} */
         ExamTimelineEventType: "examCreated" | "examStarted" | "examFinished" | "examAborted" | "violationRecorded" | "mediaSegmentAttached" | "reportGenerated";
@@ -477,6 +752,342 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examExercisesGet: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Assignment snapshot. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamExerciseAssignment"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examExercisesAssign: {
+        parameters: {
+            query?: never;
+            header: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamExerciseAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Assignment snapshot after replace. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamExerciseAssignment"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examTelemetryLinkAdd: {
+        parameters: {
+            query?: never;
+            header: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamTelemetryLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description Already linked. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamTelemetryLink"];
+                };
+            };
+            /** @description Telemetry link created. */
+            201: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamTelemetryLink"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examViolationLinkAdd: {
+        parameters: {
+            query?: never;
+            header: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamViolationLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description Already linked. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamViolationLink"];
+                };
+            };
+            /** @description Violation link created. */
+            201: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamViolationLink"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examEvidenceSummary: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evidence summary. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamEvidenceSummary"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examEvidenceEventAdd: {
+        parameters: {
+            query?: never;
+            header: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamEvidenceEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Already recorded. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Evidence reference recorded. */
+            201: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examEvidenceTimeline: {
+        parameters: {
+            query?: {
+                pageSize?: components["parameters"]["PageSize"];
+                pageToken?: components["parameters"]["PageToken"];
+            };
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evidence timeline page. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamEvidenceTimelinePage"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examResultCalculate: {
+        parameters: {
+            query?: never;
+            header: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Result already calculated (replay). */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamResult"];
+                };
+            };
+            /** @description Result calculated. */
+            201: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    examResultGet: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                examId: components["parameters"]["ExamIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Calculated result. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamResult"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             500: components["responses"]["InternalServerError"];
         };
     };

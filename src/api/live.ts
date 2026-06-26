@@ -15,6 +15,7 @@ import type { VirtualVehiclePaths } from "./services/virtual-vehicle";
 import type { ReportingDocumentPaths } from "./services/reporting-document";
 import type { DeploymentOperationsPaths } from "./services/deployment-operations";
 import type { VehicleTelemetryPaths } from "./services/vehicle-telemetry";
+import type { IdentitySecurityPaths } from "./services/identity-security";
 
 export function createLiveAdapter(
   baseUrls: Record<ServiceName, string> = DEFAULT_LIVE_BASE_URLS,
@@ -52,6 +53,9 @@ export function createLiveAdapter(
     }),
     vehicleTelemetry: createAutodromeClient<VehicleTelemetryPaths>({
       baseUrl: baseUrls.vehicleTelemetry,
+    }),
+    identitySecurity: createAutodromeClient<IdentitySecurityPaths>({
+      baseUrl: baseUrls.identitySecurity,
     }),
   };
 }

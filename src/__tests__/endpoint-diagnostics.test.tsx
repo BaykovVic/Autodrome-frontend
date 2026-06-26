@@ -40,19 +40,17 @@ describe("EndpointDiagnostics", () => {
     const section = screen.getByRole("region", {
       name: /service endpoint diagnostics/i,
     });
-    // 11 service rows (incl. deployment-operations + vehicle-
-    // telemetry added in the Track 5 / T3 unblock features).
+    // 12 service rows (incl. identity-security added в T8-F1).
     expect(
       within(section).getAllByText(/^mock$/i).length,
-    ).toBeGreaterThanOrEqual(11);
-    // "n/a" badge in the configured column for every row.
+    ).toBeGreaterThanOrEqual(12);
     expect(
       within(section).getAllByText(/^n\/a$/i).length,
-    ).toBeGreaterThanOrEqual(11);
+    ).toBeGreaterThanOrEqual(12);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(11);
+    expect(checkBtns).toHaveLength(12);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(true);
     }
@@ -73,11 +71,11 @@ describe("EndpointDiagnostics", () => {
     ).toHaveLength(2);
     expect(
       within(section).getAllByText(/^default$/i),
-    ).toHaveLength(10);
+    ).toHaveLength(11);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(11);
+    expect(checkBtns).toHaveLength(12);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(false);
     }
