@@ -191,6 +191,27 @@ function DevicesIcon() {
   );
 }
 
+function VirtualVehiclesIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
+      <path d="M3 13l1.6-4.2A2 2 0 0 1 6.5 7.5h11a2 2 0 0 1 1.9 1.3L21 13v5h-3v-2H6v2H3z" />
+      <circle cx="7" cy="16" r="1.3" />
+      <circle cx="17" cy="16" r="1.3" />
+      <path d="M14 4.5l1.5 3" />
+      <circle cx="16" cy="3.5" r="1.1" />
+    </svg>
+  );
+}
+
 function OperationsIcon() {
   return (
     <svg
@@ -223,6 +244,11 @@ export const SHELL_NAV_GROUPS: ShellNavGroup[] = [
     routes: [
       { href: "/candidates", label: "Candidates", icon: <CandidatesIcon /> },
       { href: "/vehicles", label: "Vehicles", icon: <VehiclesIcon /> },
+      {
+        href: "/virtual-vehicles",
+        label: "Virtual Vehicles",
+        icon: <VirtualVehiclesIcon />,
+      },
       { href: "/exams", label: "Exams", icon: <ExamsIcon /> },
     ],
   },
