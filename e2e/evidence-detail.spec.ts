@@ -69,6 +69,23 @@ test.describe("evidence detail (mock-mode baseline)", () => {
     await expect(page.getByText(/\(cabinFront\)/i).first()).toBeVisible();
   });
 
+  test("aggregate playback state taxonomy pills render", async ({
+    page,
+  }) => {
+    await page.goto("/evidence/EVD-77210");
+    await expect(
+      page.getByRole("group", {
+        name: /aggregate playback state taxonomy/i,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/\(recordingMetadataAvailable\)/i).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/\(exportUnavailable\)/i).first(),
+    ).toBeVisible();
+  });
+
   test("evidence list → detail link navigates", async ({ page }) => {
     await page.goto("/evidence");
     await page

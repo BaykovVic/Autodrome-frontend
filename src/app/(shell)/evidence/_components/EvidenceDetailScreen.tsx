@@ -16,8 +16,14 @@ import {
   EVIDENCE_MEDIA_SOURCE_LABELS,
   type ConsoleEvidenceDetail,
   type ConsoleEvidenceMediaRecordingStatus,
+  type ConsoleEvidenceMediaRef,
   type ConsoleEvidenceReportStatus,
 } from "./consoleEvidenceSnapshot";
+import {
+  aggregateDetailPlaybackStates,
+  assessPlayback,
+  PLAYBACK_STATE_LABELS,
+} from "./evidencePlaybackState";
 import {
   useConsoleEvidenceDetail,
   type ConsoleEvidenceDetailLoader,
@@ -184,6 +190,21 @@ function renderDetail(detail: ConsoleEvidenceDetail) {
         until the dedicated features ship.
       </p>
 
+      {detail.mediaRefs.length > 0 ? (
+        <div
+          className={styles.aggregateStates}
+          role="group"
+          aria-label="Aggregate playback state taxonomy"
+        >
+          {aggregateDetailPlaybackStates(detail.mediaRefs).map((s) => (
+            <span key={s} className={styles.playbackPill}>
+              {PLAYBACK_STATE_LABELS[s]}{" "}
+              <span className={styles.playbackPillCanonical}>({s})</span>
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       <div className={styles.body}>
         <section
           className={styles.section}
@@ -270,7 +291,9 @@ function renderDetail(detail: ConsoleEvidenceDetail) {
             </p>
           ) : (
             <ul className={styles.refList} aria-label="Media refs">
-              {detail.mediaRefs.map((ref) => (
+              {detail.mediaRefs.map((ref: ConsoleEvidenceMediaRef) => {
+                const playback = assessPlayback(ref);
+                return (
                 <li key={ref.recordingId} className={styles.refCard}>
                   <div className={styles.refTopRow}>
                     <span className={styles.refId}>{ref.recordingId}</span>
@@ -290,6 +313,19 @@ function renderDetail(detail: ConsoleEvidenceDetail) {
                       </StatusBadge>
                     </span>
                   </div>
+                  <span
+                    className={styles.playbackPill}
+                    role="status"
+                    aria-label={`Playback state for ${ref.recordingId}`}
+                  >
+                    {playback.label}{" "}
+                    <span className={styles.playbackPillCanonical}>
+                      ({playback.state})
+                    </span>
+                  </span>
+                  <p className={styles.playbackReason}>
+                    {playback.reason}
+                  </p>
                   <span className={styles.refMeta}>
                     Sources:{" "}
                     {ref.sources.length === 0
@@ -394,7 +430,8 @@ function renderDetail(detail: ConsoleEvidenceDetail) {
                     </div>
                   ) : null}
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </section>

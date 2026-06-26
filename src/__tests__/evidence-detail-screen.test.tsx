@@ -117,6 +117,55 @@ describe("EvidenceDetailScreen", () => {
     ).toBeDefined();
   });
 
+  it("playback state pills render per recording + aggregate banner", async () => {
+    render(
+      <EvidenceDetailScreen
+        evidenceId="EVD-77210"
+        loader={consoleEvidenceDetailFor}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1, name: /EVD-77210/ });
+    expect(
+      screen.getByLabelText(/playback state for REC-77210-A/i),
+    ).toBeDefined();
+    // Canonical state token visible.
+    expect(
+      screen.getAllByText(/\(recordingMetadataAvailable\)/i).length,
+    ).toBeGreaterThan(0);
+    // Aggregate group present.
+    expect(
+      screen.getByRole("group", {
+        name: /aggregate playback state taxonomy/i,
+      }),
+    ).toBeDefined();
+  });
+
+  it("failed evidence: aggregate banner surfaces retentionChecksumIssue", async () => {
+    render(
+      <EvidenceDetailScreen
+        evidenceId="EVD-77204"
+        loader={consoleEvidenceDetailFor}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1, name: /EVD-77204/ });
+    expect(
+      screen.getAllByText(/\(retentionChecksumIssue\)/i).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("active recording (paused exam) → manifestUnavailable pill rendered", async () => {
+    render(
+      <EvidenceDetailScreen
+        evidenceId="EVD-77212"
+        loader={consoleEvidenceDetailFor}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1, name: /EVD-77212/ });
+    expect(
+      screen.getAllByText(/\(manifestUnavailable\)/i).length,
+    ).toBeGreaterThan(0);
+  });
+
   it("unknown evidence id: honest not-found note rendered (no invented refs)", async () => {
     render(
       <EvidenceDetailScreen

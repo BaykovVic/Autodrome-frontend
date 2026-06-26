@@ -1814,6 +1814,39 @@ Tech debt:
 - Generate report write path и Export не подключены — это
   следующие фичи Track 4.
 
+### Media playback degraded-state taxonomy
+
+Evidence detail screen теперь явно классифицирует
+playback / export / storage state per recording через
+`classifyPlaybackState(ref)`. Канонические токены:
+
+- `recordingMetadataAvailable` — finalized recording с
+  segments; playback pipeline ещё не shipped.
+- `storageUnavailable` — manifestError упоминает storage /
+  object / blob keyword.
+- `manifestUnavailable` — recording active или manifest не
+  sealed.
+- `exportUnavailable` — финальный fallback; всегда
+  присутствует на уровне screen, операторская честность.
+- `retentionChecksumIssue` — failed recording с checksum/
+  retention/integrity keyword.
+
+Per spec rule "no video player pretending real playback":
+никаких enabled playback affordances. Каждый recording
+рендерит pill с canonical token + operator-visible reason.
+Screen-level "Aggregate playback state taxonomy" group
+дедуплицирует все per-ref состояния.
+
+Файлы:
+- `src/app/(shell)/evidence/_components/evidencePlaybackState.ts`
+  — taxonomy + classifier + aggregator + reason helper.
+- `src/app/(shell)/evidence/_components/EvidenceDetailScreen.tsx`
+  + CSS — per-ref pill + reason + aggregate group.
+- `src/__tests__/evidence-playback-state.test.ts` — unit
+  coverage всех 5 состояний + precedence rules.
+- `e2e/evidence-detail.spec.ts` — smoke aggregate group +
+  canonical state tokens.
+
 ## Branch policy
 
 Frontend bootstrap rule:
