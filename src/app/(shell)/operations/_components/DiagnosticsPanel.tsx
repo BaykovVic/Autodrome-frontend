@@ -27,6 +27,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   violationRule: "Violation & rule",
   mediaArchive: "Media archive",
   androidDevice: "Android device management",
+  virtualVehicle: "Virtual vehicle",
 };
 
 function modeVariant(

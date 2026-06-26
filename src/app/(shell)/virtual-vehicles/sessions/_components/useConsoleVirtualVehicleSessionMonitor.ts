@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { getApiAdapter } from "@/api/get-api-adapter";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 import { consoleVirtualVehicleSessionMonitorFor } from "./consoleVirtualVehicleSessionMonitorFixtures";
+import { liveVirtualVehicleSessionMonitorLoader } from "./liveVirtualVehicleSessionMonitorLoader";
 import type { ConsoleVirtualVehicleSessionMonitor } from "./consoleVirtualVehicleSessionMonitorSnapshot";
 
 export type ConsoleVirtualVehicleSessionMonitorLoader = (
@@ -18,9 +21,15 @@ export type ConsoleVirtualVehicleSessionMonitorState = {
   reload: () => void;
 };
 
-function defaultLoader(
+async function defaultLoader(
   sessionId: string,
-): ConsoleVirtualVehicleSessionMonitor {
+): Promise<ConsoleVirtualVehicleSessionMonitor> {
+  if (resolveRuntimeMode() === "live") {
+    return liveVirtualVehicleSessionMonitorLoader(
+      getApiAdapter({ mode: "live" }),
+      sessionId,
+    );
+  }
   return consoleVirtualVehicleSessionMonitorFor(sessionId);
 }
 
