@@ -1763,6 +1763,57 @@ Per spec rule "playback/export not falsely marked ready":
 disabled playback / export buttons остаются с persistent
 "unavailable" banner.
 
+### Reporting workspace live integration
+
+Sub-route `/reporting` шипает template catalog + recent
+reports surface для reporting-document-service. Live mode
+читает:
+
+- `GET /reports/templates` → `templates[]` с canonical
+  reportType chips.
+- `GET /reports/{reportId}` per known fixture id →
+  `reports[]` с per-id fallback (fetch error → mock row +
+  `fetchError` panel).
+
+Canonical naming (mirrors backend
+`reporting-document-service`):
+- `ConsoleReportType`: 9 канонических членов
+  (`examProtocol|examResult|violationJournal|telemetryTimeline|
+  biometryChecks|audioTriggerJournal|mediaIndex|auditExport|
+  equipmentHealth`).
+- `ConsoleReportFormat`: `pdf|html|structured`.
+- `ConsoleReportStatus`: `accepted|inProgress|ready|failed|
+  unknown`.
+
+Per spec rule "rendering/export unavailable states
+explicit": "Generate report" + "Export" buttons остаются
+disabled с tooltip, ссылающимся на следующие фичи трека.
+Никаких fake-ready statuses.
+
+Файлы:
+
+- `src/app/(shell)/reporting/_components/consoleReportingSnapshot.ts`
+- `src/app/(shell)/reporting/_components/consoleReportingFixtures.ts`
+- `src/app/(shell)/reporting/_components/liveReportingLoader.ts`
+  (template + report mappers + per-id fallback).
+- `src/app/(shell)/reporting/_components/useConsoleReporting.ts`
+- `src/app/(shell)/reporting/_components/ReportingScreen.tsx`
+  + CSS — heading + degradedNote banner + template
+  catalog table + recent reports table + disabled actions.
+- `src/app/(shell)/reporting/page.tsx`
+- `src/app/(shell)/_components/SidebarNav.tsx` —
+  ReportingIcon + entry под SYSTEM group.
+
+Browser smoke `e2e/reporting-workspace.spec.ts`
+(4 chromium tests).
+
+Tech debt:
+- Frontend держит curated список known reportIds для
+  recent-reports table — canonical
+  `/reports?examId=` list endpoint не существует.
+- Generate report write path и Export не подключены — это
+  следующие фичи Track 4.
+
 ## Branch policy
 
 Frontend bootstrap rule:

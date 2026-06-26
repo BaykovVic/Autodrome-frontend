@@ -172,6 +172,25 @@ function EvidenceIcon() {
   );
 }
 
+function ReportingIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
+      <path d="M6 3h9l4 4v14H6z" />
+      <path d="M15 3v4h4" />
+      <path d="M9 13h6M9 17h6M9 9h3" />
+    </svg>
+  );
+}
+
 function DevicesIcon() {
   return (
     <svg
@@ -265,6 +284,7 @@ export const SHELL_NAV_GROUPS: ShellNavGroup[] = [
     routes: [
       { href: "/devices", label: "Android Devices", icon: <DevicesIcon /> },
       { href: "/evidence", label: "Evidence", icon: <EvidenceIcon /> },
+      { href: "/reporting", label: "Reporting", icon: <ReportingIcon /> },
       { href: "/operations", label: "Operations", icon: <OperationsIcon /> },
     ],
   },
