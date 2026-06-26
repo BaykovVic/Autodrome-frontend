@@ -166,6 +166,13 @@ export function VirtualVehicleSessionMonitorScreen({
           <span className={styles.crumbsCurrent}>
             Session · {session.sessionId}
           </span>
+          <span aria-hidden="true">·</span>
+          <Link
+            href={`/virtual-vehicles/sessions/${session.sessionId}/manual-control`}
+            className={styles.crumbsLink}
+          >
+            Manual control →
+          </Link>
         </nav>
         <div className={styles.titleRow}>
           <div className={styles.titleBlock}>
