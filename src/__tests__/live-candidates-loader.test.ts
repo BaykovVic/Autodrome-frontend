@@ -28,6 +28,7 @@ function makeDto(over: Partial<CandidateDto> = {}): CandidateDto {
       documentNumber: "DL-77-014562",
     },
     status: "registered",
+    enrollmentState: "notStarted",
     createdAt: "2026-06-22T10:00:00Z",
     ...over,
   };

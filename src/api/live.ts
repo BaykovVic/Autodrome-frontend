@@ -13,6 +13,8 @@ import type { VehiclePaths } from "./services/vehicle";
 import type { ViolationRulePaths } from "./services/violation-rule";
 import type { VirtualVehiclePaths } from "./services/virtual-vehicle";
 import type { ReportingDocumentPaths } from "./services/reporting-document";
+import type { DeploymentOperationsPaths } from "./services/deployment-operations";
+import type { VehicleTelemetryPaths } from "./services/vehicle-telemetry";
 
 export function createLiveAdapter(
   baseUrls: Record<ServiceName, string> = DEFAULT_LIVE_BASE_URLS,
@@ -44,6 +46,12 @@ export function createLiveAdapter(
     }),
     reportingDocument: createAutodromeClient<ReportingDocumentPaths>({
       baseUrl: baseUrls.reportingDocument,
+    }),
+    deploymentOperations: createAutodromeClient<DeploymentOperationsPaths>({
+      baseUrl: baseUrls.deploymentOperations,
+    }),
+    vehicleTelemetry: createAutodromeClient<VehicleTelemetryPaths>({
+      baseUrl: baseUrls.vehicleTelemetry,
     }),
   };
 }

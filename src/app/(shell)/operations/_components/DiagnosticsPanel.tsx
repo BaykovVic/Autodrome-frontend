@@ -2,8 +2,12 @@
 
 import { useMemo, useState } from "react";
 
-import { getRuntimeDiagnostics } from "@/api/get-api-adapter";
 import {
+  getApiAdapter,
+  getRuntimeDiagnostics,
+} from "@/api/get-api-adapter";
+import {
+  resolveRuntimeMode,
   SERVICE_ENV_KEYS,
   type RuntimeDiagnostics,
   type ServiceName,
@@ -12,6 +16,7 @@ import { sanitizeBaseUrl } from "@/api/sanitize-base-url";
 import { Button, StatusBadge, type StatusBadgeVariant } from "@/components";
 import { defaultDiagnostics, type DiagnosticsInfo } from "./diagnostics";
 import { EndpointDiagnostics } from "./EndpointDiagnostics";
+import { liveOpsCreateDiagnostics } from "./liveOpsCommands";
 import styles from "./DiagnosticsPanel.module.css";
 
 type Props = {
@@ -29,6 +34,8 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   androidDevice: "Android device management",
   virtualVehicle: "Virtual vehicle",
   reportingDocument: "Reporting document",
+  deploymentOperations: "Deployment operations",
+  vehicleTelemetry: "Vehicle telemetry",
 };
 
 function modeVariant(
@@ -55,6 +62,32 @@ export function DiagnosticsPanel({ info, runtime }: Props) {
   const [runRequestedAt, setRunRequestedAt] = useState<string | null>(
     null,
   );
+  const [bundleId, setBundleId] = useState<string | null>(null);
+  const [bundleStatus, setBundleStatus] = useState<string | null>(null);
+  const [bundleError, setBundleError] = useState<string | null>(null);
+
+  const dispatchDiagnostics = async () => {
+    const requestedAt = new Date().toISOString();
+    setRunRequestedAt(requestedAt);
+    setBundleError(null);
+    if (resolveRuntimeMode() !== "live") {
+      // Mock fallback: just record timestamp; bundle stays
+      // unbound.
+      return;
+    }
+    try {
+      const bundle = await liveOpsCreateDiagnostics(
+        getApiAdapter({ mode: "live" }),
+        { includes: ["logs", "metrics", "config", "health"] },
+      );
+      setBundleId(bundle.bundleId);
+      setBundleStatus(bundle.status);
+    } catch (error) {
+      setBundleError(
+        error instanceof Error ? error.message : "Diagnostics request failed.",
+      );
+    }
+  };
 
   return (
     <section
@@ -74,8 +107,8 @@ export function DiagnosticsPanel({ info, runtime }: Props) {
             variant="secondary"
             size="sm"
             type="button"
-            disabled
-            title="Available once the diagnostics service is wired up on the local node."
+            onClick={dispatchDiagnostics}
+            title="Mock mode records a local timestamp; live mode dispatches POST /ops/diagnostics with default scope (logs, metrics, config, health)."
           >
             Run diagnostics check
           </Button>
@@ -183,14 +216,28 @@ export function DiagnosticsPanel({ info, runtime }: Props) {
 
       <section className={styles.action}>
         <h3 className={styles.actionTitle}>Recent diagnostics run</h3>
-        {runRequestedAt ? (
+        {bundleId ? (
           <p className={styles.actionStatus}>
-            <StatusBadge variant="warning">pending wiring</StatusBadge>
+            <StatusBadge variant="success">accepted</StatusBadge>
+            <span>
+              Bundle{" "}
+              <span className={styles.mono}>{bundleId}</span>{" "}
+              status <span className={styles.mono}>{bundleStatus}</span>.
+            </span>
+          </p>
+        ) : bundleError ? (
+          <p className={styles.actionStatus}>
+            <StatusBadge variant="danger">failed</StatusBadge>
+            <span>{bundleError}</span>
+          </p>
+        ) : runRequestedAt ? (
+          <p className={styles.actionStatus}>
+            <StatusBadge variant="info">recorded</StatusBadge>
             <span>
               Request recorded at{" "}
               <span className={styles.mono}>{runRequestedAt}</span>.
-              The diagnostics action is not yet connected to the local
-              node — nothing was started on this machine.
+              Mock mode does not call the backend; switch to live to
+              dispatch <code>POST /ops/diagnostics</code>.
             </span>
           </p>
         ) : (
@@ -202,9 +249,9 @@ export function DiagnosticsPanel({ info, runtime }: Props) {
           variant="secondary"
           size="sm"
           type="button"
-          onClick={() => setRunRequestedAt(new Date().toISOString())}
+          onClick={dispatchDiagnostics}
         >
-          Record a diagnostics request (preview)
+          Dispatch diagnostics request
         </Button>
       </section>
     </section>

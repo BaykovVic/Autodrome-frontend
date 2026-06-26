@@ -62,6 +62,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/candidates/{candidateId}/enrollment-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidateId: components["parameters"]["CandidateIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update candidate biometric enrollment state.
+         * @description Push-update of the candidate's biometric enrollment
+         *     state from `biometry-service`. Carries ONLY the
+         *     resulting state, an optional reference to the upstream
+         *     `enrollment_launches.id`, and a timestamp — no
+         *     biometric content (embeddings, photos, liveness
+         *     artifacts) is ever transmitted through this endpoint.
+         *     Idempotent: re-issuing the same target state for the
+         *     same `Idempotency-Key` is a no-op (no outbox event
+         *     emitted on identical state).
+         */
+        post: operations["candidateChangeEnrollmentState"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/candidates/{candidateId}/delete": {
         parameters: {
             query?: never;
@@ -134,6 +164,29 @@ export interface components {
             /** @description Optional reference id from an external traffic-police registry; not used as primary key. */
             externalRegistryId?: string;
         };
+        /**
+         * @description Candidate-side mirror of the biometric enrollment
+         *     lifecycle. The authoritative state lives in
+         *     `biometry-service`; this enum is the minimum
+         *     projection candidate-service needs to publish so the
+         *     operator UI can route the candidate to
+         *     (re-)enrollment.
+         * @enum {string}
+         */
+        CandidateEnrollmentState: "notStarted" | "pending" | "completed" | "failed" | "expired";
+        /**
+         * @description Push update of the candidate's enrollment state from
+         *     `biometry-service`. Carries no biometric content. The
+         *     optional `enrollmentLaunchId` is the foreign reference
+         *     to the upstream `enrollment_launches.id` row.
+         */
+        CandidateEnrollmentStateChange: {
+            targetState: components["schemas"]["CandidateEnrollmentState"];
+            /** Format: uuid */
+            enrollmentLaunchId?: string;
+            /** Format: date-time */
+            occurredAt?: string;
+        };
         Candidate: {
             /** Format: uuid */
             candidateId: string;
@@ -154,6 +207,11 @@ export interface components {
             updatedAt?: string;
             /** Format: date-time */
             deletedAt?: string;
+            enrollmentState: components["schemas"]["CandidateEnrollmentState"];
+            /** Format: uuid */
+            enrollmentLaunchId?: string;
+            /** Format: date-time */
+            lastEnrollmentUpdatedAt?: string;
         };
         CandidateStatusChange: {
             targetStatus: components["schemas"]["CandidateStatus"];
@@ -376,6 +434,45 @@ export interface operations {
         };
         responses: {
             /** @description Candidate after status change. */
+            200: {
+                headers: {
+                    "Correlation-Id": components["headers"]["CorrelationId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Candidate"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    candidateChangeEnrollmentState: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Logical correlation id (UUID v4) for end-to-end tracing. */
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+                /** @description Idempotency key for non-idempotent command. Scope follows common-dto-and-error-model.md. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                candidateId: components["parameters"]["CandidateIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateEnrollmentStateChange"];
+            };
+        };
+        responses: {
+            /** @description Candidate after enrollment state update. */
             200: {
                 headers: {
                     "Correlation-Id": components["headers"]["CorrelationId"];

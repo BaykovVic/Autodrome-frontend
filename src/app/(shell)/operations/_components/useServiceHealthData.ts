@@ -3,10 +3,20 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { ApiError } from "@/api/errors";
+import { getApiAdapter } from "@/api/get-api-adapter";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 import {
   defaultServiceHealthLoader,
 } from "./defaultServiceHealthLoader";
+import { liveOpsHealthLoader } from "./liveOpsHealthLoader";
 import type { ServiceHealth } from "./serviceHealth";
+
+async function pickLoaderResult(): Promise<ServiceHealth[]> {
+  if (resolveRuntimeMode() === "live") {
+    return liveOpsHealthLoader(getApiAdapter({ mode: "live" }));
+  }
+  return defaultServiceHealthLoader();
+}
 
 export type ServiceHealthLoader = () =>
   | ServiceHealth[]
@@ -41,9 +51,7 @@ export function useServiceHealthData(
       setFatalError(null);
       setDegraded(false);
       try {
-        const value = await (loader
-          ? loader()
-          : defaultServiceHealthLoader());
+        const value = await (loader ? loader() : pickLoaderResult());
         if (cancelled) return;
         setServices(value ?? EMPTY);
         setLoading(false);

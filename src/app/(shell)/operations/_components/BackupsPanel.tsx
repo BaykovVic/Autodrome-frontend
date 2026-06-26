@@ -8,12 +8,18 @@ import {
   type StatusBadgeVariant,
   Table,
 } from "@/components";
+import { getApiAdapter } from "@/api/get-api-adapter";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 import { ConfirmDestructiveDialog } from "./ConfirmDestructiveDialog";
 import {
   defaultBackups,
   type BackupSnapshot,
   type BackupStatus,
 } from "./backups";
+import {
+  liveOpsStartBackup,
+  liveOpsStartRestore,
+} from "./liveOpsCommands";
 import styles from "./BackupsPanel.module.css";
 
 type Props = {
@@ -60,14 +66,42 @@ export function BackupsPanel({ snapshots }: Props) {
     ]);
   }
 
-  function onConfirm() {
+  async function onConfirm() {
     if (!confirm) return;
-    if (confirm.kind === "create") {
-      recordActivity("Create backup request recorded");
-    } else {
-      recordActivity(
-        `Restore from ${confirm.snapshot.id} request recorded`,
-      );
+    const isLive = resolveRuntimeMode() === "live";
+    if (!isLive) {
+      if (confirm.kind === "create") {
+        recordActivity("Create backup request recorded (mock)");
+      } else {
+        recordActivity(
+          `Restore from ${confirm.snapshot.id} request recorded (mock)`,
+        );
+      }
+      setConfirm(null);
+      return;
+    }
+    try {
+      const adapter = getApiAdapter({ mode: "live" });
+      if (confirm.kind === "create") {
+        const job = await liveOpsStartBackup(adapter, {
+          scope: ["postgres", "config"],
+        });
+        recordActivity(
+          `Backup job ${job.jobId} status ${job.status}`,
+        );
+      } else {
+        const job = await liveOpsStartRestore(adapter, {
+          artifactRef: confirm.snapshot.id,
+          dryRun: true,
+        });
+        recordActivity(
+          `Restore dry-run ${job.jobId} status ${job.status}`,
+        );
+      }
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : "Operation failed.";
+      recordActivity(`Failed: ${msg}`);
     }
     setConfirm(null);
   }
