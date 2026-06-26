@@ -1894,6 +1894,24 @@ operations health / diagnostics / backup APIs)
 зафиксированы как BLOCKED reports — workflow e2e
 проверяет существующие mock-first degraded surfaces.
 
+### Core domain composite workflow E2E
+
+`e2e/core-domain-workflow.spec.ts` композирует 7
+chromium сценариев через core registry workspaces
+(candidates / vehicles / exams / exercises / rules):
+
+- A: dashboard → candidates → /candidates/new reachable.
+- B: dashboard → vehicles.
+- C: dashboard → exams → exam state filter visible.
+- D: exercises → groups navigation visible.
+- E: rules workspace heading visible.
+- F: cross-workspace chain (candidates → vehicles →
+  exams → rules → dashboard).
+- Mobile: candidates + exams без horizontal overflow.
+
+Mock-deterministic; live opt-in через
+`NEXT_PUBLIC_API_ADAPTER=live pnpm e2e`.
+
 ## Branch policy
 
 Frontend bootstrap rule:
