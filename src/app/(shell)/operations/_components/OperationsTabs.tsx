@@ -4,6 +4,7 @@ import { Tabs } from "@/components";
 import { BackupsPanel } from "./BackupsPanel";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import { LogsPanel } from "./LogsPanel";
+import { ReleasePanel } from "./ReleasePanel";
 import { ServiceHealthDashboard } from "./ServiceHealthDashboard";
 
 export function OperationsTabs() {
@@ -31,6 +32,11 @@ export function OperationsTabs() {
           id: "logs",
           label: "Logs",
           content: <LogsPanel />,
+        },
+        {
+          id: "release",
+          label: "Release",
+          content: <ReleasePanel />,
         },
       ]}
     />
