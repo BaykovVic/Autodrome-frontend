@@ -1,0 +1,218 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  letter-spacing: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.loadingPad {
+  padding: 24px 20px;
+  letter-spacing: 0;
+}
+
+.header {
+  padding: 16px 20px 13px;
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--color-surface-muted);
+  letter-spacing: 0;
+}
+
+.crumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.crumbsLink {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  letter-spacing: 0;
+}
+
+.crumbsLink:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.crumbsCurrent {
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+.subtitle {
+  margin: 3px 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.reasonBanner {
+  margin: 12px 20px 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--color-border-strong);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0;
+}
+
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px 20px;
+  overflow: auto;
+  letter-spacing: 0;
+}
+
+.section {
+  padding: 14px 16px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  letter-spacing: 0;
+}
+
+.sectionFull {
+  grid-column: span 2;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.poseGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.poseLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.poseValue {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  letter-spacing: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface-muted);
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.badgeCanonical {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.sensorList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  letter-spacing: 0;
+}
+
+.sensorRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0;
+}
+
+.sensorLabel {
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.sensorCanonical {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.sensorHealth {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.sensorDetail {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.notesText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+@media (max-width: 720px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+  .sectionFull {
+    grid-column: auto;
+  }
+  .sensorRow {
+    grid-template-columns: 1fr;
+  }
+}

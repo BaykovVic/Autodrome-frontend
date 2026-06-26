@@ -1558,6 +1558,60 @@ Browser smoke `e2e/virtual-vehicle-manual-control.spec.ts`
 session-monitor → manual-control navigation + mobile (375x812)
 horizontal-overflow gate.
 
+### Virtual Vehicle Runtime Preview (mock-first baseline)
+
+Dynamic sub-route
+`/virtual-vehicles/sessions/[sessionId]/runtime-preview` шипает
+read-only operator preview: pose (position + yaw) + speed +
+gear + sensor health + scenario compatibility (source + yaw
+frame + coordinate frame) — без live telemetry dependency.
+
+Canonical naming (mirrors planned
+`virtual-vehicle-service-runtime-preview-baseline` shape):
+
+- `ConsoleRuntimePreviewState`: `running` / `paused` /
+  `degraded` / `noRuntime` / `unknown`. Terminal `noRuntime`
+  явно описывает «никакой telemetry не было» — пожалуй,
+  единственный честный способ показать operator пустую
+  session без invented data.
+- `ConsoleRuntimeGear`: `park` / `reverse` / `neutral` /
+  `drive` / `low` / `unknown`.
+- `ConsoleRuntimeSensor`: те же canonical capability tokens,
+  что и в manual control (`cameraFront` / `cameraRear` /
+  `lidar` / `imu` / `gnss` / `wheelOdometry` /
+  `lanePerception`).
+- `ConsoleRuntimeSensorHealth`: `ok` / `degraded` /
+  `offline`.
+- Scenario compatibility: canonical `source` / `yawFrame` /
+  `coordinateFrame` tokens из scenario catalog — pose
+  рендерится в контексте scenario frame, чтобы operator
+  видел, чем мерять координаты и yaw.
+
+Файлы:
+
+- `src/app/(shell)/virtual-vehicles/sessions/_components/runtime-preview/consoleVirtualVehicleRuntimePreviewSnapshot.ts`
+  — view-model + canonical label maps + `formatYawDegrees()`
+  + `formatPose()` helpers.
+- `src/app/(shell)/virtual-vehicles/sessions/_components/runtime-preview/consoleVirtualVehicleRuntimePreviewFixtures.ts`
+  — keyed previews (running + paused + degraded +
+  noRuntime); unknown ids → honest stub без invented
+  telemetry.
+- `src/app/(shell)/virtual-vehicles/sessions/_components/runtime-preview/useConsoleVirtualVehicleRuntimePreview.ts`
+  — mock-first per-session hook.
+- `src/app/(shell)/virtual-vehicles/sessions/_components/runtime-preview/VirtualVehicleRuntimePreviewScreen.tsx`
+  + CSS module — breadcrumb + state badge + reason banner +
+  pose section + scenario compatibility badges + sensor
+  health list с canonical chips.
+- `src/app/(shell)/virtual-vehicles/sessions/[sessionId]/runtime-preview/page.tsx`
+  — dynamic route entry.
+- `VirtualVehicleSessionMonitorScreen.tsx` — breadcrumb
+  surfaces "Runtime preview →" link к sub-route.
+
+Browser smoke `e2e/virtual-vehicle-runtime-preview.spec.ts`
+(5 chromium tests) verifies running / degraded / noRuntime /
+session-monitor → runtime-preview navigation + mobile
+(375x812) horizontal-overflow gate.
+
 ## Branch policy
 
 Frontend bootstrap rule:

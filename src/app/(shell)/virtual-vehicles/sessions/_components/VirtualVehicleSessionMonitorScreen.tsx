@@ -173,6 +173,13 @@ export function VirtualVehicleSessionMonitorScreen({
           >
             Manual control →
           </Link>
+          <span aria-hidden="true">·</span>
+          <Link
+            href={`/virtual-vehicles/sessions/${session.sessionId}/runtime-preview`}
+            className={styles.crumbsLink}
+          >
+            Runtime preview →
+          </Link>
         </nav>
         <div className={styles.titleRow}>
           <div className={styles.titleBlock}>
