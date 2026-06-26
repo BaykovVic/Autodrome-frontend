@@ -313,6 +313,86 @@ function renderDetail(detail: ConsoleEvidenceDetail) {
                       {ref.manifestError}
                     </p>
                   ) : null}
+                  {ref.segments && ref.segments.length > 0 ? (
+                    <div>
+                      <p className={styles.subSectionTitle}>
+                        Segments
+                      </p>
+                      <table
+                        className={styles.segmentTable}
+                        aria-label={`Segments for ${ref.recordingId}`}
+                      >
+                        <thead>
+                          <tr>
+                            <th>Segment</th>
+                            <th>Source</th>
+                            <th>Started</th>
+                            <th>Ended</th>
+                            <th>Checksum</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {ref.segments.map((s) => (
+                            <tr key={s.segmentId}>
+                              <td>{s.segmentId}</td>
+                              <td>
+                                {s.sourceLabel}{" "}
+                                <span
+                                  style={{
+                                    color: "var(--color-text-subtle)",
+                                  }}
+                                >
+                                  ({s.source})
+                                </span>
+                              </td>
+                              <td>{s.startedAt}</td>
+                              <td>{s.endedAt}</td>
+                              <td>{s.checksumShort}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : null}
+                  {ref.timeline && ref.timeline.length > 0 ? (
+                    <div>
+                      <p className={styles.subSectionTitle}>
+                        Timeline mapping
+                      </p>
+                      <table
+                        className={styles.segmentTable}
+                        aria-label={`Timeline for ${ref.recordingId}`}
+                      >
+                        <thead>
+                          <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Source</th>
+                            <th>Segment</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {ref.timeline.map((t, idx) => (
+                            <tr key={`${t.segmentId}-${idx}`}>
+                              <td>{t.timelineFrom}</td>
+                              <td>{t.timelineTo}</td>
+                              <td>
+                                {t.sourceLabel}{" "}
+                                <span
+                                  style={{
+                                    color: "var(--color-text-subtle)",
+                                  }}
+                                >
+                                  ({t.source})
+                                </span>
+                              </td>
+                              <td>{t.segmentId}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>

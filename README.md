@@ -1736,6 +1736,33 @@ Tech debt:
   `frontend-media-playback-degraded-states` и
   `frontend-reporting-live-api-integration`.
 
+### Media archive live metadata integration
+
+Расширение evidence detail screen — per-segment metadata
+surfaces из canonical `media-archive-service.PlaybackManifest`
+shape. Operator видит:
+
+- Segment table: segmentId + source token (canonical
+  camelCase chip) + startedAt/endedAt window + short
+  checksum (`aaaa…zzzz`).
+- Timeline mapping table: timelineFrom/timelineTo + source
+  + segmentId (для playback gap analysis, когда playback
+  фича landshipped).
+
+Mapper (`applyManifestToMediaRef`):
+- Flattens `manifest.segments[].segments[]` → плоский
+  список `ConsoleEvidenceMediaSegment[]`.
+- Unknown `sourceId` фильтруется из rendering, но
+  `segmentCount` остаётся честным total (operator видит
+  расхождение → известный gap в support).
+- `shortChecksum()` truncates любой hex SHA-256 → compact
+  4+`…`+4 для табличного отображения; storage `objectKey`
+  намеренно не показываем (opaque storage path).
+
+Per spec rule "playback/export not falsely marked ready":
+disabled playback / export buttons остаются с persistent
+"unavailable" banner.
+
 ## Branch policy
 
 Frontend bootstrap rule:

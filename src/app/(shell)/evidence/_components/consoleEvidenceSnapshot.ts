@@ -77,6 +77,36 @@ export type ConsoleEvidenceMediaRecordingStatus =
   | "failed"
   | "unknown";
 
+/**
+ * Per-segment metadata surfaced from canonical
+ * `MediaSegment` shape. Operator видит каждый сегмент
+ * recording: source token, временное окно, checksum
+ * (короткий hash для compact rendering). Полный
+ * `objectKey` намеренно не показываем — это opaque
+ * storage key, не для operator view.
+ */
+export type ConsoleEvidenceMediaSegment = {
+  segmentId: string;
+  source: ConsoleEvidenceMediaSourceKind;
+  sourceLabel: string;
+  startedAt: string;
+  endedAt: string;
+  /** Short hash (e.g. `a1f4…9c20`) for compact rendering. */
+  checksumShort: string;
+};
+
+/**
+ * Per-source playback timeline mapping entry surfaced from
+ * canonical `PlaybackTimelineMapping` shape.
+ */
+export type ConsoleEvidenceMediaTimelineEntry = {
+  timelineFrom: string;
+  timelineTo: string;
+  source: ConsoleEvidenceMediaSourceKind;
+  sourceLabel: string;
+  segmentId: string;
+};
+
 export type ConsoleEvidenceMediaRef = {
   recordingId: string;
   status: ConsoleEvidenceMediaRecordingStatus;
@@ -87,6 +117,10 @@ export type ConsoleEvidenceMediaRef = {
   segmentCount: number;
   /** ISO timestamp from PlaybackManifest.expiresAt or `"—"`. */
   manifestExpiresAt: string;
+  /** Per-segment metadata when manifest is sealed. */
+  segments?: ConsoleEvidenceMediaSegment[];
+  /** Timeline mapping entries when manifest is sealed. */
+  timeline?: ConsoleEvidenceMediaTimelineEntry[];
   /** Optional error string when manifest fetch failed (degraded). */
   manifestError?: string;
 };
