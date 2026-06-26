@@ -1665,6 +1665,77 @@ Tech debt:
   телеметрию подцепит следующая фича Track 3 —
   `frontend-virtual-vehicle-telemetry-live-binding`.
 
+### Evidence Detail live baseline (mock-first base + live refs)
+
+Dynamic sub-route `/evidence/[evidenceId]` шипает evidence
+detail view: meta + media refs + report refs + честные
+"unavailable" affordances для playback и export (per spec
+"no fake playback/export readiness"). Playback и export
+лансят отдельными фичами Track 4.
+
+Base evidence record остаётся mock-sourced — canonical
+`evidence-service` HTTP read model отсутствует. Per ref,
+live mode enriches metadata из canonical APIs:
+
+- `mediaRefs[].recordingId` →
+  `GET /media/recordings/{recordingId}/manifest` (media-
+  archive-service) → `segmentCount`, `manifestExpiresAt`,
+  source kinds. Non-2xx → `manifestError` фиксируется
+  per-ref и UI рисует degraded notice, не падает.
+- `reportRefs[].reportId` →
+  `GET /reports/{reportId}` (reporting-document-service) →
+  `status`, `generatedAt`. Non-2xx → `reportError` per-ref.
+
+Canonical naming:
+- `ConsoleEvidenceMediaRecordingStatus`: `active|finalized|
+  failed|unknown`.
+- `ConsoleEvidenceMediaSourceKind`: `cameraFront`...
+  `microphone` — те же canonical tokens, что в media-
+  archive-service.MediaSource.
+- `ConsoleEvidenceReportStatus`: `generating|ready|failed|
+  unknown` (collapse backend `accepted`/`inProgress` →
+  `generating`).
+
+Файлы:
+
+- `src/app/(shell)/evidence/_components/consoleEvidenceSnapshot.ts`
+  — расширен `ConsoleEvidenceDetail` + media/report ref
+  types + label maps.
+- `src/app/(shell)/evidence/_components/consoleEvidenceDetailFixtures.ts`
+  — fixtures keyed by evidence id (6 ключей покрывают
+  sealed/failed/active/biometry-only/pending/not-found).
+- `src/app/(shell)/evidence/_components/liveEvidenceDetailLoader.ts`
+  — per-ref enrichment loaders + mappers
+  (`mapReportStatusDtoToConsole`, `applyManifestToMediaRef`,
+  `applyReportToReportRef`).
+- `src/app/(shell)/evidence/_components/useConsoleEvidenceDetail.ts`
+  — mock-first hook с live switch.
+- `src/app/(shell)/evidence/_components/EvidenceDetailScreen.tsx`
+  + CSS — breadcrumb + meta + actions (disabled) +
+  media/report sections с per-ref error panels.
+- `src/app/(shell)/evidence/[evidenceId]/page.tsx` —
+  dynamic route.
+- `EvidenceScreen.tsx` detail aside — добавлен "Open
+  evidence detail →" link.
+
+Service registry:
+- `contracts.config.json` — entry `reporting-document`.
+- `src/api/services/reporting-document.ts` — typed client.
+- `src/api/{adapter,live,mock/adapter,runtime-config}.ts`
+  + diagnostics — `reportingDocument` зарегистрирован.
+
+Browser smoke `e2e/evidence-detail.spec.ts` (5 chromium
+tests) verifies sealed evidence detail + disabled actions
++ failed evidence error panels + list→detail navigation +
+mobile no-overflow gate.
+
+Tech debt:
+- Base evidence record мокается (canonical
+  evidence-service HTTP read model отсутствует).
+- Playback / export affordances остаются disabled до
+  `frontend-media-playback-degraded-states` и
+  `frontend-reporting-live-api-integration`.
+
 ## Branch policy
 
 Frontend bootstrap rule:

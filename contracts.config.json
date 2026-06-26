@@ -10,6 +10,7 @@
     { "name": "violation-rule", "openapi": "openapi/violation-rule-service/v1/openapi.yaml" },
     { "name": "media-archive", "openapi": "openapi/media-archive-service/v1/openapi.yaml" },
     { "name": "android-device-management", "openapi": "openapi/android-device-management-service/v1/openapi.yaml" },
-    { "name": "virtual-vehicle", "openapi": "openapi/virtual-vehicle-service/v1/openapi.yaml" }
+    { "name": "virtual-vehicle", "openapi": "openapi/virtual-vehicle-service/v1/openapi.yaml" },
+    { "name": "reporting-document", "openapi": "openapi/reporting-document-service/v1/openapi.yaml" }
   ]
 }

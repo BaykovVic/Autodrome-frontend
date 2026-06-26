@@ -454,7 +454,7 @@ export interface components {
          *     event already speaks normalized vocabulary.
          * @enum {string}
          */
-        SessionEventType: "sessionStarted" | "sessionPaused" | "sessionResumed" | "sessionStopped" | "sessionFailed" | "manualControlApplied" | "replayMilestoneReached" | "sensorStateChanged" | "resetPosition" | "telemetrySampleEmitted";
+        SessionEventType: "sessionStarted" | "sessionPaused" | "sessionResumed" | "sessionStopped" | "sessionFailed" | "manualControlApplied" | "replayMilestoneReached" | "sensorStateChanged" | "resetPosition" | "telemetrySampleEmitted" | "scenarioImportFailed";
         Position2D: {
             x: number;
             y: number;

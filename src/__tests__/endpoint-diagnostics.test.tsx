@@ -40,19 +40,19 @@ describe("EndpointDiagnostics", () => {
     const section = screen.getByRole("region", {
       name: /service endpoint diagnostics/i,
     });
-    // 8 service rows (incl. virtual-vehicle added in the Track 3
-    // live integration feature).
+    // 9 service rows (incl. reporting-document added in the
+    // Track 4 evidence detail live baseline feature).
     expect(
       within(section).getAllByText(/^mock$/i).length,
-    ).toBeGreaterThanOrEqual(8);
+    ).toBeGreaterThanOrEqual(9);
     // "n/a" badge in the configured column for every row.
     expect(
       within(section).getAllByText(/^n\/a$/i).length,
-    ).toBeGreaterThanOrEqual(8);
+    ).toBeGreaterThanOrEqual(9);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(8);
+    expect(checkBtns).toHaveLength(9);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(true);
     }
@@ -66,18 +66,18 @@ describe("EndpointDiagnostics", () => {
     const section = screen.getByRole("region", {
       name: /service endpoint diagnostics/i,
     });
-    // One configured override, seven defaults. The column header
+    // One configured override, eight defaults. The column header
     // "Configured" also matches /^configured$/i, hence +1.
     expect(
       within(section).getAllByText(/^configured$/i),
     ).toHaveLength(2);
     expect(
       within(section).getAllByText(/^default$/i),
-    ).toHaveLength(7);
+    ).toHaveLength(8);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(8);
+    expect(checkBtns).toHaveLength(9);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(false);
     }

@@ -10,6 +10,7 @@ import type { MediaArchivePaths } from "../services/media-archive";
 import type { VehiclePaths } from "../services/vehicle";
 import type { ViolationRulePaths } from "../services/violation-rule";
 import type { VirtualVehiclePaths } from "../services/virtual-vehicle";
+import type { ReportingDocumentPaths } from "../services/reporting-document";
 
 export function createMockAdapter(
   scenario: MockScenario = DEFAULT_SCENARIO,
@@ -47,6 +48,10 @@ export function createMockAdapter(
     }),
     virtualVehicle: createAutodromeClient<VirtualVehiclePaths>({
       baseUrl: "/api/virtual-vehicle/v1",
+      fetch: mockFetch,
+    }),
+    reportingDocument: createAutodromeClient<ReportingDocumentPaths>({
+      baseUrl: "/api/reporting-document/v1",
       fetch: mockFetch,
     }),
   };

@@ -7,6 +7,7 @@ import type { MediaArchivePaths } from "./services/media-archive";
 import type { VehiclePaths } from "./services/vehicle";
 import type { ViolationRulePaths } from "./services/violation-rule";
 import type { VirtualVehiclePaths } from "./services/virtual-vehicle";
+import type { ReportingDocumentPaths } from "./services/reporting-document";
 
 export type ApiAdapterMode = "live" | "mock";
 
@@ -19,6 +20,7 @@ export interface AutodromeApi {
   mediaArchive: AutodromeClient<MediaArchivePaths>;
   androidDevice: AutodromeClient<AndroidDevicePaths>;
   virtualVehicle: AutodromeClient<VirtualVehiclePaths>;
+  reportingDocument: AutodromeClient<ReportingDocumentPaths>;
 }
 
 export type ApiAdapterOptions = {
