@@ -1507,6 +1507,57 @@ Browser smoke `e2e/virtual-vehicle-session-monitor.spec.ts`
 (5 chromium tests) verifies running / paused / degraded /
 unknown sessions и workspace detail aside link.
 
+### Virtual Vehicle Manual Control (mock-first baseline)
+
+Dynamic sub-route
+`/virtual-vehicles/sessions/[sessionId]/manual-control` шипает
+per-session operator panel с speed slider (0..200 km/h),
+steering slider (−1..+1), sensor toggles по canonical capability
+tokens + disabled "Reset position" / "Send command" affordances
+(live wiring лансит в Track 3).
+
+Canonical naming (mirrors planned
+`virtual-vehicle-service-manual-control-baseline` shape):
+
+- `ConsoleManualControlSessionState`: `running` / `paused` /
+  `stopped` / `starting` / `degraded` / `unknown`. Только
+  `running` разрешает controls; остальные состояния помечают
+  controls disabled + рендерят operator-visible reason banner.
+- `ConsoleManualControlSensor`: `cameraFront` / `cameraRear` /
+  `lidar` / `imu` / `gnss` / `wheelOdometry` / `lanePerception`.
+  Operator label + canonical mono chip оба видны — никаких
+  numeric flag bits в UI (per spec rule "No raw bitmask-only
+  UI").
+
+Файлы:
+
+- `src/app/(shell)/virtual-vehicles/sessions/_components/manual-control/consoleVirtualVehicleManualControlSnapshot.ts`
+  — view-model types + `SENSOR_LABELS` lookup +
+  `manualControlsAllowed()` guard + `disabledReasonFor()`
+  per-state reason string helper.
+- `src/app/(shell)/virtual-vehicles/sessions/_components/manual-control/consoleVirtualVehicleManualControlFixtures.ts`
+  — keyed panels (running с всеми sensors on / paused с
+  lanePerception off / degraded с lidar+gnss off / stopped с
+  большинством off); unknown ids → honest stub без invented
+  telemetry.
+- `src/app/(shell)/virtual-vehicles/sessions/_components/manual-control/useConsoleVirtualVehicleManualControl.ts`
+  — mock-first per-session hook (loader DI + reload +
+  fatalError).
+- `src/app/(shell)/virtual-vehicles/sessions/_components/manual-control/VirtualVehicleManualControlPanelScreen.tsx`
+  + CSS module — breadcrumb, heading, disabled-state banner,
+  drive controls section (speed + steering sliders + reset /
+  send buttons + last command timestamp), sensor toggles
+  section с canonical chips + "no raw bitmask UI" hint.
+- `src/app/(shell)/virtual-vehicles/sessions/[sessionId]/manual-control/page.tsx`
+  — dynamic route entry.
+- `VirtualVehicleSessionMonitorScreen.tsx` — breadcrumb теперь
+  surfaces "Manual control →" link к sub-route.
+
+Browser smoke `e2e/virtual-vehicle-manual-control.spec.ts`
+(5 chromium tests) verifies running / paused / degraded /
+session-monitor → manual-control navigation + mobile (375x812)
+horizontal-overflow gate.
+
 ## Branch policy
 
 Frontend bootstrap rule:
