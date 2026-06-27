@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import {
   Button,
@@ -47,22 +47,10 @@ export function TrafficControlScreen({ snapshotOverride }: Props) {
     address: string;
     commandType: ConsoleCommandType;
   } | null>(null);
-
-  function recordCommand(
-    controllerId: string,
-    commandType: ConsoleCommandType,
-  ) {
-    const entry: ConsoleCommandAccepted = {
-      commandId: "mock-cmd-" + Date.now().toString(36),
-      controllerId,
-      commandType,
-      acceptedAt: new Date().toISOString(),
-    };
-    setSnapshot((prev) => ({
-      ...prev,
-      recentCommands: [entry, ...prev.recentCommands],
-    }));
-  }
+  // Counter-based command id keeps the screen component
+  // body pure; impurity (Date.now / new Date) stays inside
+  // event handlers below, per React Compiler purity rule.
+  const commandCounter = useRef(0);
 
   function dispatchCommand(
     controllerId: string,
@@ -73,12 +61,30 @@ export function TrafficControlScreen({ snapshotOverride }: Props) {
       setConfirm({ controllerId, address, commandType });
       return;
     }
-    recordCommand(controllerId, commandType);
+    const entry: ConsoleCommandAccepted = {
+      commandId: `mock-cmd-${++commandCounter.current}`,
+      controllerId,
+      commandType,
+      acceptedAt: new Date().toISOString(),
+    };
+    setSnapshot((prev) => ({
+      ...prev,
+      recentCommands: [entry, ...prev.recentCommands],
+    }));
   }
 
   function onConfirm() {
     if (!confirm) return;
-    recordCommand(confirm.controllerId, confirm.commandType);
+    const entry: ConsoleCommandAccepted = {
+      commandId: `mock-cmd-${++commandCounter.current}`,
+      controllerId: confirm.controllerId,
+      commandType: confirm.commandType,
+      acceptedAt: new Date().toISOString(),
+    };
+    setSnapshot((prev) => ({
+      ...prev,
+      recentCommands: [entry, ...prev.recentCommands],
+    }));
     setConfirm(null);
   }
 
