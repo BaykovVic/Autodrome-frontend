@@ -15,6 +15,7 @@ import type { DeploymentOperationsPaths } from "../services/deployment-operation
 import type { VehicleTelemetryPaths } from "../services/vehicle-telemetry";
 import type { IdentitySecurityPaths } from "../services/identity-security";
 import type { AuditPaths } from "../services/audit";
+import type { CentralSyncPaths } from "../services/central-sync";
 
 export function createMockAdapter(
   scenario: MockScenario = DEFAULT_SCENARIO,
@@ -72,6 +73,10 @@ export function createMockAdapter(
     }),
     audit: createAutodromeClient<AuditPaths>({
       baseUrl: "/api/audit/v1",
+      fetch: mockFetch,
+    }),
+    centralSync: createAutodromeClient<CentralSyncPaths>({
+      baseUrl: "/api/central-sync/v1",
       fetch: mockFetch,
     }),
   };

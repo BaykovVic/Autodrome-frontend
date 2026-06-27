@@ -12,6 +12,7 @@ import type { DeploymentOperationsPaths } from "./services/deployment-operations
 import type { VehicleTelemetryPaths } from "./services/vehicle-telemetry";
 import type { IdentitySecurityPaths } from "./services/identity-security";
 import type { AuditPaths } from "./services/audit";
+import type { CentralSyncPaths } from "./services/central-sync";
 
 export type ApiAdapterMode = "live" | "mock";
 
@@ -29,6 +30,7 @@ export interface AutodromeApi {
   vehicleTelemetry: AutodromeClient<VehicleTelemetryPaths>;
   identitySecurity: AutodromeClient<IdentitySecurityPaths>;
   audit: AutodromeClient<AuditPaths>;
+  centralSync: AutodromeClient<CentralSyncPaths>;
 }
 
 export type ApiAdapterOptions = {

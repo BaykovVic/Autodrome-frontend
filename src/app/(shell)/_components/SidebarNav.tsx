@@ -227,6 +227,25 @@ function AuditIcon() {
   );
 }
 
+function CentralSyncIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
+      <path d="M4 8c1.5-3 4.5-5 8-5s6.5 2 8 5" />
+      <path d="M20 16c-1.5 3-4.5 5-8 5s-6.5-2-8-5" />
+      <path d="M4 5v3M20 19v3" />
+    </svg>
+  );
+}
+
 function DevicesIcon() {
   return (
     <svg
@@ -323,6 +342,7 @@ export const SHELL_NAV_GROUPS: ShellNavGroup[] = [
       { href: "/reporting", label: "Reporting", icon: <ReportingIcon /> },
       { href: "/security", label: "Security", icon: <SecurityIcon /> },
       { href: "/audit", label: "Audit", icon: <AuditIcon /> },
+      { href: "/central-sync", label: "Central sync", icon: <CentralSyncIcon /> },
       { href: "/operations", label: "Operations", icon: <OperationsIcon /> },
     ],
   },
