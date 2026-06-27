@@ -43,6 +43,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   autodromeGeometry: "Autodrome geometry",
   schedulingIntegration: "Scheduling integration",
   trafficControl: "Traffic control",
+  biometry: "Biometry",
 };
 
 function modeVariant(

@@ -20,6 +20,7 @@
     { "name": "reference-data", "openapi": "openapi/reference-data-service/v1/openapi.yaml" },
     { "name": "autodrome-geometry", "openapi": "openapi/autodrome-geometry-service/v1/openapi.yaml" },
     { "name": "scheduling-integration", "openapi": "openapi/scheduling-integration-service/v1/openapi.yaml" },
-    { "name": "traffic-control", "openapi": "openapi/traffic-control-service/v1/openapi.yaml" }
+    { "name": "traffic-control", "openapi": "openapi/traffic-control-service/v1/openapi.yaml" },
+    { "name": "biometry", "openapi": "openapi/biometry-service/v1/openapi.yaml" }
   ]
 }
