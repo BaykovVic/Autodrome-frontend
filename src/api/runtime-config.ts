@@ -34,7 +34,8 @@ export type ServiceName =
   | "deploymentOperations"
   | "vehicleTelemetry"
   | "identitySecurity"
-  | "audit";
+  | "audit"
+  | "centralSync";
 
 export const SERVICE_NAMES: readonly ServiceName[] = [
   "candidate",
@@ -50,6 +51,7 @@ export const SERVICE_NAMES: readonly ServiceName[] = [
   "vehicleTelemetry",
   "identitySecurity",
   "audit",
+  "centralSync",
 ] as const;
 
 export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
@@ -66,6 +68,7 @@ export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
   vehicleTelemetry: "/api/vehicle-telemetry/v1",
   identitySecurity: "/api/identity-security/v1",
   audit: "/api/audit/v1",
+  centralSync: "/api/central-sync/v1",
 };
 
 export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
@@ -82,6 +85,7 @@ export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
   vehicleTelemetry: "NEXT_PUBLIC_API_VEHICLE_TELEMETRY_BASE_URL",
   identitySecurity: "NEXT_PUBLIC_API_IDENTITY_SECURITY_BASE_URL",
   audit: "NEXT_PUBLIC_API_AUDIT_BASE_URL",
+  centralSync: "NEXT_PUBLIC_API_CENTRAL_SYNC_BASE_URL",
 };
 
 export type RuntimeConfigIssue = {

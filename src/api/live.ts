@@ -17,6 +17,7 @@ import type { DeploymentOperationsPaths } from "./services/deployment-operations
 import type { VehicleTelemetryPaths } from "./services/vehicle-telemetry";
 import type { IdentitySecurityPaths } from "./services/identity-security";
 import type { AuditPaths } from "./services/audit";
+import type { CentralSyncPaths } from "./services/central-sync";
 
 export function createLiveAdapter(
   baseUrls: Record<ServiceName, string> = DEFAULT_LIVE_BASE_URLS,
@@ -60,6 +61,9 @@ export function createLiveAdapter(
     }),
     audit: createAutodromeClient<AuditPaths>({
       baseUrl: baseUrls.audit,
+    }),
+    centralSync: createAutodromeClient<CentralSyncPaths>({
+      baseUrl: baseUrls.centralSync,
     }),
   };
 }

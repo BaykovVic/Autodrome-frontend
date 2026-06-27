@@ -45,6 +45,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   vehicleTelemetry: "Vehicle telemetry",
   identitySecurity: "Identity & security",
   audit: "Audit",
+  centralSync: "Central sync (optional)",
 };
 
 function configuredBaseUrl(
