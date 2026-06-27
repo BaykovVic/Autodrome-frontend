@@ -209,6 +209,130 @@ describe("liveEnrollmentLaunchCancel", () => {
   });
 });
 
+describe("createConsoleEnrollmentDispatcher", () => {
+  it("creates a launch on first launchOrResume, reuses launchId on retry/cancel", async () => {
+    const { createConsoleEnrollmentDispatcher } = await import(
+      "@/app/(shell)/candidates/_components/liveBiometryEnrollmentLoader"
+    );
+    const lastLaunchId = "70000000-0000-4000-8000-000000000010";
+    const POST = vi.fn(async (path: string) => ({
+      data: {
+        launchId: lastLaunchId,
+        candidateRef: { candidateId: "candidate-1" },
+        target: { kind: "webCameraStation", stationId: "station-1" },
+        state: path.endsWith("/cancel")
+          ? "cancelled"
+          : path.endsWith("/retry")
+            ? "command_sent"
+            : "ready",
+        retryCount: path.endsWith("/retry") ? 1 : 0,
+        createdAt: "2026-06-27T10:00:00Z",
+        updatedAt: "2026-06-27T10:00:00Z",
+        expiresAt: "2026-06-27T10:30:00Z",
+      },
+    }));
+    const GET = vi.fn(async () => ({
+      data: {
+        launchId: lastLaunchId,
+        candidateRef: { candidateId: "candidate-1" },
+        target: { kind: "webCameraStation", stationId: "station-1" },
+        state: "capturing",
+        retryCount: 0,
+        createdAt: "2026-06-27T10:00:00Z",
+        updatedAt: "2026-06-27T10:05:00Z",
+        expiresAt: "2026-06-27T10:30:00Z",
+      },
+    }));
+    const api = makeApi({
+      biometry: { POST, GET } as unknown as AutodromeApi["biometry"],
+    });
+    const dispatcher = createConsoleEnrollmentDispatcher(api);
+    expect(dispatcher.getActiveLaunchId()).toBeUndefined();
+
+    const launched = await dispatcher.launchOrResume(
+      "candidate-1",
+      "station-1",
+      "Иван Б.",
+    );
+    expect(launched.launchId).toBe(lastLaunchId);
+    expect(dispatcher.getActiveLaunchId()).toBe(lastLaunchId);
+    const firstCall = POST.mock.calls[0] as unknown as [string, unknown];
+    expect(firstCall[0]).toBe("/biometry/enrollment-launches");
+
+    // Second launchOrResume must NOT re-POST — should GET the existing launch.
+    const resumed = await dispatcher.launchOrResume(
+      "candidate-1",
+      "station-1",
+      "Иван Б.",
+    );
+    expect(resumed.launchId).toBe(lastLaunchId);
+    expect(GET).toHaveBeenCalledTimes(1);
+
+    await dispatcher.retry("op retry");
+    const retryCall = POST.mock.calls[1] as unknown as [string, unknown];
+    expect(retryCall[0]).toBe(
+      "/biometry/enrollment-launches/{launchId}/retry",
+    );
+
+    await dispatcher.cancel("op cancel");
+    const cancelCall = POST.mock.calls[2] as unknown as [string, unknown];
+    expect(cancelCall[0]).toBe(
+      "/biometry/enrollment-launches/{launchId}/cancel",
+    );
+  });
+
+  it("throws when retry/cancel called without an active launchId", async () => {
+    const { createConsoleEnrollmentDispatcher } = await import(
+      "@/app/(shell)/candidates/_components/liveBiometryEnrollmentLoader"
+    );
+    const api = makeApi({
+      biometry: {
+        POST: vi.fn(),
+        GET: vi.fn(),
+      } as unknown as AutodromeApi["biometry"],
+    });
+    const dispatcher = createConsoleEnrollmentDispatcher(api);
+    await expect(dispatcher.retry()).rejects.toThrow(/launchId/i);
+    await expect(dispatcher.cancel()).rejects.toThrow(/launchId/i);
+    await expect(dispatcher.poll()).rejects.toThrow(/launchId/i);
+  });
+
+  it("honours seedLaunchId for resume flows", async () => {
+    const { createConsoleEnrollmentDispatcher } = await import(
+      "@/app/(shell)/candidates/_components/liveBiometryEnrollmentLoader"
+    );
+    const GET = vi.fn(async () => ({
+      data: {
+        launchId: "seeded-launch-id",
+        candidateRef: { candidateId: "candidate-1" },
+        target: { kind: "webCameraStation", stationId: "station-1" },
+        state: "capturing",
+        retryCount: 0,
+        createdAt: "2026-06-27T10:00:00Z",
+        updatedAt: "2026-06-27T10:05:00Z",
+        expiresAt: "2026-06-27T10:30:00Z",
+      },
+    }));
+    const api = makeApi({
+      biometry: {
+        POST: vi.fn(),
+        GET,
+      } as unknown as AutodromeApi["biometry"],
+    });
+    const dispatcher = createConsoleEnrollmentDispatcher(
+      api,
+      "seeded-launch-id",
+    );
+    expect(dispatcher.getActiveLaunchId()).toBe("seeded-launch-id");
+    const polled = await dispatcher.poll();
+    expect(polled.launchId).toBe("seeded-launch-id");
+    expect(GET).toHaveBeenCalledWith(
+      "/biometry/enrollment-launches/{launchId}",
+      { params: { path: { launchId: "seeded-launch-id" } } },
+    );
+  });
+});
+
 describe("liveEnrollmentLaunchRetry", () => {
   it("dispatches retry with Idempotency-Key", async () => {
     const POST = vi.fn(async () => ({

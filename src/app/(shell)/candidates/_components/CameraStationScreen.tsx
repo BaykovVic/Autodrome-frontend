@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   ApiErrorView,
@@ -10,6 +10,8 @@ import {
   RefreshIcon,
   Skeleton,
 } from "@/components";
+import { getApiAdapter } from "@/api/get-api-adapter";
+import { resolveRuntimeMode } from "@/api/runtime-config";
 
 import {
   STATION_ACTIVE,
@@ -21,11 +23,21 @@ import {
   useConsoleCameraStation,
   type ConsoleCameraStationLoader,
 } from "./useConsoleCameraStation";
+import {
+  createConsoleEnrollmentDispatcher,
+  type ConsoleEnrollmentDispatcher,
+} from "./liveBiometryEnrollmentLoader";
 
 import styles from "./CameraStationScreen.module.css";
 
 type Props = {
   loader?: ConsoleCameraStationLoader;
+  /**
+   * Optional dispatcher override. Tests and Storybook stories inject
+   * a fake; runtime selects mock (`null`) vs live based on
+   * `resolveRuntimeMode()`.
+   */
+  dispatcher?: ConsoleEnrollmentDispatcher | null;
 };
 
 type Override = {
@@ -97,9 +109,22 @@ function qualityFillClass(tone: QualityProgressItem["tone"]): string {
   }
 }
 
-export function CameraStationScreen({ loader }: Props) {
+export function CameraStationScreen({ loader, dispatcher }: Props) {
   const state = useConsoleCameraStation(loader);
   const [override, setOverride] = useState<Override | null>(null);
+  const [liveError, setLiveError] = useState<unknown | null>(null);
+
+  // Memoize a live dispatcher per mount so retry/cancel/launch share
+  // the same active launchId across operator clicks. Tests can
+  // inject one explicitly via the `dispatcher` prop; passing `null`
+  // forces mock-only behavior even if env says live.
+  const liveDispatcher = useMemo<ConsoleEnrollmentDispatcher | null>(() => {
+    if (dispatcher !== undefined) return dispatcher;
+    if (resolveRuntimeMode() !== "live") return null;
+    return createConsoleEnrollmentDispatcher(
+      getApiAdapter({ mode: "live" }),
+    );
+  }, [dispatcher]);
 
   if (state.loading) {
     return (
@@ -163,13 +188,36 @@ export function CameraStationScreen({ loader }: Props) {
   const handleRetry = () => {
     if (retryDisabled) return;
     setOverride({ scenario: "ready", committed: "retry" });
+    if (liveDispatcher) {
+      // Fire-and-forget: keep UI override optimistic; surface
+      // dispatch error inline so operator sees backend rejection.
+      liveDispatcher.retry("Operator retry from camera station").catch(
+        (error) => setLiveError(error),
+      );
+    }
   };
   const handleCancel = () => {
     if (cancelDisabled) return;
     setOverride({ scenario: "cancelled", committed: "cancelled" });
+    if (liveDispatcher) {
+      liveDispatcher
+        .cancel("Operator cancel from camera station")
+        .catch((error) => setLiveError(error));
+    }
   };
   const handleDoneFromOpen = () => {
     setOverride({ scenario: "done", committed: "done" });
+  };
+  const handleOpenCapture = () => {
+    if (override?.scenario === "ready") setOverride(null);
+    if (!liveDispatcher) return;
+    liveDispatcher
+      .launchOrResume(
+        baseSnapshot.candidateId,
+        baseSnapshot.device.id,
+        baseSnapshot.candidate,
+      )
+      .catch((error) => setLiveError(error));
   };
 
   // Resolve display fields against the override scenario if any.
@@ -228,6 +276,19 @@ export function CameraStationScreen({ loader }: Props) {
         separate window on the second monitor.
       </p>
 
+      {liveError ? (
+        <div
+          className={`${styles.committedPanel} ${styles.committedPanelDanger}`}
+          role="alert"
+        >
+          <p className={styles.committedTitle}>
+            Live enrollment dispatch failed
+          </p>
+          <p className={styles.committedDescription}>
+            {liveError instanceof Error ? liveError.message : String(liveError)}
+          </p>
+        </div>
+      ) : null}
       {override ? (
         <div
           className={
@@ -357,15 +418,7 @@ export function CameraStationScreen({ loader }: Props) {
                   variant: "primary",
                   size: "md",
                 })}
-                onClick={() => {
-                  // Optional mock-only side-effect: when the operator
-                  // opens the window from a `ready` override, flip
-                  // back to capturing so the station UI reflects a
-                  // running session.
-                  if (override?.scenario === "ready") {
-                    setOverride(null);
-                  }
-                }}
+                onClick={handleOpenCapture}
               >
                 Open capture window
               </Link>

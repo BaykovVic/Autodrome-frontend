@@ -180,4 +180,131 @@ describe("CameraStationScreen", () => {
     }
     expect(scenarios.size).toBe(5);
   });
+
+  it("Open capture window dispatches launchOrResume via injected dispatcher (live wiring gate)", async () => {
+    const dispatcher = {
+      getActiveLaunchId: vi.fn(() => undefined),
+      seedLaunchId: vi.fn(),
+      launchOrResume: vi.fn(async () => ({
+        launchId: "70000000-0000-4000-8000-000000000001",
+        candidateId: "CAND-VICTORIA-LEE",
+        stationId: "CAM-OPSTATION-A1",
+        state: "ready" as const,
+        stateLabel: "Ready",
+        retryCount: 0,
+        createdAt: "2026-06-27T10:00:00Z",
+        updatedAt: "2026-06-27T10:00:00Z",
+        expiresAt: "2026-06-27T10:30:00Z",
+      })),
+      poll: vi.fn(),
+      retry: vi.fn(async () => {
+        throw new Error("unused");
+      }),
+      cancel: vi.fn(async () => {
+        throw new Error("unused");
+      }),
+    };
+    render(
+      <CameraStationScreen
+        loader={() => consoleCameraStationFor("capturing")}
+        dispatcher={dispatcher}
+      />,
+    );
+    await screen.findByText(/Logitech BRIO/);
+    const open = screen.getByRole("link", {
+      name: /open capture window in a new browser window/i,
+    });
+    fireEvent.click(open);
+    expect(dispatcher.launchOrResume).toHaveBeenCalledTimes(1);
+  });
+
+  it("Retry click dispatches dispatcher.retry in live mode", async () => {
+    const dispatcher = {
+      getActiveLaunchId: vi.fn(() => "70000000-0000-4000-8000-000000000001"),
+      seedLaunchId: vi.fn(),
+      launchOrResume: vi.fn(),
+      poll: vi.fn(),
+      retry: vi.fn(async () => ({
+        launchId: "70000000-0000-4000-8000-000000000001",
+        candidateId: "CAND-VICTORIA-LEE",
+        stationId: "CAM-OPSTATION-A1",
+        state: "command_sent" as const,
+        stateLabel: "Command sent",
+        retryCount: 1,
+        createdAt: "2026-06-27T10:00:00Z",
+        updatedAt: "2026-06-27T10:10:00Z",
+        expiresAt: "2026-06-27T10:30:00Z",
+      })),
+      cancel: vi.fn(),
+    };
+    render(
+      <CameraStationScreen
+        loader={() => consoleCameraStationFor("capturing")}
+        dispatcher={dispatcher}
+      />,
+    );
+    await screen.findByText(/Logitech BRIO/);
+    fireEvent.click(screen.getByRole("button", { name: /^retry$/i }));
+    expect(dispatcher.retry).toHaveBeenCalledTimes(1);
+  });
+
+  it("Cancel click dispatches dispatcher.cancel in live mode", async () => {
+    const dispatcher = {
+      getActiveLaunchId: vi.fn(() => "70000000-0000-4000-8000-000000000001"),
+      seedLaunchId: vi.fn(),
+      launchOrResume: vi.fn(),
+      poll: vi.fn(),
+      retry: vi.fn(),
+      cancel: vi.fn(async () => ({
+        launchId: "70000000-0000-4000-8000-000000000001",
+        candidateId: "CAND-VICTORIA-LEE",
+        stationId: "CAM-OPSTATION-A1",
+        state: "cancelled" as const,
+        stateLabel: "Cancelled",
+        retryCount: 0,
+        createdAt: "2026-06-27T10:00:00Z",
+        updatedAt: "2026-06-27T10:15:00Z",
+        expiresAt: "2026-06-27T10:30:00Z",
+      })),
+    };
+    render(
+      <CameraStationScreen
+        loader={() => consoleCameraStationFor("capturing")}
+        dispatcher={dispatcher}
+      />,
+    );
+    await screen.findByText(/Logitech BRIO/);
+    fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
+    expect(dispatcher.cancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("surfaces dispatcher rejection as inline live-error banner (alert role)", async () => {
+    const dispatcher = {
+      getActiveLaunchId: vi.fn(() => "70000000-0000-4000-8000-000000000001"),
+      seedLaunchId: vi.fn(),
+      launchOrResume: vi.fn(),
+      poll: vi.fn(),
+      retry: vi.fn(async () => {
+        throw new Error("backend rejected retry");
+      }),
+      cancel: vi.fn(),
+    };
+    render(
+      <CameraStationScreen
+        loader={() => consoleCameraStationFor("capturing")}
+        dispatcher={dispatcher}
+      />,
+    );
+    await screen.findByText(/Logitech BRIO/);
+    fireEvent.click(screen.getByRole("button", { name: /^retry$/i }));
+    // microtask flush
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(
+      await screen.findByText(/backend rejected retry/i),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("alert"),
+    ).toBeDefined();
+  });
 });

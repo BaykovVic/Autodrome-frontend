@@ -220,3 +220,86 @@ export const CAMERA_DEVICE_STATE_LABELS: Record<
   device_in_use: "Camera busy (another app)",
   unknown: "Camera state unknown",
 };
+
+/**
+ * Operator-facing dispatcher that wraps the 4 canonical
+ * enrollment-launch endpoints behind one handle. Camera-station UI
+ * holds a reference and calls `launchOrResume`/`retry`/`cancel`
+ * without having to import the adapter directly.
+ *
+ * The dispatcher remembers the active `launchId` between calls so the
+ * Web camera station can:
+ *  - open the capture window → calls `launchOrResume` if no launch
+ *    yet (POST `/biometry/enrollment-launches`);
+ *  - retry → calls `liveEnrollmentLaunchRetry` for the active
+ *    launchId;
+ *  - cancel → calls `liveEnrollmentLaunchCancel` for the active
+ *    launchId.
+ *
+ * If the screen has been opened from a session monitor that already
+ * holds a launchId, callers can seed it via `seedLaunchId`.
+ */
+export type ConsoleEnrollmentDispatcher = {
+  getActiveLaunchId(): string | undefined;
+  seedLaunchId(launchId: string): void;
+  launchOrResume(
+    candidateId: string,
+    stationId: string,
+    maskedDisplayName: string,
+  ): Promise<ConsoleEnrollmentLaunch>;
+  poll(): Promise<ConsoleEnrollmentLaunch>;
+  retry(reason?: string): Promise<ConsoleEnrollmentLaunch>;
+  cancel(reason?: string): Promise<ConsoleEnrollmentLaunch>;
+};
+
+export function createConsoleEnrollmentDispatcher(
+  adapter: AutodromeApi,
+  initialLaunchId?: string,
+): ConsoleEnrollmentDispatcher {
+  let activeLaunchId: string | undefined = initialLaunchId;
+  return {
+    getActiveLaunchId() {
+      return activeLaunchId;
+    },
+    seedLaunchId(launchId: string) {
+      activeLaunchId = launchId;
+    },
+    async launchOrResume(candidateId, stationId, maskedDisplayName) {
+      if (activeLaunchId) {
+        return liveEnrollmentLaunchGet(adapter, activeLaunchId);
+      }
+      const launched = await liveEnrollmentLaunch(
+        adapter,
+        candidateId,
+        stationId,
+        maskedDisplayName,
+      );
+      activeLaunchId = launched.launchId;
+      return launched;
+    },
+    async poll() {
+      if (!activeLaunchId) {
+        throw new Error(
+          "Enrollment dispatcher has no active launchId to poll.",
+        );
+      }
+      return liveEnrollmentLaunchGet(adapter, activeLaunchId);
+    },
+    async retry(reason) {
+      if (!activeLaunchId) {
+        throw new Error(
+          "Enrollment dispatcher has no active launchId to retry.",
+        );
+      }
+      return liveEnrollmentLaunchRetry(adapter, activeLaunchId, reason);
+    },
+    async cancel(reason) {
+      if (!activeLaunchId) {
+        throw new Error(
+          "Enrollment dispatcher has no active launchId to cancel.",
+        );
+      }
+      return liveEnrollmentLaunchCancel(adapter, activeLaunchId, reason);
+    },
+  };
+}
