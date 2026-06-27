@@ -3,6 +3,7 @@
 import { Tabs } from "@/components";
 import { BackupsPanel } from "./BackupsPanel";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
+import { InstallerPanel } from "./InstallerPanel";
 import { LogsPanel } from "./LogsPanel";
 import { ReleasePanel } from "./ReleasePanel";
 import { ServiceHealthDashboard } from "./ServiceHealthDashboard";
@@ -27,6 +28,11 @@ export function OperationsTabs() {
           id: "backups",
           label: "Backups",
           content: <BackupsPanel />,
+        },
+        {
+          id: "installer",
+          label: "Installer",
+          content: <InstallerPanel />,
         },
         {
           id: "logs",
