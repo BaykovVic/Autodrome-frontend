@@ -22,6 +22,7 @@ import type { ReferenceDataPaths } from "./services/reference-data";
 import type { AutodromeGeometryPaths } from "./services/autodrome-geometry";
 import type { SchedulingIntegrationPaths } from "./services/scheduling-integration";
 import type { TrafficControlPaths } from "./services/traffic-control";
+import type { BiometryPaths } from "./services/biometry";
 
 export function createLiveAdapter(
   baseUrls: Record<ServiceName, string> = DEFAULT_LIVE_BASE_URLS,
@@ -80,6 +81,9 @@ export function createLiveAdapter(
     }),
     trafficControl: createAutodromeClient<TrafficControlPaths>({
       baseUrl: baseUrls.trafficControl,
+    }),
+    biometry: createAutodromeClient<BiometryPaths>({
+      baseUrl: baseUrls.biometry,
     }),
   };
 }

@@ -17,6 +17,7 @@ import type { ReferenceDataPaths } from "./services/reference-data";
 import type { AutodromeGeometryPaths } from "./services/autodrome-geometry";
 import type { SchedulingIntegrationPaths } from "./services/scheduling-integration";
 import type { TrafficControlPaths } from "./services/traffic-control";
+import type { BiometryPaths } from "./services/biometry";
 
 export type ApiAdapterMode = "live" | "mock";
 
@@ -39,6 +40,7 @@ export interface AutodromeApi {
   autodromeGeometry: AutodromeClient<AutodromeGeometryPaths>;
   schedulingIntegration: AutodromeClient<SchedulingIntegrationPaths>;
   trafficControl: AutodromeClient<TrafficControlPaths>;
+  biometry: AutodromeClient<BiometryPaths>;
 }
 
 export type ApiAdapterOptions = {

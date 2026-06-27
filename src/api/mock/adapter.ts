@@ -20,6 +20,7 @@ import type { ReferenceDataPaths } from "../services/reference-data";
 import type { AutodromeGeometryPaths } from "../services/autodrome-geometry";
 import type { SchedulingIntegrationPaths } from "../services/scheduling-integration";
 import type { TrafficControlPaths } from "../services/traffic-control";
+import type { BiometryPaths } from "../services/biometry";
 
 export function createMockAdapter(
   scenario: MockScenario = DEFAULT_SCENARIO,
@@ -97,6 +98,10 @@ export function createMockAdapter(
     }),
     trafficControl: createAutodromeClient<TrafficControlPaths>({
       baseUrl: "/api/traffic-control/v1",
+      fetch: mockFetch,
+    }),
+    biometry: createAutodromeClient<BiometryPaths>({
+      baseUrl: "/api/biometry/v1",
       fetch: mockFetch,
     }),
   };
