@@ -46,6 +46,10 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   identitySecurity: "Identity & security",
   audit: "Audit",
   centralSync: "Central sync (optional)",
+  referenceData: "Reference data",
+  autodromeGeometry: "Autodrome geometry",
+  schedulingIntegration: "Scheduling integration",
+  trafficControl: "Traffic control",
 };
 
 function configuredBaseUrl(

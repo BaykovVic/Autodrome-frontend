@@ -35,7 +35,11 @@ export type ServiceName =
   | "vehicleTelemetry"
   | "identitySecurity"
   | "audit"
-  | "centralSync";
+  | "centralSync"
+  | "referenceData"
+  | "autodromeGeometry"
+  | "schedulingIntegration"
+  | "trafficControl";
 
 export const SERVICE_NAMES: readonly ServiceName[] = [
   "candidate",
@@ -52,6 +56,10 @@ export const SERVICE_NAMES: readonly ServiceName[] = [
   "identitySecurity",
   "audit",
   "centralSync",
+  "referenceData",
+  "autodromeGeometry",
+  "schedulingIntegration",
+  "trafficControl",
 ] as const;
 
 export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
@@ -69,6 +77,10 @@ export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
   identitySecurity: "/api/identity-security/v1",
   audit: "/api/audit/v1",
   centralSync: "/api/central-sync/v1",
+  referenceData: "/api/reference-data/v1",
+  autodromeGeometry: "/api/autodrome-geometry/v1",
+  schedulingIntegration: "/api/scheduling-integration/v1",
+  trafficControl: "/api/traffic-control/v1",
 };
 
 export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
@@ -86,6 +98,10 @@ export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
   identitySecurity: "NEXT_PUBLIC_API_IDENTITY_SECURITY_BASE_URL",
   audit: "NEXT_PUBLIC_API_AUDIT_BASE_URL",
   centralSync: "NEXT_PUBLIC_API_CENTRAL_SYNC_BASE_URL",
+  referenceData: "NEXT_PUBLIC_API_REFERENCE_DATA_BASE_URL",
+  autodromeGeometry: "NEXT_PUBLIC_API_AUTODROME_GEOMETRY_BASE_URL",
+  schedulingIntegration: "NEXT_PUBLIC_API_SCHEDULING_INTEGRATION_BASE_URL",
+  trafficControl: "NEXT_PUBLIC_API_TRAFFIC_CONTROL_BASE_URL",
 };
 
 export type RuntimeConfigIssue = {

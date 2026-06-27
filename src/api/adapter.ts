@@ -13,6 +13,10 @@ import type { VehicleTelemetryPaths } from "./services/vehicle-telemetry";
 import type { IdentitySecurityPaths } from "./services/identity-security";
 import type { AuditPaths } from "./services/audit";
 import type { CentralSyncPaths } from "./services/central-sync";
+import type { ReferenceDataPaths } from "./services/reference-data";
+import type { AutodromeGeometryPaths } from "./services/autodrome-geometry";
+import type { SchedulingIntegrationPaths } from "./services/scheduling-integration";
+import type { TrafficControlPaths } from "./services/traffic-control";
 
 export type ApiAdapterMode = "live" | "mock";
 
@@ -31,6 +35,10 @@ export interface AutodromeApi {
   identitySecurity: AutodromeClient<IdentitySecurityPaths>;
   audit: AutodromeClient<AuditPaths>;
   centralSync: AutodromeClient<CentralSyncPaths>;
+  referenceData: AutodromeClient<ReferenceDataPaths>;
+  autodromeGeometry: AutodromeClient<AutodromeGeometryPaths>;
+  schedulingIntegration: AutodromeClient<SchedulingIntegrationPaths>;
+  trafficControl: AutodromeClient<TrafficControlPaths>;
 }
 
 export type ApiAdapterOptions = {

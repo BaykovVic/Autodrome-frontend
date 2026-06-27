@@ -18,6 +18,10 @@ import type { VehicleTelemetryPaths } from "./services/vehicle-telemetry";
 import type { IdentitySecurityPaths } from "./services/identity-security";
 import type { AuditPaths } from "./services/audit";
 import type { CentralSyncPaths } from "./services/central-sync";
+import type { ReferenceDataPaths } from "./services/reference-data";
+import type { AutodromeGeometryPaths } from "./services/autodrome-geometry";
+import type { SchedulingIntegrationPaths } from "./services/scheduling-integration";
+import type { TrafficControlPaths } from "./services/traffic-control";
 
 export function createLiveAdapter(
   baseUrls: Record<ServiceName, string> = DEFAULT_LIVE_BASE_URLS,
@@ -64,6 +68,18 @@ export function createLiveAdapter(
     }),
     centralSync: createAutodromeClient<CentralSyncPaths>({
       baseUrl: baseUrls.centralSync,
+    }),
+    referenceData: createAutodromeClient<ReferenceDataPaths>({
+      baseUrl: baseUrls.referenceData,
+    }),
+    autodromeGeometry: createAutodromeClient<AutodromeGeometryPaths>({
+      baseUrl: baseUrls.autodromeGeometry,
+    }),
+    schedulingIntegration: createAutodromeClient<SchedulingIntegrationPaths>({
+      baseUrl: baseUrls.schedulingIntegration,
+    }),
+    trafficControl: createAutodromeClient<TrafficControlPaths>({
+      baseUrl: baseUrls.trafficControl,
     }),
   };
 }
