@@ -16,6 +16,10 @@ import type { VehicleTelemetryPaths } from "../services/vehicle-telemetry";
 import type { IdentitySecurityPaths } from "../services/identity-security";
 import type { AuditPaths } from "../services/audit";
 import type { CentralSyncPaths } from "../services/central-sync";
+import type { ReferenceDataPaths } from "../services/reference-data";
+import type { AutodromeGeometryPaths } from "../services/autodrome-geometry";
+import type { SchedulingIntegrationPaths } from "../services/scheduling-integration";
+import type { TrafficControlPaths } from "../services/traffic-control";
 
 export function createMockAdapter(
   scenario: MockScenario = DEFAULT_SCENARIO,
@@ -77,6 +81,22 @@ export function createMockAdapter(
     }),
     centralSync: createAutodromeClient<CentralSyncPaths>({
       baseUrl: "/api/central-sync/v1",
+      fetch: mockFetch,
+    }),
+    referenceData: createAutodromeClient<ReferenceDataPaths>({
+      baseUrl: "/api/reference-data/v1",
+      fetch: mockFetch,
+    }),
+    autodromeGeometry: createAutodromeClient<AutodromeGeometryPaths>({
+      baseUrl: "/api/autodrome-geometry/v1",
+      fetch: mockFetch,
+    }),
+    schedulingIntegration: createAutodromeClient<SchedulingIntegrationPaths>({
+      baseUrl: "/api/scheduling-integration/v1",
+      fetch: mockFetch,
+    }),
+    trafficControl: createAutodromeClient<TrafficControlPaths>({
+      baseUrl: "/api/traffic-control/v1",
       fetch: mockFetch,
     }),
   };

@@ -246,6 +246,80 @@ function CentralSyncIcon() {
   );
 }
 
+function ReferenceDataIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
+      <path d="M4 6h16v14H4z" />
+      <path d="M4 10h16M9 6v14" />
+    </svg>
+  );
+}
+
+function GeometryIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
+      <path d="M3 20l9-16 9 16z" />
+      <path d="M7 18h10" />
+    </svg>
+  );
+}
+
+function SchedulingIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
+      <rect x="4" y="6" width="16" height="14" rx="2" />
+      <path d="M4 10h16M9 3v4M15 3v4" />
+    </svg>
+  );
+}
+
+function TrafficIcon() {
+  return (
+    <svg
+      className={styles.icon}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      aria-hidden="true"
+    >
+      <rect x="8" y="3" width="8" height="18" rx="3" />
+      <circle cx="12" cy="7" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="12" cy="17" r="1.5" />
+    </svg>
+  );
+}
+
 function DevicesIcon() {
   return (
     <svg
@@ -332,6 +406,15 @@ export const SHELL_NAV_GROUPS: ShellNavGroup[] = [
       { href: "/exercises", label: "Exercises", icon: <ExercisesIcon /> },
       { href: "/violations", label: "Violations", icon: <ViolationsIcon /> },
       { href: "/rules", label: "Rules", icon: <RulesIcon /> },
+    ],
+  },
+  {
+    heading: "ADMIN",
+    routes: [
+      { href: "/reference-data", label: "Reference data", icon: <ReferenceDataIcon /> },
+      { href: "/autodrome-geometry", label: "Autodrome geometry", icon: <GeometryIcon /> },
+      { href: "/scheduling-integration", label: "Scheduling", icon: <SchedulingIcon /> },
+      { href: "/traffic-control", label: "Traffic control", icon: <TrafficIcon /> },
     ],
   },
   {
