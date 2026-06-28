@@ -105,6 +105,24 @@ test.describe("exam workspace workflow (mock-mode smoke)", () => {
     ).toBeVisible();
   });
 
+  test("/exams aside renders the Result panel with outcome + Recalculate", async ({
+    page,
+  }) => {
+    await page.goto("/exams");
+    // Select a finished exam so canCalculate=true.
+    await page
+      .getByRole("button", { name: /EXM-0117/i })
+      .first()
+      .click();
+    const panel = page.getByLabel(/Exam EXM-0117 result/i);
+    await expect(panel).toBeVisible();
+    // Default mock fixture renders a passed outcome.
+    await expect(panel.getByText("Passed")).toBeVisible();
+    await expect(
+      panel.getByRole("button", { name: /^recalculate$/i }),
+    ).toBeVisible();
+  });
+
   test("/exams aside surfaces the Open evidence timeline link", async ({
     page,
   }) => {
