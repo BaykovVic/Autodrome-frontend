@@ -40,6 +40,18 @@ test.describe("evidence detail (mock-mode baseline)", () => {
     ).toBeDisabled();
   });
 
+  test("MediaArchiveHealthBanner renders with OK badge for healthy fixture", async ({
+    page,
+  }) => {
+    await page.goto("/evidence/EVD-77210");
+    await expect(
+      page.getByRole("heading", { level: 1, name: /EVD-77210/ }),
+    ).toBeVisible();
+    const banner = page.getByLabel(/Media-archive integration health/i);
+    await expect(banner).toBeVisible();
+    await expect(banner.getByText(/OK/i)).toBeVisible();
+  });
+
   test("failed evidence: manifestError + reportError surfaced", async ({
     page,
   }) => {

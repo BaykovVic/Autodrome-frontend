@@ -14,10 +14,13 @@ import {
 } from "@/components";
 import {
   EVIDENCE_MEDIA_SOURCE_LABELS,
+  MEDIA_ARCHIVE_HEALTH_LABELS,
+  deriveMediaArchiveHealth,
   type ConsoleEvidenceDetail,
   type ConsoleEvidenceMediaRecordingStatus,
   type ConsoleEvidenceMediaRef,
   type ConsoleEvidenceReportStatus,
+  type ConsoleMediaArchiveHealth,
 } from "./consoleEvidenceSnapshot";
 import {
   aggregateDetailPlaybackStates,
@@ -97,6 +100,37 @@ function reportStatusDot(
     default:
       return "offline";
   }
+}
+
+function MediaArchiveHealthBanner({
+  health,
+}: {
+  health: ConsoleMediaArchiveHealth;
+}) {
+  const variant: StatusBadgeVariant =
+    health === "ok"
+      ? "success"
+      : health === "partial"
+        ? "warning"
+        : "danger";
+  return (
+    <p
+      className={styles.unavailableBanner}
+      role="status"
+      aria-label="Media-archive integration health"
+    >
+      <StatusBadge variant={variant}>
+        {MEDIA_ARCHIVE_HEALTH_LABELS[health]}
+      </StatusBadge>
+      {health !== "ok" ? (
+        <span style={{ marginLeft: 8 }}>
+          {health === "partial"
+            ? "Some recording manifests or the exam media index are unavailable; degraded panels below show details."
+            : "All recording manifests and the exam media index are unavailable; render falls back to fixture/skeleton metadata."}
+        </span>
+      ) : null}
+    </p>
+  );
 }
 
 export function EvidenceDetailScreen({ evidenceId, loader }: Props) {
@@ -189,6 +223,13 @@ function renderDetail(detail: ConsoleEvidenceDetail) {
         Playback and export are intentionally disabled in this view
         until the dedicated features ship.
       </p>
+
+      <MediaArchiveHealthBanner
+        health={deriveMediaArchiveHealth(
+          detail.mediaRefs,
+          detail.examMediaIndex,
+        )}
+      />
 
       {detail.mediaRefs.length > 0 ? (
         <div
