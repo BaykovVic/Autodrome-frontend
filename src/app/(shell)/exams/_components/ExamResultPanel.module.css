@@ -1,0 +1,68 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  letter-spacing: 0;
+}
+
+.outcomeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0;
+}
+
+.outcomeBadge {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.metaCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  letter-spacing: 0;
+}
+
+.metaLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.metaValue {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  letter-spacing: 0;
+}
+
+.error {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-danger, var(--color-text));
+  letter-spacing: 0;
+}
+
+.absent {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}

@@ -18,6 +18,7 @@ import {
   useConsoleExams,
   type ConsoleExamsLoader,
 } from "./useConsoleExams";
+import { ExamResultPanel } from "./ExamResultPanel";
 import type {
   ConsoleExam,
   ConsoleExamFilter,
@@ -284,6 +285,17 @@ export function ExamsScreen({ loader }: Props) {
               >
                 Open evidence timeline →
               </Link>
+            </div>
+
+            <div className={styles.detailSection}>
+              <div className={styles.sectionTitle}>Result</div>
+              <ExamResultPanel
+                examId={selected.id}
+                canCalculate={
+                  selected.state === "finished" ||
+                  selected.state === "aborted"
+                }
+              />
             </div>
 
             <div className={styles.detailSection}>
