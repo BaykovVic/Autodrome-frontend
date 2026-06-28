@@ -79,6 +79,50 @@ describe("EvidenceDetailScreen", () => {
     expect(within(list).getByText(/Evidence type: videoCabin/i)).toBeDefined();
   });
 
+  it("renders MediaArchiveHealthBanner = OK when no manifest errors", async () => {
+    render(
+      <EvidenceDetailScreen
+        evidenceId="EVD-77210"
+        loader={consoleEvidenceDetailFor}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1, name: /EVD-77210/ });
+    const banner = screen.getByLabelText(
+      /Media-archive integration health/i,
+    );
+    expect(within(banner).getByText(/OK/i)).toBeDefined();
+  });
+
+  it("renders MediaArchiveHealthBanner = partial when some manifests failed", async () => {
+    const baseLoader = consoleEvidenceDetailFor;
+    const enriched = (evidenceId: string) => {
+      const base = baseLoader(evidenceId);
+      if (base.mediaRefs.length === 0) return base;
+      return {
+        ...base,
+        mediaRefs: base.mediaRefs.map((ref, idx) =>
+          idx === 0
+            ? {
+                ...ref,
+                manifestError: "manifest-1 unavailable",
+              }
+            : ref,
+        ),
+      };
+    };
+    render(
+      <EvidenceDetailScreen
+        evidenceId="EVD-77210"
+        loader={enriched}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1, name: /EVD-77210/ });
+    const banner = screen.getByLabelText(
+      /Media-archive integration health/i,
+    );
+    expect(within(banner).getByText(/partial/i)).toBeDefined();
+  });
+
   it("renders the Exam media index error message when indexError is set", async () => {
     const baseLoader = consoleEvidenceDetailFor;
     const enriched = (evidenceId: string) => {

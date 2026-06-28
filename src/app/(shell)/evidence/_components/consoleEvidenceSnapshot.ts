@@ -169,6 +169,38 @@ export type ConsoleExamMediaIndex = {
   indexError?: string;
 };
 
+/**
+ * Aggregate health for media-archive integration on the inspected
+ * evidence: derived from the per-ref `manifestError` and the
+ * exam-wide `examMediaIndex.indexError`. The screen surfaces this
+ * as a single banner so the operator does not need to scan every
+ * row to learn the live API is unavailable.
+ */
+export type ConsoleMediaArchiveHealth = "ok" | "partial" | "degraded";
+
+export function deriveMediaArchiveHealth(
+  mediaRefs: ConsoleEvidenceMediaRef[],
+  examMediaIndex?: ConsoleExamMediaIndex,
+): ConsoleMediaArchiveHealth {
+  const indexFailed = !!examMediaIndex?.indexError;
+  if (mediaRefs.length === 0) {
+    return indexFailed ? "degraded" : "ok";
+  }
+  const failed = mediaRefs.filter((ref) => !!ref.manifestError).length;
+  if (failed === 0 && !indexFailed) return "ok";
+  if (failed === mediaRefs.length && indexFailed) return "degraded";
+  return "partial";
+}
+
+export const MEDIA_ARCHIVE_HEALTH_LABELS: Record<
+  ConsoleMediaArchiveHealth,
+  string
+> = {
+  ok: "Live media-archive: OK",
+  partial: "Live media-archive: partial",
+  degraded: "Live media-archive: degraded",
+};
+
 export type ConsoleEvidenceDetail = {
   /** Base record. */
   evidence: ConsoleEvidence;
