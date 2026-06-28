@@ -123,6 +123,45 @@ test.describe("exam workspace workflow (mock-mode smoke)", () => {
     ).toBeVisible();
   });
 
+  test("/exams aside renders the Protocol panel with templates + Generate button", async ({
+    page,
+  }) => {
+    await page.goto("/exams");
+    await page
+      .getByRole("button", { name: /EXM-0117/i })
+      .first()
+      .click();
+    const panel = page.getByLabel(/Exam EXM-0117 protocol/i);
+    await expect(panel).toBeVisible();
+    // Template select + Generate button rendered.
+    await expect(
+      panel.getByRole("combobox", { name: /protocol template/i }),
+    ).toBeVisible();
+    await expect(
+      panel.getByRole("button", { name: /generate protocol/i }),
+    ).toBeVisible();
+  });
+
+  test("/exams Protocol panel Generate click renders a result via mock generator", async ({
+    page,
+  }) => {
+    await page.goto("/exams");
+    await page
+      .getByRole("button", { name: /EXM-0117/i })
+      .first()
+      .click();
+    const panel = page.getByLabel(/Exam EXM-0117 protocol/i);
+    await panel
+      .getByRole("button", { name: /generate protocol/i })
+      .click();
+    // Mock generator yields a Ready result with the synthetic REP-EXM-0117-MOCK id.
+    await expect(
+      panel.getByRole("link", {
+        name: /Open generated report REP-EXM-0117-MOCK/i,
+      }),
+    ).toBeVisible();
+  });
+
   test("/exams aside surfaces the Open evidence timeline link", async ({
     page,
   }) => {
