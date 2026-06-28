@@ -4,6 +4,7 @@ import {
   aggregateDetailPlaybackStates,
   assessPlayback,
   classifyPlaybackState,
+  summarizePlaybackStates,
 } from "@/app/(shell)/evidence/_components/evidencePlaybackState";
 import type { ConsoleEvidenceMediaRef } from "@/app/(shell)/evidence/_components/consoleEvidenceSnapshot";
 
@@ -138,6 +139,42 @@ describe("assessPlayback", () => {
     );
     expect(a.state).toBe("storageUnavailable");
     expect(a.reason).toBe("Object storage backend unreachable.");
+  });
+});
+
+describe("summarizePlaybackStates", () => {
+  it("returns zero counts on empty input", () => {
+    const s = summarizePlaybackStates([]);
+    expect(s.total).toBe(0);
+    expect(s.ready).toBe(0);
+    expect(s.degraded).toBe(0);
+    expect(s.byState.recordingMetadataAvailable).toBe(0);
+    expect(s.byState.storageUnavailable).toBe(0);
+  });
+
+  it("counts ready vs degraded vs per-state buckets correctly", () => {
+    const s = summarizePlaybackStates([
+      base(),
+      base(),
+      base({
+        status: "failed",
+        statusLabel: "Failed",
+        segments: [],
+        manifestError: "checksum mismatch",
+      }),
+      base({
+        status: "active",
+        statusLabel: "Active",
+        segments: [],
+        manifestError: "still active",
+      }),
+    ]);
+    expect(s.total).toBe(4);
+    expect(s.ready).toBe(2);
+    expect(s.degraded).toBe(2);
+    expect(s.byState.recordingMetadataAvailable).toBe(2);
+    expect(s.byState.retentionChecksumIssue).toBe(1);
+    expect(s.byState.manifestUnavailable).toBe(1);
   });
 });
 

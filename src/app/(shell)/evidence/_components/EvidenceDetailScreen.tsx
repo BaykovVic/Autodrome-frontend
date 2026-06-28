@@ -26,6 +26,7 @@ import {
   aggregateDetailPlaybackStates,
   assessPlayback,
   PLAYBACK_STATE_LABELS,
+  summarizePlaybackStates,
 } from "./evidencePlaybackState";
 import {
   useConsoleEvidenceDetail,
@@ -184,9 +185,14 @@ export function EvidenceDetailScreen({ evidenceId, loader }: Props) {
 
 function renderDetail(detail: ConsoleEvidenceDetail) {
   const { evidence } = detail;
+  const playbackSummary = summarizePlaybackStates(detail.mediaRefs);
   const playbackUnavailableReason =
-    "Playback не доступен в этом релизе: feature " +
-    "`frontend-media-playback-degraded-states` ещё не shipped.";
+    "Interactive video playback is intentionally not wired in this " +
+    "release. Each recording carries an honest degraded-state " +
+    "classification (recording metadata available / storage " +
+    "unavailable / manifest unavailable / retention or checksum " +
+    "issue / export unavailable); the player widget itself remains " +
+    "out of scope.";
   const exportUnavailableReason =
     "Export не доступен в этом релизе: feature " +
     "`frontend-reporting-live-api-integration` ещё не shipped.";
@@ -230,6 +236,19 @@ function renderDetail(detail: ConsoleEvidenceDetail) {
           detail.examMediaIndex,
         )}
       />
+
+      {detail.mediaRefs.length > 0 ? (
+        <p
+          className={styles.unavailableBanner}
+          role="status"
+          aria-label="Playback summary"
+        >
+          {playbackSummary.ready} of {playbackSummary.total} recordings
+          have sealed metadata ({playbackSummary.degraded} degraded).
+          Playback player is not wired; each row carries its own
+          honest state classification below.
+        </p>
+      ) : null}
 
       {detail.mediaRefs.length > 0 ? (
         <div
