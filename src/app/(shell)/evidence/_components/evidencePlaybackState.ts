@@ -196,3 +196,36 @@ export const __KNOWN_RECORDING_STATUSES__: ConsoleEvidenceMediaRecordingStatus[]
   "failed",
   "unknown",
 ];
+
+/**
+ * Per-state counts derived from a recording set. The Detail screen
+ * uses this to render a one-line "X recordings ready, Y degraded"
+ * summary so the operator can decide whether to inspect rows or
+ * escalate without scanning every card.
+ */
+export type ConsolePlaybackSummary = {
+  total: number;
+  byState: Record<ConsoleEvidencePlaybackState, number>;
+  /** Count of recordings whose playback state is non-ready. */
+  degraded: number;
+  /** Count of recordings whose recording metadata is sealed. */
+  ready: number;
+};
+
+export function summarizePlaybackStates(
+  refs: readonly ConsoleEvidenceMediaRef[],
+): ConsolePlaybackSummary {
+  const byState: Record<ConsoleEvidencePlaybackState, number> = {
+    recordingMetadataAvailable: 0,
+    storageUnavailable: 0,
+    manifestUnavailable: 0,
+    exportUnavailable: 0,
+    retentionChecksumIssue: 0,
+  };
+  for (const ref of refs) {
+    byState[classifyPlaybackState(ref)] += 1;
+  }
+  const ready = byState.recordingMetadataAvailable;
+  const degraded = refs.length - ready;
+  return { total: refs.length, byState, ready, degraded };
+}
