@@ -140,6 +140,35 @@ export type ConsoleEvidenceReportRef = {
   reportError?: string;
 };
 
+export type ConsoleExamMediaIndexRecording = {
+  recordingId: string;
+  sessionId?: string;
+  evidenceType?: string;
+  status: ConsoleEvidenceMediaRecordingStatus;
+  statusLabel: string;
+  startedAt: string;
+  finalizedAt?: string;
+  segmentCount: number;
+};
+
+/**
+ * Read model surfaced by canonical
+ * `GET /media/exams/{examId}/media` → `ExamMediaIndex`.
+ *
+ * The Evidence detail screen renders this list as the "Exam media
+ * index" panel so the operator sees every recording attached to the
+ * parent exam — not only the ones already linked to the inspected
+ * evidence record. When the backend endpoint is unavailable, the
+ * panel shows the captured `indexError` string and renders the
+ * per-evidence media refs unchanged (per spec rule "no fake playback
+ * readiness; degraded state explicit").
+ */
+export type ConsoleExamMediaIndex = {
+  examId: string;
+  recordings: ConsoleExamMediaIndexRecording[];
+  indexError?: string;
+};
+
 export type ConsoleEvidenceDetail = {
   /** Base record. */
   evidence: ConsoleEvidence;
@@ -147,6 +176,8 @@ export type ConsoleEvidenceDetail = {
   mediaRefs: ConsoleEvidenceMediaRef[];
   /** Linked reporting documents (zero when no report exists yet). */
   reportRefs: ConsoleEvidenceReportRef[];
+  /** Exam-wide media index (optional; only populated in live mode). */
+  examMediaIndex?: ConsoleExamMediaIndex;
   /** Operator audit notes (optional). */
   notes?: string;
 };

@@ -436,6 +436,86 @@ function renderDetail(detail: ConsoleEvidenceDetail) {
           )}
         </section>
 
+        {detail.examMediaIndex ? (
+          <section
+            className={`${styles.section} ${styles.sectionFull}`}
+            aria-labelledby="evidence-detail-exam-media-title"
+          >
+            <h2
+              id="evidence-detail-exam-media-title"
+              className={styles.sectionTitle}
+            >
+              Exam media index ({detail.examMediaIndex.recordings.length})
+            </h2>
+            <p className={styles.notesText}>
+              Recordings attached to exam {detail.examMediaIndex.examId}
+              {" "}via canonical media-archive
+              `GET /media/exams/{`{examId}`}/media`. Playback/export
+              remain unavailable until the dedicated features land.
+            </p>
+            {detail.examMediaIndex.indexError ? (
+              <p
+                className={styles.refError}
+                aria-label="Exam media index error"
+              >
+                {detail.examMediaIndex.indexError}
+              </p>
+            ) : detail.examMediaIndex.recordings.length === 0 ? (
+              <p className={styles.notesText}>
+                No recordings attached to this exam yet.
+              </p>
+            ) : (
+              <ul
+                className={styles.refList}
+                aria-label="Exam media recordings"
+              >
+                {detail.examMediaIndex.recordings.map((rec) => (
+                  <li key={rec.recordingId} className={styles.refCard}>
+                    <div className={styles.refTopRow}>
+                      <span className={styles.refId}>{rec.recordingId}</span>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                        }}
+                      >
+                        <StatusDot
+                          variant={mediaStatusDot(rec.status)}
+                          halo={false}
+                        />
+                        <StatusBadge
+                          variant={mediaStatusBadge(rec.status)}
+                        >
+                          {rec.statusLabel}
+                        </StatusBadge>
+                      </span>
+                    </div>
+                    <span className={styles.refMeta}>
+                      Segments: {rec.segmentCount} · Started:{" "}
+                      {rec.startedAt}
+                      {rec.finalizedAt
+                        ? ` · Finalized: ${rec.finalizedAt}`
+                        : ""}
+                    </span>
+                    {rec.sessionId || rec.evidenceType ? (
+                      <span className={styles.refMeta}>
+                        {rec.sessionId
+                          ? `Session: ${rec.sessionId}`
+                          : ""}
+                        {rec.sessionId && rec.evidenceType ? " · " : ""}
+                        {rec.evidenceType
+                          ? `Evidence type: ${rec.evidenceType}`
+                          : ""}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
+
         <section
           className={`${styles.section} ${styles.sectionFull}`}
           aria-labelledby="evidence-detail-reports-title"
