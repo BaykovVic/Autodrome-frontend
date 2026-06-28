@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {
@@ -272,6 +273,17 @@ export function ExamsScreen({ loader }: Props) {
                   mono
                 />
               </dl>
+            </div>
+
+            <div className={styles.detailSection}>
+              <div className={styles.sectionTitle}>Evidence</div>
+              <Link
+                href={`/exams/${selected.id}/evidence-timeline`}
+                className={styles.evidenceLink}
+                aria-label={`Open evidence timeline for exam ${selected.id}`}
+              >
+                Open evidence timeline →
+              </Link>
             </div>
 
             <div className={styles.detailSection}>

@@ -71,8 +71,9 @@ describe("ExamsScreen", () => {
       name: /^abort$/i,
     }) as HTMLButtonElement;
     expect(abortBtn.disabled).toBe(true);
-    // Timeline entries rendered.
-    expect(within(detail).getByText(/Timeline/i)).toBeDefined();
+    // Timeline entries rendered (use exact match to disambiguate the
+    // sibling "Evidence" section's "Open evidence timeline →" link).
+    expect(within(detail).getByText("Timeline")).toBeDefined();
     expect(within(detail).getByText(/Exam finished/i)).toBeDefined();
   });
 
