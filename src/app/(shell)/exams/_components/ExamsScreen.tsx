@@ -19,6 +19,7 @@ import {
   type ConsoleExamsLoader,
 } from "./useConsoleExams";
 import { ExamResultPanel } from "./ExamResultPanel";
+import { ExamProtocolPanel } from "./ExamProtocolPanel";
 import type {
   ConsoleExam,
   ConsoleExamFilter,
@@ -292,6 +293,17 @@ export function ExamsScreen({ loader }: Props) {
               <ExamResultPanel
                 examId={selected.id}
                 canCalculate={
+                  selected.state === "finished" ||
+                  selected.state === "aborted"
+                }
+              />
+            </div>
+
+            <div className={styles.detailSection}>
+              <div className={styles.sectionTitle}>Protocol</div>
+              <ExamProtocolPanel
+                examId={selected.id}
+                canGenerate={
                   selected.state === "finished" ||
                   selected.state === "aborted"
                 }

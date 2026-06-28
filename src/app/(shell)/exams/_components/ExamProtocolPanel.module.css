@@ -1,0 +1,101 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  letter-spacing: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0;
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  letter-spacing: 0;
+}
+
+.select {
+  font: inherit;
+  font-size: var(--font-size-sm);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  letter-spacing: 0;
+}
+
+.summary {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  letter-spacing: 0;
+}
+
+.error {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-danger, var(--color-text));
+  letter-spacing: 0;
+}
+
+.absent {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.missingList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  letter-spacing: 0;
+}
+
+.missingChip {
+  font-size: var(--font-size-xs);
+  background: var(--color-surface-muted);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  letter-spacing: 0;
+}
+
+.link {
+  color: var(--color-link);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
