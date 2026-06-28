@@ -129,6 +129,63 @@ test.describe("evidence + reporting composite workflow (mock)", () => {
     ).toBeVisible();
   });
 
+  test("workflow E-T12: exam → evidence timeline → result calculate → protocol generate → evidence detail health/summary", async ({
+    page,
+  }) => {
+    // 1. Exams workspace → open EXM-0117 row (finished state).
+    await page.goto("/exams");
+    await page
+      .getByRole("button", { name: /EXM-0117/i })
+      .first()
+      .click();
+    const aside = page.getByRole("complementary", {
+      name: /Exam EXM-0117/i,
+    });
+    await expect(aside).toBeVisible();
+
+    // 2. Verify Result panel rendered with passed outcome from mock.
+    const resultPanel = page.getByLabel(/Exam EXM-0117 result/i);
+    await expect(resultPanel).toBeVisible();
+    await expect(resultPanel.getByText("Passed")).toBeVisible();
+
+    // 3. Generate a protocol via the Protocol panel.
+    const protocolPanel = page.getByLabel(/Exam EXM-0117 protocol/i);
+    await expect(protocolPanel).toBeVisible();
+    await protocolPanel
+      .getByRole("button", { name: /generate protocol/i })
+      .click();
+    await expect(
+      protocolPanel.getByRole("link", {
+        name: /Open generated report REP-EXM-0117-MOCK/i,
+      }),
+    ).toBeVisible();
+
+    // 4. Cross-link: open the Evidence Timeline.
+    await aside
+      .getByRole("link", {
+        name: /Open evidence timeline for exam EXM-0117/i,
+      })
+      .click();
+    await expect(page).toHaveURL(/\/exams\/EXM-0117\/evidence-timeline$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: /evidence timeline/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: /filter by source/i }),
+    ).toBeVisible();
+
+    // 5. Navigate to an Evidence detail page; verify the
+    // media-archive health banner (T12-F4) + playback summary
+    // banner (T12-F5) are both present.
+    await page.goto("/evidence/EVD-77210");
+    await expect(
+      page.getByLabel(/Media-archive integration health/i),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel(/Playback summary/i),
+    ).toBeVisible();
+  });
+
   test("workflow E: reporting catalog → recent reports → disabled submission affordances", async ({
     page,
   }) => {
