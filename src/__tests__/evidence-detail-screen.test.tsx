@@ -33,6 +33,80 @@ describe("EvidenceDetailScreen", () => {
     ).toBeDefined();
   });
 
+  it("renders the Exam media index panel when loader supplies it", async () => {
+    const baseLoader = consoleEvidenceDetailFor;
+    const enriched = (evidenceId: string) => {
+      const base = baseLoader(evidenceId);
+      return {
+        ...base,
+        examMediaIndex: {
+          examId: "EXM-AA",
+          recordings: [
+            {
+              recordingId: "REC-A1",
+              status: "finalized" as const,
+              statusLabel: "Finalized",
+              startedAt: "2026-06-28T09:00:00Z",
+              finalizedAt: "2026-06-28T09:30:00Z",
+              segmentCount: 4,
+              sessionId: "SES-1",
+              evidenceType: "videoCabin",
+            },
+            {
+              recordingId: "REC-A2",
+              status: "active" as const,
+              statusLabel: "Active",
+              startedAt: "2026-06-28T09:35:00Z",
+              segmentCount: 1,
+            },
+          ],
+        },
+      };
+    };
+    render(
+      <EvidenceDetailScreen
+        evidenceId="EVD-77210"
+        loader={enriched}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1, name: /EVD-77210/ });
+    const list = screen.getByRole("list", {
+      name: /exam media recordings/i,
+    });
+    expect(within(list).getByText(/REC-A1/)).toBeDefined();
+    expect(within(list).getByText(/REC-A2/)).toBeDefined();
+    expect(within(list).getByText(/Session: SES-1/i)).toBeDefined();
+    expect(within(list).getByText(/Evidence type: videoCabin/i)).toBeDefined();
+  });
+
+  it("renders the Exam media index error message when indexError is set", async () => {
+    const baseLoader = consoleEvidenceDetailFor;
+    const enriched = (evidenceId: string) => {
+      const base = baseLoader(evidenceId);
+      return {
+        ...base,
+        examMediaIndex: {
+          examId: "EXM-AA",
+          recordings: [],
+          indexError: "media-archive degraded",
+        },
+      };
+    };
+    render(
+      <EvidenceDetailScreen
+        evidenceId="EVD-77210"
+        loader={enriched}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1, name: /EVD-77210/ });
+    expect(
+      screen.getByLabelText(/exam media index error/i),
+    ).toBeDefined();
+    expect(
+      screen.getByText(/media-archive degraded/i),
+    ).toBeDefined();
+  });
+
   it("playback + export buttons are disabled (no fake readiness)", async () => {
     render(
       <EvidenceDetailScreen

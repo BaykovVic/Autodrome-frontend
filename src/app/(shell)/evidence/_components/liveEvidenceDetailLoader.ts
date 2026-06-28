@@ -38,12 +38,15 @@ import {
   EVIDENCE_MEDIA_STATUS_LABELS,
   EVIDENCE_REPORT_STATUS_LABELS,
   type ConsoleEvidenceDetail,
+  type ConsoleEvidenceMediaRecordingStatus,
   type ConsoleEvidenceMediaRef,
   type ConsoleEvidenceMediaSegment,
   type ConsoleEvidenceMediaSourceKind,
   type ConsoleEvidenceMediaTimelineEntry,
   type ConsoleEvidenceReportRef,
   type ConsoleEvidenceReportStatus,
+  type ConsoleExamMediaIndex,
+  type ConsoleExamMediaIndexRecording,
 } from "./consoleEvidenceSnapshot";
 
 type PlaybackManifestDto =
@@ -52,6 +55,12 @@ type MediaSourceKindDto =
   MediaArchiveComponents["schemas"]["MediaSource"]["kind"];
 type ReportDto = ReportingComponents["schemas"]["Report"];
 type ReportStatusDto = ReportingComponents["schemas"]["ReportStatus"];
+type ExamMediaIndexDto =
+  MediaArchiveComponents["schemas"]["ExamMediaIndex"];
+type ExamMediaRecordingDto =
+  MediaArchiveComponents["schemas"]["ExamMediaRecording"];
+type MediaRecordingStatusDto =
+  MediaArchiveComponents["schemas"]["MediaRecordingStatus"];
 
 function isKnownSourceKind(
   k: string,
@@ -167,6 +176,72 @@ function explainError(error: unknown): string {
   return "Backend fetch failed.";
 }
 
+export function mapMediaRecordingStatusToConsole(
+  s: MediaRecordingStatusDto,
+): ConsoleEvidenceMediaRecordingStatus {
+  switch (s) {
+    case "active":
+    case "finalized":
+    case "failed":
+      return s;
+    default:
+      return "unknown";
+  }
+}
+
+export function mapExamMediaRecordingDto(
+  dto: ExamMediaRecordingDto,
+): ConsoleExamMediaIndexRecording {
+  const status = mapMediaRecordingStatusToConsole(dto.status);
+  return {
+    recordingId: dto.recordingId,
+    sessionId: dto.sessionId,
+    evidenceType: dto.evidenceType,
+    status,
+    statusLabel: EVIDENCE_MEDIA_STATUS_LABELS[status],
+    startedAt: dto.startedAt,
+    finalizedAt: dto.finalizedAt,
+    segmentCount: dto.segmentCount,
+  };
+}
+
+export function mapExamMediaIndexDto(
+  examId: string,
+  dto: ExamMediaIndexDto,
+): ConsoleExamMediaIndex {
+  return {
+    examId: dto.examId ?? examId,
+    recordings: (dto.recordings ?? []).map(mapExamMediaRecordingDto),
+  };
+}
+
+export async function liveExamMediaIndex(
+  adapter: AutodromeApi,
+  examId: string,
+): Promise<ConsoleExamMediaIndex> {
+  try {
+    const result = await adapter.mediaArchive.GET(
+      "/media/exams/{examId}/media",
+      { params: { path: { examId } } },
+    );
+    const dto = result.data as ExamMediaIndexDto | undefined;
+    if (!dto) {
+      return {
+        examId,
+        recordings: [],
+        indexError: "Exam media index returned no body.",
+      };
+    }
+    return mapExamMediaIndexDto(examId, dto);
+  } catch (error) {
+    return {
+      examId,
+      recordings: [],
+      indexError: explainError(error),
+    };
+  }
+}
+
 export async function liveEvidenceDetailLoader(
   adapter: AutodromeApi,
   evidenceId: string,
@@ -229,9 +304,20 @@ export async function liveEvidenceDetailLoader(
     }),
   );
 
+  // Exam-wide media index. Only fetched when the base record has
+  // a non-placeholder examId (fixture uses "—" for unmapped
+  // evidence). On a placeholder examId we skip the index call
+  // entirely so a 404 storm is avoided.
+  const examId = base.evidence.examId;
+  const examMediaIndex =
+    examId && examId !== "—"
+      ? await liveExamMediaIndex(adapter, examId)
+      : undefined;
+
   return {
     ...base,
     mediaRefs,
     reportRefs,
+    examMediaIndex,
   };
 }
