@@ -26,6 +26,7 @@
  */
 
 import type { AutodromeApi } from "@/api/adapter";
+import { newCorrelationId } from "@/api/correlation";
 import type { components } from "@/contracts/types/reporting-document";
 
 import {
@@ -49,6 +50,10 @@ type ReportDto = components["schemas"]["Report"];
 type ReportTypeDto = components["schemas"]["ReportType"];
 type ReportFormatDto = components["schemas"]["ReportFormat"];
 type ReportStatusDto = components["schemas"]["ReportStatus"];
+type ExamProtocolRequestDto =
+  components["schemas"]["ExamProtocolRequest"];
+type ExamProtocolResultDto =
+  components["schemas"]["ExamProtocolResult"];
 
 export function mapReportTypeDtoToConsole(
   dto: ReportTypeDto,
@@ -138,6 +143,81 @@ function reportTotals(
     readyReports: reports.filter((r) => r.status === "ready").length,
     failedReports: reports.filter((r) => r.status === "failed").length,
   };
+}
+
+/**
+ * Console view-model surfaced to the operator after the protocol
+ * generation request. Preserves canonical fields + the degraded
+ * flag + the missing-evidence list so the screen can decide
+ * whether to surface a "degraded" badge / warning.
+ */
+export type ConsoleProtocolRequestResult = {
+  reportId: string;
+  examId: string;
+  status: ConsoleReportStatus;
+  statusLabel: string;
+  degraded: boolean;
+  missingEvidence: string[];
+  snapshotHash: string;
+  violationCount: number;
+  mediaCount: number;
+  audioCount: number;
+  biometryCount: number;
+  generatedAt: string;
+};
+
+export function mapExamProtocolResultDtoToConsole(
+  dto: ExamProtocolResultDto,
+): ConsoleProtocolRequestResult {
+  const status = mapReportStatusDtoToConsoleReporting(dto.status);
+  return {
+    reportId: dto.reportId,
+    examId: dto.examId,
+    status,
+    statusLabel: REPORTING_STATUS_LABELS[status],
+    degraded: dto.degraded,
+    missingEvidence: dto.missingEvidence,
+    snapshotHash: dto.snapshotHash,
+    violationCount: dto.violationCount,
+    mediaCount: dto.mediaCount,
+    audioCount: dto.audioCount,
+    biometryCount: dto.biometryCount,
+    generatedAt: dto.generatedAt,
+  };
+}
+
+/**
+ * POST `/reports/exams/{examId}/protocol` — compose an exam
+ * protocol with evidence references. Backend is idempotent
+ * за счёт Idempotency-Key (UUID per call).
+ *
+ * The full request shape is the operator's responsibility (which
+ * evidence refs to include); this helper only adds the
+ * Idempotency-Key + the path param and maps the canonical result
+ * to the operator-facing view-model.
+ */
+export async function liveExamProtocolRequest(
+  adapter: AutodromeApi,
+  examId: string,
+  request: ExamProtocolRequestDto,
+): Promise<ConsoleProtocolRequestResult> {
+  const result = await adapter.reportingDocument.POST(
+    "/reports/exams/{examId}/protocol",
+    {
+      params: {
+        path: { examId },
+        header: { "Idempotency-Key": newCorrelationId() },
+      },
+      body: request,
+    },
+  );
+  const dto = result.data as ExamProtocolResultDto | undefined;
+  if (!dto) {
+    throw new Error(
+      "reporting-document-service returned an empty body for protocol POST",
+    );
+  }
+  return mapExamProtocolResultDtoToConsole(dto);
 }
 
 export async function liveReportingLoader(
