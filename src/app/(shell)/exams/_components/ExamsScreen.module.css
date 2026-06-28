@@ -262,6 +262,18 @@
   margin-bottom: 10px;
 }
 
+.evidenceLink {
+  display: inline-block;
+  font-size: var(--font-size-sm);
+  color: var(--color-link);
+  text-decoration: none;
+  letter-spacing: 0;
+}
+
+.evidenceLink:hover {
+  text-decoration: underline;
+}
+
 .lifecycleRow {
   display: flex;
   gap: 7px;

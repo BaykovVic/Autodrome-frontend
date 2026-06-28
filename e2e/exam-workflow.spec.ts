@@ -86,6 +86,43 @@ test.describe("exam workspace workflow (mock-mode smoke)", () => {
     ).toBeVisible();
   });
 
+  test("/exams/[examId]/evidence-timeline renders heading, filter chips and event list", async ({
+    page,
+  }) => {
+    await page.goto("/exams/EXM-0117/evidence-timeline");
+    await expect(
+      page.getByRole("heading", { level: 1, name: /evidence timeline/i }),
+    ).toBeVisible();
+    // Source filter group present with "All" chip.
+    const filters = page.getByRole("group", { name: /filter by source/i });
+    await expect(filters).toBeVisible();
+    await expect(
+      filters.getByRole("button", { name: /^all/i }),
+    ).toBeVisible();
+    // Event list rendered from mock fixtures.
+    await expect(
+      page.getByLabel(/evidence timeline events/i),
+    ).toBeVisible();
+  });
+
+  test("/exams aside surfaces the Open evidence timeline link", async ({
+    page,
+  }) => {
+    await page.goto("/exams");
+    await page
+      .getByRole("button", { name: /EXM-0117/i })
+      .first()
+      .click();
+    const link = page.getByRole("link", {
+      name: /Open evidence timeline for exam EXM-0117/i,
+    });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute(
+      "href",
+      "/exams/EXM-0117/evidence-timeline",
+    );
+  });
+
   test("Sidebar round-trip Dashboard → Exams → Dashboard", async ({
     page,
   }) => {
