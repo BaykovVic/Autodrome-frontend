@@ -23,6 +23,7 @@ import type { AutodromeGeometryPaths } from "./services/autodrome-geometry";
 import type { SchedulingIntegrationPaths } from "./services/scheduling-integration";
 import type { TrafficControlPaths } from "./services/traffic-control";
 import type { BiometryPaths } from "./services/biometry";
+import type { VehicleSimulatorRpiPaths } from "./services/vehicle-simulator-rpi";
 
 export function createLiveAdapter(
   baseUrls: Record<ServiceName, string> = DEFAULT_LIVE_BASE_URLS,
@@ -84,6 +85,9 @@ export function createLiveAdapter(
     }),
     biometry: createAutodromeClient<BiometryPaths>({
       baseUrl: baseUrls.biometry,
+    }),
+    vehicleSimulatorRpi: createAutodromeClient<VehicleSimulatorRpiPaths>({
+      baseUrl: baseUrls.vehicleSimulatorRpi,
     }),
   };
 }

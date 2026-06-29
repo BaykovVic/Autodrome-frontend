@@ -397,6 +397,11 @@ export const SHELL_NAV_GROUPS: ShellNavGroup[] = [
         label: "Virtual Vehicles",
         icon: <VirtualVehiclesIcon />,
       },
+      {
+        href: "/rpi-emulator",
+        label: "RPi Emulator",
+        icon: <VirtualVehiclesIcon />,
+      },
       { href: "/exams", label: "Exams", icon: <ExamsIcon /> },
     ],
   },

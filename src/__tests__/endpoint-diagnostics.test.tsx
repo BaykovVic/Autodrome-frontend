@@ -40,17 +40,17 @@ describe("EndpointDiagnostics", () => {
     const section = screen.getByRole("region", {
       name: /service endpoint diagnostics/i,
     });
-    // 19 service rows (incl. biometry added в T11-F6).
+    // 20 service rows (incl. vehicle-simulator-rpi added в T13-F8).
     expect(
       within(section).getAllByText(/^mock$/i).length,
-    ).toBeGreaterThanOrEqual(19);
+    ).toBeGreaterThanOrEqual(20);
     expect(
       within(section).getAllByText(/^n\/a$/i).length,
-    ).toBeGreaterThanOrEqual(19);
+    ).toBeGreaterThanOrEqual(20);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(19);
+    expect(checkBtns).toHaveLength(20);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(true);
     }
@@ -71,11 +71,11 @@ describe("EndpointDiagnostics", () => {
     ).toHaveLength(2);
     expect(
       within(section).getAllByText(/^default$/i),
-    ).toHaveLength(18);
+    ).toHaveLength(19);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(19);
+    expect(checkBtns).toHaveLength(20);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(false);
     }
