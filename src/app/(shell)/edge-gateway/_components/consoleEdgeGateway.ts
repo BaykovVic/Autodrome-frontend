@@ -131,3 +131,41 @@ export function deriveForwardGap(
   if (deltaMs < 30_000) return "fresh";
   return "stale";
 }
+
+/**
+ * Upstream-heartbeat freshness classifier. Operator-facing indicator
+ * for how fresh the last upstream heartbeat is. Mirrors the
+ * forward-gap taxonomy so the screen can render both badges with
+ * the same shape.
+ */
+export type ConsoleEdgeUpstreamHeartbeatGap =
+  | "fresh"
+  | "stale"
+  | "noHeartbeatYet"
+  | "unreachable";
+
+export const EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS: Record<
+  ConsoleEdgeUpstreamHeartbeatGap,
+  string
+> = {
+  fresh: "Upstream heartbeat < 30 s ago",
+  stale: "Upstream heartbeat > 30 s ago",
+  noHeartbeatYet: "No upstream heartbeat observed yet",
+  unreachable: "Upstream marked unreachable",
+};
+
+export function deriveUpstreamHeartbeatGap(
+  snapshot: ConsoleEdgeGatewaySnapshot,
+  now: Date,
+): ConsoleEdgeUpstreamHeartbeatGap {
+  const upstream = snapshot.upstream;
+  if (!upstream) return "noHeartbeatYet";
+  if (upstream.reachable === false) return "unreachable";
+  const last = upstream.lastHeartbeatAt;
+  if (!last) return "noHeartbeatYet";
+  const ts = Date.parse(last);
+  if (Number.isNaN(ts)) return "noHeartbeatYet";
+  const deltaMs = now.getTime() - ts;
+  if (deltaMs < 30_000) return "fresh";
+  return "stale";
+}

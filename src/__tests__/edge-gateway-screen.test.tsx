@@ -19,8 +19,10 @@ import { consoleEdgeGatewayFor } from "@/app/(shell)/edge-gateway/_components/co
 import {
   deriveEdgeGatewayHealth,
   deriveForwardGap,
+  deriveUpstreamHeartbeatGap,
   EDGE_GATEWAY_GAP_LABELS,
   EDGE_GATEWAY_HEALTH_LABELS,
+  EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS,
   GATEWAY_PHASE_LABELS,
 } from "@/app/(shell)/edge-gateway/_components/consoleEdgeGateway";
 import {
@@ -60,6 +62,62 @@ describe("EDGE_GATEWAY_GAP_LABELS", () => {
     expect(EDGE_GATEWAY_GAP_LABELS.fresh).toMatch(/30/);
     expect(EDGE_GATEWAY_GAP_LABELS.stale).toMatch(/30/);
     expect(EDGE_GATEWAY_GAP_LABELS.noForwardYet).toMatch(/no forward/i);
+  });
+});
+
+describe("EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS", () => {
+  it("covers every upstream-heartbeat-gap bucket", () => {
+    expect(EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS.fresh).toMatch(/30/);
+    expect(EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS.stale).toMatch(/30/);
+    expect(EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS.noHeartbeatYet).toMatch(
+      /no upstream heartbeat/i,
+    );
+    expect(EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS.unreachable).toMatch(
+      /unreachable/i,
+    );
+  });
+});
+
+describe("deriveUpstreamHeartbeatGap", () => {
+  const now = new Date("2026-06-29T08:00:00Z");
+  it("returns 'noHeartbeatYet' when upstream is undefined", () => {
+    const snap = consoleEdgeGatewayFor("failed");
+    snap.upstream = undefined;
+    expect(deriveUpstreamHeartbeatGap(snap, now)).toBe(
+      "noHeartbeatYet",
+    );
+  });
+  it("returns 'unreachable' when upstream.reachable=false", () => {
+    expect(
+      deriveUpstreamHeartbeatGap(
+        consoleEdgeGatewayFor("upstream-unreachable"),
+        now,
+      ),
+    ).toBe("unreachable");
+  });
+  it("returns 'noHeartbeatYet' when reachable but lastHeartbeatAt missing", () => {
+    expect(
+      deriveUpstreamHeartbeatGap(
+        consoleEdgeGatewayFor("bootstrapping"),
+        now,
+      ),
+    ).toBe("noHeartbeatYet");
+  });
+  it("returns 'fresh' when heartbeat is within 30 s", () => {
+    expect(
+      deriveUpstreamHeartbeatGap(
+        consoleEdgeGatewayFor("forwarding"),
+        new Date("2026-06-29T08:00:10Z"),
+      ),
+    ).toBe("fresh");
+  });
+  it("returns 'stale' when heartbeat is older than 30 s", () => {
+    expect(
+      deriveUpstreamHeartbeatGap(
+        consoleEdgeGatewayFor("forwarding"),
+        new Date("2026-06-29T08:05:00Z"),
+      ),
+    ).toBe("stale");
   });
 });
 
@@ -266,6 +324,66 @@ describe("EdgeGatewayScreen", () => {
       /Edge gateway integration health/i,
     );
     expect(within(banner).getByText(/upstream/i)).toBeDefined();
+  });
+
+  it("renders the Forward queue gap badge wired to deriveForwardGap (fresh)", async () => {
+    render(
+      <EdgeGatewayScreen
+        loader={() => consoleEdgeGatewayFor("forwarding")}
+        nowProvider={() => new Date("2026-06-29T08:00:10Z")}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1 });
+    const gap = screen.getByLabelText(/Forward queue gap/i);
+    expect(within(gap).getByText(/30 s ago/i)).toBeDefined();
+  });
+
+  it("renders the Forward queue gap badge as 'no forward' when lastForwardedAt is absent", async () => {
+    render(
+      <EdgeGatewayScreen
+        loader={() => consoleEdgeGatewayFor("failed")}
+        nowProvider={() => new Date("2026-06-29T08:00:00Z")}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1 });
+    const gap = screen.getByLabelText(/Forward queue gap/i);
+    expect(within(gap).getByText(/no forward/i)).toBeDefined();
+  });
+
+  it("renders the Upstream heartbeat gap badge wired to deriveUpstreamHeartbeatGap (unreachable)", async () => {
+    render(
+      <EdgeGatewayScreen
+        loader={() => consoleEdgeGatewayFor("upstream-unreachable")}
+        nowProvider={() => new Date("2026-06-29T08:00:00Z")}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1 });
+    const gap = screen.getByLabelText(/Upstream heartbeat gap/i);
+    expect(within(gap).getByText(/unreachable/i)).toBeDefined();
+  });
+
+  it("renders the Upstream heartbeat gap badge as 'fresh' for healthy fixture", async () => {
+    render(
+      <EdgeGatewayScreen
+        loader={() => consoleEdgeGatewayFor("forwarding")}
+        nowProvider={() => new Date("2026-06-29T08:00:10Z")}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1 });
+    const gap = screen.getByLabelText(/Upstream heartbeat gap/i);
+    expect(within(gap).getByText(/< 30 s/i)).toBeDefined();
+  });
+
+  it("renders the Forward queue gap badge as 'stale' for outdated fixture", async () => {
+    render(
+      <EdgeGatewayScreen
+        loader={() => consoleEdgeGatewayFor("forwarding")}
+        nowProvider={() => new Date("2026-06-29T09:00:00Z")}
+      />,
+    );
+    await screen.findByRole("heading", { level: 1 });
+    const gap = screen.getByLabelText(/Forward queue gap/i);
+    expect(within(gap).getByText(/> 30 s/i)).toBeDefined();
   });
 
   it("renders Skeleton while loader is pending", () => {

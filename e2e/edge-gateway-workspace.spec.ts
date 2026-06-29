@@ -49,6 +49,27 @@ test.describe("edge gateway workspace (mock-mode baseline)", () => {
     await expect(banner.getByText(/forwarding healthy/i)).toBeVisible();
   });
 
+  test("/edge-gateway renders visible Forward queue gap + Upstream heartbeat gap badges", async ({
+    page,
+  }) => {
+    await page.goto("/edge-gateway");
+    await expect(
+      page.getByRole("heading", { level: 1 }),
+    ).toBeVisible();
+    // Both gap indicators are operator-visible regions per spec
+    // ("Last telemetry sample/gap indicators"). Mock-mode default
+    // fixture is `forwarding` so labels include the 30 s threshold
+    // text — assert structural visibility rather than exact freshness
+    // (page renders > 30 s after fixture timestamps so 'stale' is
+    // expected; either way both gap regions must be present).
+    await expect(
+      page.getByLabel(/Forward queue gap/i),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel(/Upstream heartbeat gap/i),
+    ).toBeVisible();
+  });
+
   test("Sidebar route round-trip Dashboard → Edge Gateway → Dashboard", async ({
     page,
   }) => {
