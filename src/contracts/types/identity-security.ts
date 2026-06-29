@@ -167,6 +167,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/users/{userId}/roles": {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        /** List a user's assigned roles. */
+        get: operations["userRolesList"];
+        put?: never;
+        /** Assign a role to a user (idempotent). */
+        post: operations["userRoleAssign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/users/{userId}/roles/{roleKey}": {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                userId: string;
+                roleKey: components["schemas"]["Role"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke a role from a user (idempotent). */
+        delete: operations["userRoleRevoke"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -301,6 +345,15 @@ export interface components {
             /** Format: date-time */
             revokedAt: string;
             reason?: string;
+        };
+        AssignRoleRequest: {
+            role: components["schemas"]["Role"];
+        };
+        UserRolesResponse: {
+            /** Format: uuid */
+            userId: string;
+            /** @description The user's current role set. */
+            roles: components["schemas"]["Role"][];
         };
     };
     responses: {
@@ -604,6 +657,91 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    userRolesList: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The user's current role set. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRolesResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    userRoleAssign: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description Resulting role set after the assignment. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRolesResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
+            500: components["responses"]["InternalServerError"];
+        };
+    };
+    userRoleRevoke: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Correlation-Id"?: components["parameters"]["CorrelationId"];
+            };
+            path: {
+                userId: string;
+                roleKey: components["schemas"]["Role"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resulting role set after the revocation. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRolesResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
             500: components["responses"]["InternalServerError"];
         };
     };

@@ -44,6 +44,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   schedulingIntegration: "Scheduling integration",
   trafficControl: "Traffic control",
   biometry: "Biometry",
+  vehicleSimulatorRpi: "Vehicle Simulator RPi",
 };
 
 function modeVariant(

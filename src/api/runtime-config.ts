@@ -40,7 +40,8 @@ export type ServiceName =
   | "autodromeGeometry"
   | "schedulingIntegration"
   | "trafficControl"
-  | "biometry";
+  | "biometry"
+  | "vehicleSimulatorRpi";
 
 export const SERVICE_NAMES: readonly ServiceName[] = [
   "candidate",
@@ -62,6 +63,7 @@ export const SERVICE_NAMES: readonly ServiceName[] = [
   "schedulingIntegration",
   "trafficControl",
   "biometry",
+  "vehicleSimulatorRpi",
 ] as const;
 
 export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
@@ -84,6 +86,7 @@ export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
   schedulingIntegration: "/api/scheduling-integration/v1",
   trafficControl: "/api/traffic-control/v1",
   biometry: "/api/biometry/v1",
+  vehicleSimulatorRpi: "/api/vehicle-simulator-rpi/v1",
 };
 
 export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
@@ -106,6 +109,7 @@ export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
   schedulingIntegration: "NEXT_PUBLIC_API_SCHEDULING_INTEGRATION_BASE_URL",
   trafficControl: "NEXT_PUBLIC_API_TRAFFIC_CONTROL_BASE_URL",
   biometry: "NEXT_PUBLIC_API_BIOMETRY_BASE_URL",
+  vehicleSimulatorRpi: "NEXT_PUBLIC_API_VEHICLE_SIMULATOR_RPI_BASE_URL",
 };
 
 export type RuntimeConfigIssue = {
