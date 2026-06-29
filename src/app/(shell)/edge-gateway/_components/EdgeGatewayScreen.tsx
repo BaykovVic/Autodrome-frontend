@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   ApiErrorView,
   Skeleton,
@@ -10,10 +12,16 @@ import {
 } from "@/components";
 
 import {
+  EDGE_GATEWAY_GAP_LABELS,
   EDGE_GATEWAY_HEALTH_LABELS,
+  EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS,
   deriveEdgeGatewayHealth,
+  deriveForwardGap,
+  deriveUpstreamHeartbeatGap,
+  type ConsoleEdgeGatewayGap,
   type ConsoleEdgeGatewayHealth,
   type ConsoleEdgeGatewaySnapshot,
+  type ConsoleEdgeUpstreamHeartbeatGap,
   type ConsoleGatewayPhase,
 } from "./consoleEdgeGateway";
 import {
@@ -25,7 +33,43 @@ import styles from "./EdgeGatewayScreen.module.css";
 
 type Props = {
   loader?: ConsoleEdgeGatewayLoader;
+  /**
+   * Optional clock override for tests so the forward / heartbeat
+   * gap badges are deterministic. Defaults to `new Date()` at the
+   * time of render.
+   */
+  nowProvider?: () => Date;
 };
+
+function forwardGapBadge(g: ConsoleEdgeGatewayGap): StatusBadgeVariant {
+  if (g === "fresh") return "success";
+  if (g === "stale") return "warning";
+  return "neutral";
+}
+
+function forwardGapDot(g: ConsoleEdgeGatewayGap): StatusDotVariant {
+  if (g === "fresh") return "online";
+  if (g === "stale") return "degraded";
+  return "standby";
+}
+
+function heartbeatGapBadge(
+  g: ConsoleEdgeUpstreamHeartbeatGap,
+): StatusBadgeVariant {
+  if (g === "fresh") return "success";
+  if (g === "stale") return "warning";
+  if (g === "unreachable") return "danger";
+  return "neutral";
+}
+
+function heartbeatGapDot(
+  g: ConsoleEdgeUpstreamHeartbeatGap,
+): StatusDotVariant {
+  if (g === "fresh") return "online";
+  if (g === "stale") return "degraded";
+  if (g === "unreachable") return "offline";
+  return "standby";
+}
 
 function phaseDot(p: ConsoleGatewayPhase): StatusDotVariant {
   if (p === "forwarding") return "online";
@@ -56,8 +100,14 @@ function healthDot(h: ConsoleEdgeGatewayHealth): StatusDotVariant {
   return "offline";
 }
 
-export function EdgeGatewayScreen({ loader }: Props) {
+export function EdgeGatewayScreen({ loader, nowProvider }: Props) {
   const state = useConsoleEdgeGateway(loader);
+  // Capture the clock once on mount so the gap classifiers stay
+  // deterministic across renders. Test injection happens via the
+  // `nowProvider` prop; production calls `new Date()` once.
+  const [now] = useState<Date>(() =>
+    nowProvider ? nowProvider() : new Date(),
+  );
 
   if (state.loading) {
     return (
@@ -91,6 +141,8 @@ export function EdgeGatewayScreen({ loader }: Props) {
   if (!state.snapshot) return null;
   const snapshot: ConsoleEdgeGatewaySnapshot = state.snapshot;
   const health = deriveEdgeGatewayHealth(snapshot);
+  const forwardGap = deriveForwardGap(snapshot, now);
+  const heartbeatGap = deriveUpstreamHeartbeatGap(snapshot, now);
 
   return (
     <section
@@ -171,6 +223,19 @@ export function EdgeGatewayScreen({ loader }: Props) {
               </span>
             </div>
           </dl>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
+            role="status"
+            aria-label="Upstream heartbeat gap"
+          >
+            <StatusDot
+              variant={heartbeatGapDot(heartbeatGap)}
+              halo={false}
+            />
+            <StatusBadge variant={heartbeatGapBadge(heartbeatGap)}>
+              {EDGE_UPSTREAM_HEARTBEAT_GAP_LABELS[heartbeatGap]}
+            </StatusBadge>
+          </div>
         </section>
 
         <section
@@ -198,6 +263,19 @@ export function EdgeGatewayScreen({ loader }: Props) {
               </span>
             </div>
           </dl>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
+            role="status"
+            aria-label="Forward queue gap"
+          >
+            <StatusDot
+              variant={forwardGapDot(forwardGap)}
+              halo={false}
+            />
+            <StatusBadge variant={forwardGapBadge(forwardGap)}>
+              {EDGE_GATEWAY_GAP_LABELS[forwardGap]}
+            </StatusBadge>
+          </div>
         </section>
       </div>
     </section>
