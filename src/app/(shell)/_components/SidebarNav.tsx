@@ -402,6 +402,11 @@ export const SHELL_NAV_GROUPS: ShellNavGroup[] = [
         label: "RPi Emulator",
         icon: <VirtualVehiclesIcon />,
       },
+      {
+        href: "/edge-gateway",
+        label: "Edge Gateway",
+        icon: <VehiclesIcon />,
+      },
       { href: "/exams", label: "Exams", icon: <ExamsIcon /> },
     ],
   },

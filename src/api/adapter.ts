@@ -19,6 +19,7 @@ import type { SchedulingIntegrationPaths } from "./services/scheduling-integrati
 import type { TrafficControlPaths } from "./services/traffic-control";
 import type { BiometryPaths } from "./services/biometry";
 import type { VehicleSimulatorRpiPaths } from "./services/vehicle-simulator-rpi";
+import type { VehicleEdgeGatewayPaths } from "./services/vehicle-edge-gateway";
 
 export type ApiAdapterMode = "live" | "mock";
 
@@ -43,6 +44,7 @@ export interface AutodromeApi {
   trafficControl: AutodromeClient<TrafficControlPaths>;
   biometry: AutodromeClient<BiometryPaths>;
   vehicleSimulatorRpi: AutodromeClient<VehicleSimulatorRpiPaths>;
+  vehicleEdgeGateway: AutodromeClient<VehicleEdgeGatewayPaths>;
 }
 
 export type ApiAdapterOptions = {

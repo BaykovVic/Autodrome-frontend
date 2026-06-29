@@ -1,0 +1,125 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  letter-spacing: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.loadingPad {
+  padding: 24px 20px;
+  letter-spacing: 0;
+}
+
+.header {
+  padding: 16px 20px 13px;
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--color-surface-muted);
+  letter-spacing: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+.subtitle {
+  margin: 3px 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.sourceChip {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  background: var(--color-surface-strong);
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  letter-spacing: 0;
+}
+
+.healthBanner {
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: var(--border-width) solid var(--color-border);
+  letter-spacing: 0;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px 20px;
+  letter-spacing: 0;
+}
+
+.card {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  letter-spacing: 0;
+}
+
+.cardTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  letter-spacing: 0;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.metaCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  letter-spacing: 0;
+}
+
+.metaLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.metaValue {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.error {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-danger, var(--color-text));
+  letter-spacing: 0;
+}
+
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}

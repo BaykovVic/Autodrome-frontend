@@ -45,6 +45,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   trafficControl: "Traffic control",
   biometry: "Biometry",
   vehicleSimulatorRpi: "Vehicle Simulator RPi",
+  vehicleEdgeGateway: "Vehicle Edge Gateway",
 };
 
 function modeVariant(
