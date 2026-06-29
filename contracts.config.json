@@ -22,6 +22,7 @@
     { "name": "scheduling-integration", "openapi": "openapi/scheduling-integration-service/v1/openapi.yaml" },
     { "name": "traffic-control", "openapi": "openapi/traffic-control-service/v1/openapi.yaml" },
     { "name": "biometry", "openapi": "openapi/biometry-service/v1/openapi.yaml" },
-    { "name": "vehicle-simulator-rpi", "openapi": "openapi/vehicle-simulator-rpi/v1/openapi.yaml" }
+    { "name": "vehicle-simulator-rpi", "openapi": "openapi/vehicle-simulator-rpi/v1/openapi.yaml" },
+    { "name": "vehicle-edge-gateway", "openapi": "openapi/vehicle-edge-gateway/v1/openapi.yaml" }
   ]
 }

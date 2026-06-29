@@ -22,6 +22,7 @@ import type { SchedulingIntegrationPaths } from "../services/scheduling-integrat
 import type { TrafficControlPaths } from "../services/traffic-control";
 import type { BiometryPaths } from "../services/biometry";
 import type { VehicleSimulatorRpiPaths } from "../services/vehicle-simulator-rpi";
+import type { VehicleEdgeGatewayPaths } from "../services/vehicle-edge-gateway";
 
 export function createMockAdapter(
   scenario: MockScenario = DEFAULT_SCENARIO,
@@ -107,6 +108,10 @@ export function createMockAdapter(
     }),
     vehicleSimulatorRpi: createAutodromeClient<VehicleSimulatorRpiPaths>({
       baseUrl: "/api/vehicle-simulator-rpi/v1",
+      fetch: mockFetch,
+    }),
+    vehicleEdgeGateway: createAutodromeClient<VehicleEdgeGatewayPaths>({
+      baseUrl: "/api/vehicle-edge-gateway/v1",
       fetch: mockFetch,
     }),
   };
