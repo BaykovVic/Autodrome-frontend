@@ -1,0 +1,16 @@
+services:
+  frontend:
+    build:
+      context: ${FRONTEND_ROOT:-/home/cv/autodrome-pilot-frontend/source}
+      dockerfile: deploy/pilot/Dockerfile
+      args: {}
+    image: autodrome/frontend-pilot:local
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_API_ADAPTER: ${NEXT_PUBLIC_API_ADAPTER:-live}
+      NEXT_PUBLIC_MOCK_SCENARIO: ${NEXT_PUBLIC_MOCK_SCENARIO:-normal}
+      AUTODROME_PILOT_BACKEND_HOST: ${AUTODROME_PILOT_BACKEND_HOST:-http://127.0.0.1}
+
