@@ -35,14 +35,15 @@ describe("ShellLayout", () => {
     ).toBeDefined();
   });
 
-  it("renders provided children inside the main content area", () => {
+  it("renders provided children inside the main content area once the session is authenticated", async () => {
     render(
       <ShellLayout>
         <div data-testid="content">placeholder body</div>
       </ShellLayout>,
     );
-    expect(screen.getByTestId("content").textContent).toBe(
-      "placeholder body",
-    );
+    // Content is gated by the session shell; the default mock scenario
+    // authenticates, so the children appear after the session resolves.
+    const content = await screen.findByTestId("content");
+    expect(content.textContent).toBe("placeholder body");
   });
 });
