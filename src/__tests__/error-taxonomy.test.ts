@@ -69,6 +69,22 @@ describe("error-taxonomy: classifyError() per-category", () => {
     expect(c.description).toMatch(/unauthorized/i);
   });
 
+  it("classifies 403 as forbidden → error-view, not retryable (distinct from 401)", () => {
+    const c = classifyError(makeApiError({ status: 403, code: "HTTP_403" }));
+    expect(c.category).toBe("forbidden");
+    expect(c.uiKind).toBe("error-view");
+    expect(c.retryable).toBe(false);
+    expect(c.title).toMatch(/access denied/i);
+    expect(c.description).toMatch(/not authorized|403|permission/i);
+  });
+
+  it("classifies a FORBIDDEN envelope code as forbidden regardless of status", () => {
+    const c = classifyError(
+      makeApiError({ status: 400, code: "FORBIDDEN" }),
+    );
+    expect(c.category).toBe("forbidden");
+  });
+
   it("classifies 422 VALIDATION_FAILED as validation with field errors", () => {
     const c = classifyError(
       makeApiError({
@@ -190,6 +206,7 @@ describe("error-taxonomy: copy + ui-kind helpers", () => {
       "contract-drift": "degraded-banner",
       validation: "form-field",
       unauthorized: "auth-block",
+      forbidden: "error-view",
       conflict: "error-view",
       "not-found": "error-view",
       unknown: "error-view",
@@ -199,8 +216,8 @@ describe("error-taxonomy: copy + ui-kind helpers", () => {
     }
   });
 
-  it("exposes 9 categories (8 spec categories + unknown)", () => {
-    expect(API_ERROR_CATEGORIES.length).toBe(9);
-    expect(new Set(API_ERROR_CATEGORIES).size).toBe(9);
+  it("exposes 10 categories (9 spec categories + unknown)", () => {
+    expect(API_ERROR_CATEGORIES.length).toBe(10);
+    expect(new Set(API_ERROR_CATEGORIES).size).toBe(10);
   });
 });
