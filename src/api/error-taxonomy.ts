@@ -2,7 +2,7 @@
  * Frontend live-API error taxonomy.
  *
  * One classification layer above `ApiError` that maps every failure
- * mode the live runtime can produce into one of eight stable
+ * mode the live runtime can produce into one of nine stable
  * categories. Each category drives a stable UI state — either a
  * `DegradedState` banner, an `ApiErrorView` panel, or form-level
  * field errors — without screens having to switch on raw HTTP status
@@ -17,12 +17,13 @@
  *   1. network              — backend unavailable / DNS / TCP / fetch failed
  *   2. timeout              — request exceeded timeout
  *   3. unauthorized         — auth missing / expired / 401
- *   4. validation           — 400 / 422 with field errors envelope
- *   5. conflict             — 409 or `RESOURCE_CONFLICT` envelope
- *   6. not-found            — 404 or `NOT_FOUND` envelope
- *   7. contract-drift       — decode failure / unknown body shape /
+ *   4. forbidden            — authenticated but not permitted / 403
+ *   5. validation           — 400 / 422 with field errors envelope
+ *   6. conflict             — 409 or `RESOURCE_CONFLICT` envelope
+ *   7. not-found            — 404 or `NOT_FOUND` envelope
+ *   8. contract-drift       — decode failure / unknown body shape /
  *                              status without a recognised envelope
- *   8. degraded             — backend returned a response but flagged
+ *   9. degraded             — backend returned a response but flagged
  *                              itself degraded (e.g. 503
  *                              `SERVICE_DEGRADED` envelope, partial
  *                              data response with `_degraded: true`)
@@ -38,6 +39,7 @@ export type ApiErrorCategory =
   | "network"
   | "timeout"
   | "unauthorized"
+  | "forbidden"
   | "validation"
   | "conflict"
   | "not-found"
@@ -110,7 +112,7 @@ export interface ApiErrorClassification {
 const STATUS_CATEGORY: Readonly<Record<number, ApiErrorCategory>> = {
   400: "validation",
   401: "unauthorized",
-  403: "unauthorized",
+  403: "forbidden",
   404: "not-found",
   408: "timeout",
   409: "conflict",
@@ -169,7 +171,13 @@ const UNAUTHORIZED_CODES: ReadonlySet<string> = new Set([
   "UNAUTHORIZED",
   "AUTH_MISSING",
   "AUTH_EXPIRED",
+]);
+
+const FORBIDDEN_CODES: ReadonlySet<string> = new Set([
   "FORBIDDEN",
+  "ACCESS_DENIED",
+  "INSUFFICIENT_PERMISSIONS",
+  "PERMISSION_DENIED",
 ]);
 
 function uiKindFor(category: ApiErrorCategory): ApiErrorUiKind {
@@ -183,6 +191,7 @@ function uiKindFor(category: ApiErrorCategory): ApiErrorUiKind {
       return "form-field";
     case "unauthorized":
       return "auth-block";
+    case "forbidden":
     case "conflict":
     case "not-found":
     case "unknown":
@@ -199,6 +208,7 @@ function retryableFor(category: ApiErrorCategory): boolean {
       return true;
     case "contract-drift":
     case "unauthorized":
+    case "forbidden":
     case "validation":
     case "conflict":
     case "not-found":
@@ -230,6 +240,12 @@ function defaultCopy(category: ApiErrorCategory): CopySpec {
         title: "Authentication is not configured",
         description:
           "This build does not ship a runtime auth layer. The request was rejected as unauthorized. Configure operator credentials at the deploy layer to proceed.",
+      };
+    case "forbidden":
+      return {
+        title: "Access denied",
+        description:
+          "The current operator is authenticated but not authorized for this action. Backend RBAC rejected the request (403). Ask an administrator to grant the required role/permission.",
       };
     case "validation":
       return {
@@ -329,6 +345,9 @@ function classifyApiError(err: ApiError): ApiErrorClassification {
   }
   if (UNAUTHORIZED_CODES.has(code)) {
     return finalise(err, "unauthorized", undefined);
+  }
+  if (FORBIDDEN_CODES.has(code)) {
+    return finalise(err, "forbidden", undefined);
   }
   if (CONFLICT_CODES.has(code)) {
     return finalise(err, "conflict", undefined);
@@ -475,6 +494,7 @@ export const API_ERROR_CATEGORIES: readonly ApiErrorCategory[] = [
   "network",
   "timeout",
   "unauthorized",
+  "forbidden",
   "validation",
   "conflict",
   "not-found",

@@ -3,7 +3,13 @@
 import type { ReactNode } from "react";
 
 import { classifyError } from "@/api/error-taxonomy";
-import { Button, ErrorState, LoadingState, State } from "@/components";
+import {
+  Button,
+  DegradedState,
+  ErrorState,
+  LoadingState,
+  State,
+} from "@/components";
 
 import { useSession } from "./SessionProvider";
 import styles from "./SessionGate.module.css";
@@ -36,18 +42,30 @@ export function SessionGate({ children }: { children: ReactNode }) {
   }
 
   if (session.phase === "error") {
+    // The session loader threw a non-auth transport error. Classify it
+    // through the shared taxonomy: a degraded/unreachable identity or
+    // BFF renders an honest degraded state; a forbidden (403) or any
+    // other error renders the error panel — never a generic fallback.
     const classification = classifyError(session.error);
     return (
       <div className={styles.gate}>
-        <ErrorState
-          title={classification.title}
-          description={classification.description}
-          action={
-            <Button variant="secondary" onClick={session.reload}>
-              Retry
-            </Button>
-          }
-        />
+        {classification.uiKind === "degraded-banner" ? (
+          <DegradedState
+            service="identity-security"
+            description={classification.description}
+            onRetry={session.reload}
+          />
+        ) : (
+          <ErrorState
+            title={classification.title}
+            description={classification.description}
+            action={
+              <Button variant="secondary" onClick={session.reload}>
+                Retry
+              </Button>
+            }
+          />
+        )}
       </div>
     );
   }
