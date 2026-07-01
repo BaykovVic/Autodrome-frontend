@@ -1,34 +1,42 @@
 "use client";
 
-import {
-  ApiErrorView,
-  Button,
-  EmptyState,
-  Skeleton,
-  StatusBadge,
-} from "@/components";
-import { CONSOLE_PERMISSIONS } from "../../_session/consolePermissions";
-import { PermissionGate } from "../../_session/PermissionGate";
+import type { ReactNode } from "react";
+
+import { getApiAdapter } from "@/api/get-api-adapter";
+import { resolveRuntimeMode } from "@/api/runtime-config";
+import { ApiErrorView, EmptyState, Skeleton, StatusBadge } from "@/components";
+
+import { canAccess, CONSOLE_PERMISSIONS } from "../../_session/consolePermissions";
+import { useOptionalSession } from "../../_session/SessionProvider";
 import {
   useConsoleSecurity,
   type ConsoleSecurityLoader,
 } from "./useConsoleSecurity";
 import {
-  ALL_SECURITY_ROLES,
   SECURITY_ACTOR_TYPE_LABELS,
   SECURITY_ROLE_LABELS,
-  type ConsoleSecurityActor,
-  type ConsoleSecurityRole,
   type ConsoleSecuritySnapshot,
 } from "./consoleSecuritySnapshot";
+import { SecurityOperatorsTable } from "./SecurityOperatorsTable";
+import {
+  liveRoleManagementActions,
+  type RoleManagementActions,
+} from "./useRoleManagement";
 import styles from "./SecurityScreen.module.css";
 
 type Props = {
   loader?: ConsoleSecurityLoader;
+  /**
+   * Injected role-management actions (tests / storybook). When
+   * omitted, live mode binds the canonical identity-security
+   * endpoints and mock mode stays read-only.
+   */
+  roleManagement?: RoleManagementActions | null;
 };
 
-export function SecurityScreen({ loader }: Props) {
+export function SecurityScreen({ loader, roleManagement }: Props) {
   const state = useConsoleSecurity(loader);
+  const session = useOptionalSession();
 
   if (state.loading) {
     return (
@@ -64,19 +72,29 @@ export function SecurityScreen({ loader }: Props) {
     );
   }
 
-  return renderSecurity(snap);
+  // Role management binds the canonical live endpoints only in live
+  // mode (or when injected); mock mode keeps the read-only matrix.
+  const actions: RoleManagementActions | null =
+    roleManagement ??
+    (resolveRuntimeMode() === "live"
+      ? liveRoleManagementActions(getApiAdapter({ mode: "live" }))
+      : null);
+  const canManage = canAccess(session, CONSOLE_PERMISSIONS.identityManage);
+
+  return renderSecurity(
+    snap,
+    <SecurityOperatorsTable
+      operators={snap.operators}
+      roleManagement={actions}
+      canManage={canManage}
+    />,
+  );
 }
 
-function hasRole(
-  actor: ConsoleSecurityActor,
-  role: ConsoleSecurityRole,
-): boolean {
-  return actor.roles.includes(role);
-}
-
-function renderSecurity(snap: ConsoleSecuritySnapshot) {
-  const disabledTitle =
-    "Identity service exposes /auth/me only — assign/revoke ships with a future user-role-permission endpoint.";
+function renderSecurity(
+  snap: ConsoleSecuritySnapshot,
+  operatorsSection: ReactNode,
+) {
   return (
     <section className={styles.screen} aria-label="Security workspace">
       <header className={styles.header}>
@@ -168,110 +186,7 @@ function renderSecurity(snap: ConsoleSecuritySnapshot) {
           )}
         </section>
 
-        <section
-          className={styles.section}
-          aria-labelledby="security-operators-title"
-        >
-          <h2
-            id="security-operators-title"
-            className={styles.sectionTitle}
-          >
-            Operators &amp; roles ({snap.operators.length})
-          </h2>
-          {snap.operators.length === 0 ? (
-            <p className={styles.notesText}>
-              No operators returned from identity service.
-            </p>
-          ) : (
-            <table
-              className={styles.table}
-              aria-label="Operator role matrix"
-            >
-              <thead>
-                <tr>
-                  <th>Operator</th>
-                  <th>Type</th>
-                  {ALL_SECURITY_ROLES.map((r) => (
-                    <th key={r}>
-                      {SECURITY_ROLE_LABELS[r]}{" "}
-                      <span className={styles.canonicalChip}>({r})</span>
-                    </th>
-                  ))}
-                  <th className={styles.notesText}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {snap.operators.map((op) => (
-                  <tr key={op.actorId}>
-                    <td>
-                      <div>{op.label}</div>
-                      <div className={styles.canonicalChip}>
-                        {op.actorId}
-                      </div>
-                    </td>
-                    <td>
-                      {SECURITY_ACTOR_TYPE_LABELS[op.actorType]}{" "}
-                      <span className={styles.canonicalChip}>
-                        ({op.actorType})
-                      </span>
-                    </td>
-                    {ALL_SECURITY_ROLES.map((r) => (
-                      <td
-                        key={r}
-                        aria-label={`${op.label} ${
-                          hasRole(op, r) ? "has" : "does not have"
-                        } role ${r}`}
-                      >
-                        <span
-                          className={
-                            hasRole(op, r) ? styles.dot : styles.dotEmpty
-                          }
-                        >
-                          {hasRole(op, r) ? "●" : "○"}
-                        </span>
-                      </td>
-                    ))}
-                    <td>
-                      <div
-                        className={styles.actionsRow}
-                        role="group"
-                        aria-label={`Role actions for ${op.label}`}
-                      >
-                        <PermissionGate
-                          permission={CONSOLE_PERMISSIONS.identityManage}
-                          fallback={
-                            <span className={styles.notesText}>
-                              Requires {CONSOLE_PERMISSIONS.identityManage}
-                            </span>
-                          }
-                        >
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            type="button"
-                            disabled
-                            title={disabledTitle}
-                          >
-                            Assign
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            type="button"
-                            disabled
-                            title={disabledTitle}
-                          >
-                            Revoke
-                          </Button>
-                        </PermissionGate>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
+        {operatorsSection}
       </div>
     </section>
   );

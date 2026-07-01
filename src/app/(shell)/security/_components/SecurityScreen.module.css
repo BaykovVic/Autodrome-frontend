@@ -119,6 +119,28 @@
   color: var(--color-text-subtle);
 }
 
+.cellToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 2px 4px;
+  border: 1px solid var(--color-border, #d5d2cc);
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  cursor: pointer;
+}
+
+.cellToggle:hover:not(:disabled) {
+  border-color: var(--color-accent, #138a7c);
+}
+
+.cellToggle:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
 .notesText {
   margin: 0;
   font-size: var(--font-size-sm);
