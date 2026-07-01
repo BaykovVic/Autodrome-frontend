@@ -15,6 +15,7 @@
     { "name": "deployment-operations", "openapi": "openapi/deployment-operations-service/v1/openapi.yaml" },
     { "name": "vehicle-telemetry", "openapi": "openapi/vehicle-telemetry-service/v1/openapi.yaml" },
     { "name": "identity-security", "openapi": "openapi/identity-security-service/v1/openapi.yaml" },
+    { "name": "api-gateway-bff", "openapi": "openapi/api-gateway-bff/v1/openapi.yaml" },
     { "name": "audit", "openapi": "openapi/audit-service/v1/openapi.yaml" },
     { "name": "central-sync", "openapi": "openapi/optional-central-sync-service/v1/openapi.yaml" },
     { "name": "reference-data", "openapi": "openapi/reference-data-service/v1/openapi.yaml" },

@@ -41,7 +41,7 @@ function has(
  * - Read-only (mock, or no `roleManagement`): static role dots +
  *   disabled Assign/Revoke buttons (permission-gated) — unchanged
  *   behaviour.
- * - Live + `user.assign`: each role cell is a toggle button wired to
+ * - Live + `identity.manage`: each role cell is a toggle button wired to
  *   the canonical assign/revoke endpoints. The backend response is
  *   the source of truth (applied as an override); one action at a
  *   time; failures surface a classified error (403 → access denied).

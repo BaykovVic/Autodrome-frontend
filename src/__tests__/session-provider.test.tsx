@@ -13,7 +13,7 @@ const AUTHENTICATED: ConsoleSessionResult = {
     actorType: "user",
     label: "Anna Petrova",
     roles: ["admin"],
-    permissions: ["user.read"],
+    permissions: ["identity.manage"],
   },
 };
 

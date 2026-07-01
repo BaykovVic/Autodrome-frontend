@@ -14,7 +14,7 @@ const ADMIN_ACTOR: ConsoleSessionActor = {
   actorType: "user",
   label: "Admin",
   roles: ["admin"],
-  permissions: ["user.assign"],
+  permissions: ["identity.manage"],
 };
 
 const OPERATOR_ACTOR: ConsoleSessionActor = {
@@ -40,16 +40,16 @@ describe("canAccess", () => {
     expect(canAccess(null, undefined)).toBe(true);
   });
   it("fails open without a session context", () => {
-    expect(canAccess(null, "user.assign")).toBe(true);
+    expect(canAccess(null, "identity.manage")).toBe(true);
   });
   it("denies loading / unauthenticated sessions for gated actions", () => {
     expect(
-      canAccess({ phase: "loading", reload: () => {} }, "user.assign"),
+      canAccess({ phase: "loading", reload: () => {} }, "identity.manage"),
     ).toBe(false);
     expect(
       canAccess(
         { phase: "unauthenticated", reload: () => {} },
-        "user.assign",
+        "identity.manage",
       ),
     ).toBe(false);
   });
@@ -57,7 +57,7 @@ describe("canAccess", () => {
     expect(
       canAccess(
         { phase: "authenticated", actor: ADMIN_ACTOR, reload: () => {} },
-        "user.assign",
+        "identity.manage",
       ),
     ).toBe(true);
   });
@@ -65,7 +65,7 @@ describe("canAccess", () => {
     expect(
       canAccess(
         { phase: "authenticated", actor: OPERATOR_ACTOR, reload: () => {} },
-        "user.assign",
+        "identity.manage",
       ),
     ).toBe(false);
   });
@@ -75,7 +75,7 @@ describe("PermissionGate", () => {
   it("renders children when the actor holds the permission", async () => {
     render(
       <SessionProvider loader={() => ADMIN}>
-        <PermissionGate permission="user.assign">
+        <PermissionGate permission="identity.manage">
           <button>Assign</button>
         </PermissionGate>
       </SessionProvider>,
@@ -89,7 +89,7 @@ describe("PermissionGate", () => {
     render(
       <SessionProvider loader={() => OPERATOR}>
         <PermissionGate
-          permission="user.assign"
+          permission="identity.manage"
           fallback={<span>denied</span>}
         >
           <button>Assign</button>
@@ -102,7 +102,7 @@ describe("PermissionGate", () => {
 
   it("fails open when rendered without a SessionProvider", () => {
     render(
-      <PermissionGate permission="user.assign">
+      <PermissionGate permission="identity.manage">
         <button>Assign</button>
       </PermissionGate>,
     );

@@ -1,8 +1,10 @@
 /**
  * Live session loader.
  *
- * Resolves the current actor from canonical identity-security
- * `GET /auth/me`:
+ * Resolves the current actor from API Gateway BFF `GET /me`.
+ * BFF is the Web Console actor-context boundary: it verifies the
+ * token through identity-security and returns effective roles /
+ * permissions in the shape the shell consumes.
  *
  *   - 200 with actor body  → authenticated session.
  *   - 200 with empty body  → unauthenticated (no actor resolved).
@@ -14,12 +16,12 @@
  *                            signing the operator out.
  *
  * Backend RBAC remains the security boundary — the frontend only
- * reflects the actor the identity service returns.
+ * reflects the actor the BFF returns.
  */
 
 import type { AutodromeApi } from "@/api/adapter";
 import { classifyError } from "@/api/error-taxonomy";
-import type { components } from "@/contracts/types/identity-security";
+import type { components } from "@/contracts/types/api-gateway-bff";
 
 import type {
   ConsoleSessionActor,
@@ -28,9 +30,9 @@ import type {
   ConsoleSessionRole,
 } from "./consoleSession";
 
-type ActorDto = components["schemas"]["Actor"];
-type RoleDto = components["schemas"]["Role"];
-type ActorTypeDto = components["schemas"]["ActorType"];
+type ActorDto = components["schemas"]["ActorContext"];
+type RoleDto = string;
+type ActorTypeDto = components["schemas"]["ActorContext"]["actorType"];
 
 export function mapSessionRole(dto: RoleDto): ConsoleSessionRole {
   return dto as ConsoleSessionRole;
@@ -47,7 +49,7 @@ export function mapSessionActor(dto: ActorDto): ConsoleSessionActor {
     actorId: dto.actorId,
     actorType: mapSessionActorType(dto.actorType),
     label: dto.actorId,
-    roles: (dto.roles ?? []).map(mapSessionRole),
+    roles: dto.roles.map(mapSessionRole),
     permissions: dto.permissions ?? [],
   };
 }
@@ -56,12 +58,12 @@ export async function liveSessionLoader(
   adapter: AutodromeApi,
 ): Promise<ConsoleSessionResult> {
   try {
-    const result = await adapter.identitySecurity.GET("/auth/me", {});
+    const result = await adapter.apiGatewayBff.GET("/me", {});
     const actor = result.data as ActorDto | undefined;
     if (!actor) {
       return {
         status: "unauthenticated",
-        reason: "Identity service returned no actor for /auth/me.",
+        reason: "API Gateway BFF returned no actor for /me.",
       };
     }
     return { status: "authenticated", actor: mapSessionActor(actor) };
@@ -70,7 +72,7 @@ export async function liveSessionLoader(
       return {
         status: "unauthenticated",
         reason:
-          "Identity service rejected the session as unauthorized (401/403).",
+          "API Gateway BFF rejected the session as unauthorized (401/403).",
       };
     }
     throw error;

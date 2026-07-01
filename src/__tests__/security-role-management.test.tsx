@@ -19,7 +19,7 @@ const ADMIN: ConsoleSessionResult = {
     actorType: "user",
     label: "Admin",
     roles: ["admin"],
-    permissions: ["user.assign"],
+    permissions: ["identity.manage"],
   },
 };
 

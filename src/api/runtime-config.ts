@@ -34,6 +34,7 @@ export type ServiceName =
   | "deploymentOperations"
   | "vehicleTelemetry"
   | "identitySecurity"
+  | "apiGatewayBff"
   | "audit"
   | "centralSync"
   | "referenceData"
@@ -57,6 +58,7 @@ export const SERVICE_NAMES: readonly ServiceName[] = [
   "deploymentOperations",
   "vehicleTelemetry",
   "identitySecurity",
+  "apiGatewayBff",
   "audit",
   "centralSync",
   "referenceData",
@@ -81,6 +83,7 @@ export const DEFAULT_LIVE_BASE_URLS: Record<ServiceName, string> = {
   deploymentOperations: "/api/deployment-operations/v1",
   vehicleTelemetry: "/api/vehicle-telemetry/v1",
   identitySecurity: "/api/identity-security/v1",
+  apiGatewayBff: "/api/api-gateway-bff/v1",
   audit: "/api/audit/v1",
   centralSync: "/api/central-sync/v1",
   referenceData: "/api/reference-data/v1",
@@ -105,6 +108,7 @@ export const SERVICE_ENV_KEYS: Record<ServiceName, string> = {
   deploymentOperations: "NEXT_PUBLIC_API_DEPLOYMENT_OPERATIONS_BASE_URL",
   vehicleTelemetry: "NEXT_PUBLIC_API_VEHICLE_TELEMETRY_BASE_URL",
   identitySecurity: "NEXT_PUBLIC_API_IDENTITY_SECURITY_BASE_URL",
+  apiGatewayBff: "NEXT_PUBLIC_API_GATEWAY_BFF_BASE_URL",
   audit: "NEXT_PUBLIC_API_AUDIT_BASE_URL",
   centralSync: "NEXT_PUBLIC_API_CENTRAL_SYNC_BASE_URL",
   referenceData: "NEXT_PUBLIC_API_REFERENCE_DATA_BASE_URL",
@@ -142,18 +146,24 @@ export type RuntimeConfig =
 type EnvShape = Record<string, string | undefined>;
 
 function readEnv(env?: EnvShape): EnvShape {
-  return env ?? (process.env as EnvShape);
+  if (env) return env;
+  return typeof process === "undefined" ? {} : (process.env as EnvShape);
 }
 
 /**
- * Reads `NEXT_PUBLIC_API_ADAPTER`. Any value other than `"live"`
- * resolves to mock — including missing or unknown — so a fresh
- * `pnpm dev` on a machine without env defaults to fixtures rather
- * than to a non-existent backend.
+ * Reads `NEXT_PUBLIC_API_ADAPTER`.
+ *
+ * - Explicit `"live"` / `"mock"` always wins.
+ * - Missing/unknown value defaults to live. Mock mode must be
+ *   explicit (`pnpm dev`, `pnpm e2e`, or `NEXT_PUBLIC_API_ADAPTER=mock`).
+ *   This prevents pilot/offline deployment from silently falling
+ *   back to fixture authorization.
  */
 export function resolveRuntimeMode(env?: EnvShape): RuntimeMode {
-  const value = readEnv(env).NEXT_PUBLIC_API_ADAPTER;
-  return value === "live" ? "live" : "mock";
+  const e = readEnv(env);
+  const value = e.NEXT_PUBLIC_API_ADAPTER;
+  if (value === "live" || value === "mock") return value;
+  return "live";
 }
 
 function isValidBaseUrl(value: string): boolean {

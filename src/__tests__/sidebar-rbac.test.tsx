@@ -28,7 +28,7 @@ function session(
   };
 }
 
-const ADMIN = session(["admin"], ["user.read", "audit.read"]);
+const ADMIN = session(["admin"], ["identity.manage", "audit.read"]);
 const OPERATOR = session(["operator"], ["exam.read"]);
 const AUDITOR = session(["auditor"], ["audit.read"]);
 
@@ -41,7 +41,7 @@ function renderNav(result: ConsoleSessionResult) {
 }
 
 describe("SidebarNav role-aware navigation", () => {
-  it("admin (user.read + audit.read) sees Security and Audit", async () => {
+  it("admin (identity.manage + audit.read) sees Security and Audit", async () => {
     renderNav(ADMIN);
     expect(
       await screen.findByRole("link", { name: /^security$/i }),

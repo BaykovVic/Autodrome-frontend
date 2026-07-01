@@ -20,14 +20,14 @@ const ACTOR: ConsoleSessionActor = {
   actorType: "user",
   label: "Anna Petrova",
   roles: ["admin", "techAdmin"],
-  permissions: ["user.read", "user.assign"],
+  permissions: ["identity.manage"],
 };
 
 describe("session view-model helpers", () => {
   it("sessionHasRole / sessionHasPermission are pure membership checks", () => {
     expect(sessionHasRole(ACTOR, "admin")).toBe(true);
     expect(sessionHasRole(ACTOR, "operator")).toBe(false);
-    expect(sessionHasPermission(ACTOR, "user.assign")).toBe(true);
+    expect(sessionHasPermission(ACTOR, "identity.manage")).toBe(true);
     expect(sessionHasPermission(ACTOR, "exam.delete")).toBe(false);
   });
 
@@ -68,7 +68,7 @@ function adapterWith(
   get: () => Promise<{ data?: unknown }>,
 ): AutodromeApi {
   return {
-    identitySecurity: { GET: get },
+    apiGatewayBff: { GET: get },
   } as unknown as AutodromeApi;
 }
 
@@ -92,7 +92,7 @@ describe("liveSessionLoader", () => {
     }
   });
 
-  it("treats an empty /auth/me body as unauthenticated", async () => {
+  it("treats an empty /me body as unauthenticated", async () => {
     const result = await liveSessionLoader(
       adapterWith(async () => ({ data: undefined })),
     );
@@ -106,7 +106,7 @@ describe("liveSessionLoader", () => {
           status: 401,
           code: "UNAUTHORIZED",
           message: "missing token",
-          url: "/api/identity-security/v1/auth/me",
+          url: "/api/api-gateway-bff/v1/me",
         });
       }),
     );
@@ -118,11 +118,11 @@ describe("liveSessionLoader", () => {
       liveSessionLoader(
         adapterWith(async () => {
           throw new ApiError({
-            status: 503,
-            code: "SERVICE_DEGRADED",
-            message: "identity unavailable",
-            url: "/api/identity-security/v1/auth/me",
-          });
+          status: 503,
+          code: "SERVICE_DEGRADED",
+          message: "identity unavailable",
+          url: "/api/api-gateway-bff/v1/me",
+        });
         }),
       ),
     ).rejects.toBeInstanceOf(ApiError);

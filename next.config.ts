@@ -31,10 +31,18 @@ const pilotBackendPorts: Record<string, number> = {
 };
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_API_ADAPTER: process.env.NEXT_PUBLIC_API_ADAPTER ?? "mock",
+    NEXT_PUBLIC_MOCK_SCENARIO:
+      process.env.NEXT_PUBLIC_MOCK_SCENARIO ?? "normal",
+  },
   async rewrites() {
     return Object.entries(pilotBackendPorts).map(([service, port]) => ({
       source: `/api/${service}/v1/:path*`,
-      destination: `${pilotBackendHost}:${port}/v1/:path*`,
+      destination:
+        service === "api-gateway-bff"
+          ? `${pilotBackendHost}:${port}/api/v1/:path*`
+          : `${pilotBackendHost}:${port}/v1/:path*`,
     }));
   },
 };

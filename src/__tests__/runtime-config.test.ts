@@ -9,17 +9,21 @@ import {
 } from "@/api/runtime-config";
 
 describe("resolveRuntimeMode", () => {
-  it("defaults to mock when env is empty", () => {
-    expect(resolveRuntimeMode({})).toBe("mock");
+  it("defaults to live when env is empty", () => {
+    expect(resolveRuntimeMode({})).toBe("live");
   });
 
-  it("defaults to mock when env value is unknown", () => {
+  it("defaults to live when env value is unknown", () => {
     expect(
       resolveRuntimeMode({ NEXT_PUBLIC_API_ADAPTER: "wat" }),
-    ).toBe("mock");
+    ).toBe("live");
   });
 
-  it("resolves to live only when env is exactly 'live'", () => {
+  it("resolves explicit mock mode", () => {
+    expect(resolveRuntimeMode({ NEXT_PUBLIC_API_ADAPTER: "mock" })).toBe("mock");
+  });
+
+  it("resolves to live when env is exactly 'live'", () => {
     expect(
       resolveRuntimeMode({ NEXT_PUBLIC_API_ADAPTER: "live" }),
     ).toBe("live");
@@ -83,11 +87,11 @@ describe("resolveLiveBaseUrls", () => {
 });
 
 describe("resolveRuntimeConfig", () => {
-  it("returns mock config with default scenario when no env", () => {
+  it("returns live config when no env", () => {
     const config = resolveRuntimeConfig({});
-    expect(config.mode).toBe("mock");
-    if (config.mode === "mock") {
-      expect(config.scenario).toBe("normal");
+    expect(config.mode).toBe("live");
+    if (config.mode === "live" && config.ok) {
+      expect(config.baseUrls).toEqual(DEFAULT_LIVE_BASE_URLS);
     }
   });
 

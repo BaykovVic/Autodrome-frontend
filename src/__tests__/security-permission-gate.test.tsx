@@ -17,7 +17,7 @@ const ADMIN: ConsoleSessionResult = {
     actorType: "user",
     label: "Admin",
     roles: ["admin"],
-    permissions: ["user.assign"],
+    permissions: ["identity.manage"],
   },
 };
 
@@ -41,7 +41,7 @@ function renderScreen(session: ConsoleSessionResult) {
 }
 
 describe("SecurityScreen role-management command gating", () => {
-  it("shows Assign/Revoke for an actor holding user.assign", async () => {
+  it("shows Assign/Revoke for an actor holding identity.manage", async () => {
     renderScreen(ADMIN);
     const assigns = await screen.findAllByRole("button", {
       name: /^assign$/i,
@@ -49,7 +49,7 @@ describe("SecurityScreen role-management command gating", () => {
     expect(assigns.length).toBeGreaterThan(0);
   });
 
-  it("hides Assign/Revoke and shows a permission note for an actor without user.assign", async () => {
+  it("hides Assign/Revoke and shows a permission note for an actor without identity.manage", async () => {
     renderScreen(OPERATOR);
     await screen.findByRole("heading", {
       level: 1,
@@ -61,7 +61,7 @@ describe("SecurityScreen role-management command gating", () => {
       ).toBeNull();
     });
     expect(
-      screen.getAllByText(/requires user\.assign/i).length,
+      screen.getAllByText(/requires identity\.manage/i).length,
     ).toBeGreaterThan(0);
   });
 });

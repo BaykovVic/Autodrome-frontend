@@ -34,12 +34,12 @@ describe("mapActorDtoToConsole", () => {
       actorId: "20000000-0000-4000-8000-000000000001",
       actorType: "user",
       roles: ["admin", "techAdmin"],
-      permissions: ["user.read", "user.assign"],
+      permissions: ["identity.manage"],
     });
     expect(v.actorId).toBe("20000000-0000-4000-8000-000000000001");
     expect(v.actorType).toBe("user");
     expect(v.roles).toEqual(["admin", "techAdmin"]);
-    expect(v.permissions).toEqual(["user.read", "user.assign"]);
+    expect(v.permissions).toEqual(["identity.manage"]);
   });
 
   it("handles empty roles + permissions", () => {
@@ -55,22 +55,22 @@ describe("mapActorDtoToConsole", () => {
 });
 
 describe("liveSecurityLoader: integration", () => {
-  it("populates current actor from /auth/me", async () => {
+  it("populates current actor from BFF /me", async () => {
     const GET = vi.fn(async () => ({
       data: {
         actorId: "20000000-0000-4000-8000-000000000001",
         actorType: "user",
         roles: ["admin"],
-        permissions: ["user.read"],
+        permissions: ["identity.manage"],
       },
     }));
     const api = makeApi({
-      identitySecurity: {
+      apiGatewayBff: {
         GET,
-      } as unknown as AutodromeApi["identitySecurity"],
+      } as unknown as AutodromeApi["apiGatewayBff"],
     });
     const snap = await liveSecurityLoader(api);
-    expect(GET).toHaveBeenCalledWith("/auth/me", {});
+    expect(GET).toHaveBeenCalledWith("/me", {});
     expect(snap.currentActor?.actorId).toBe(
       "20000000-0000-4000-8000-000000000001",
     );
@@ -80,12 +80,12 @@ describe("liveSecurityLoader: integration", () => {
     expect(snap.degradedNote).toMatch(/operator list/i);
   });
 
-  it("returns degraded snapshot when /auth/me returns no body", async () => {
+  it("returns degraded snapshot when BFF /me returns no body", async () => {
     const GET = vi.fn(async () => ({ data: undefined }));
     const api = makeApi({
-      identitySecurity: {
+      apiGatewayBff: {
         GET,
-      } as unknown as AutodromeApi["identitySecurity"],
+      } as unknown as AutodromeApi["apiGatewayBff"],
     });
     const snap = await liveSecurityLoader(api);
     expect(snap.currentActor).toBeNull();
@@ -93,19 +93,19 @@ describe("liveSecurityLoader: integration", () => {
     expect(snap.degradedNote).toMatch(/no body/i);
   });
 
-  it("propagates ApiError when /auth/me fails", async () => {
+  it("propagates ApiError when BFF /me fails", async () => {
     const GET = vi.fn(async () => {
       throw new ApiError({
         status: 401,
-        url: "/auth/me",
+        url: "/me",
         code: "GATEWAY_UNAUTHENTICATED",
         message: "Authentication missing.",
       });
     });
     const api = makeApi({
-      identitySecurity: {
+      apiGatewayBff: {
         GET,
-      } as unknown as AutodromeApi["identitySecurity"],
+      } as unknown as AutodromeApi["apiGatewayBff"],
     });
     await expect(liveSecurityLoader(api)).rejects.toBeInstanceOf(ApiError);
   });
