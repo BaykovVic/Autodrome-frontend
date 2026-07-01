@@ -14,9 +14,9 @@ import type { UseConsoleSession } from "./useConsoleSession";
  */
 export const CONSOLE_PERMISSIONS = {
   /** Read the identity / security workspace (operator & role directory). */
-  identityRead: "user.read",
+  identityRead: "identity.manage",
   /** Assign / revoke operator roles (admin-only mutation). */
-  identityManage: "user.assign",
+  identityManage: "identity.manage",
   /** Read the audit workspace / verification exports. */
   auditRead: "audit.read",
 } as const;

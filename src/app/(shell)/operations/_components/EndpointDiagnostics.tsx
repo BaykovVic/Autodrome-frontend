@@ -44,6 +44,7 @@ const SERVICE_LABELS: Record<ServiceName, string> = {
   deploymentOperations: "Deployment operations",
   vehicleTelemetry: "Vehicle telemetry",
   identitySecurity: "Identity & security",
+  apiGatewayBff: "API Gateway BFF",
   audit: "Audit",
   centralSync: "Central sync (optional)",
   referenceData: "Reference data",

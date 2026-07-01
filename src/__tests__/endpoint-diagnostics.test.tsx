@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 
 import {
   DEFAULT_LIVE_BASE_URLS,
+  SERVICE_NAMES,
   type RuntimeDiagnostics,
 } from "@/api/runtime-config";
 import { EndpointDiagnostics } from "@/app/(shell)/operations/_components/EndpointDiagnostics";
@@ -40,17 +41,16 @@ describe("EndpointDiagnostics", () => {
     const section = screen.getByRole("region", {
       name: /service endpoint diagnostics/i,
     });
-    // 21 service rows (incl. vehicle-edge-gateway added в T13-F9).
     expect(
       within(section).getAllByText(/^mock$/i).length,
-    ).toBeGreaterThanOrEqual(21);
+    ).toBeGreaterThanOrEqual(SERVICE_NAMES.length);
     expect(
       within(section).getAllByText(/^n\/a$/i).length,
-    ).toBeGreaterThanOrEqual(21);
+    ).toBeGreaterThanOrEqual(SERVICE_NAMES.length);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(21);
+    expect(checkBtns).toHaveLength(SERVICE_NAMES.length);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(true);
     }
@@ -71,11 +71,11 @@ describe("EndpointDiagnostics", () => {
     ).toHaveLength(2);
     expect(
       within(section).getAllByText(/^default$/i),
-    ).toHaveLength(20);
+    ).toHaveLength(SERVICE_NAMES.length - 1);
     const checkBtns = within(section).getAllByRole("button", {
       name: /check reachability/i,
     }) as HTMLButtonElement[];
-    expect(checkBtns).toHaveLength(21);
+    expect(checkBtns).toHaveLength(SERVICE_NAMES.length);
     for (const btn of checkBtns) {
       expect(btn.disabled).toBe(false);
     }

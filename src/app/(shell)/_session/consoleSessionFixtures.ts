@@ -21,8 +21,7 @@ const OPERATOR_SESSION_ACTOR: ConsoleSessionActor = {
   label: "Anna Petrova",
   roles: ["admin", "techAdmin"],
   permissions: [
-    "user.read",
-    "user.assign",
+    "identity.manage",
     "role.read",
     "audit.read",
     "exam.read",

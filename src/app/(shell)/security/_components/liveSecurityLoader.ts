@@ -1,12 +1,12 @@
 /**
  * Live Security workspace loader.
  *
- * Canonical `identity-security-service` v1 exposes только
- * auth surface (`/auth/me`, login, refresh, logout,
- * introspect, device-tokens). Нет endpoint для list
- * users / list operators / assign role / revoke role.
+ * Canonical API Gateway BFF exposes the Web Console actor
+ * context through `GET /me`. It verifies the bearer token
+ * through identity-security and returns effective roles /
+ * permissions in the same boundary used by the shell.
  *
- * Loader строит snapshot из `GET /auth/me` + всегда
+ * Loader строит snapshot из BFF `GET /me` + всегда
  * рендерит canonical Role catalog (6 enum members) +
  * degradedNote объясняющий, что operator list shipped
  * с будущим backend feature.
@@ -16,7 +16,7 @@
  */
 
 import type { AutodromeApi } from "@/api/adapter";
-import type { components } from "@/contracts/types/identity-security";
+import type { components } from "@/contracts/types/api-gateway-bff";
 
 import {
   ALL_SECURITY_ROLES,
@@ -26,9 +26,9 @@ import {
   type ConsoleSecuritySnapshot,
 } from "./consoleSecuritySnapshot";
 
-type ActorDto = components["schemas"]["Actor"];
-type RoleDto = components["schemas"]["Role"];
-type ActorTypeDto = components["schemas"]["ActorType"];
+type ActorDto = components["schemas"]["ActorContext"];
+type RoleDto = string;
+type ActorTypeDto = components["schemas"]["ActorContext"]["actorType"];
 
 export function mapRoleDtoToConsole(dto: RoleDto): ConsoleSecurityRole {
   return dto as ConsoleSecurityRole;
@@ -55,7 +55,7 @@ export function mapActorDtoToConsole(
 export async function liveSecurityLoader(
   adapter: AutodromeApi,
 ): Promise<ConsoleSecuritySnapshot> {
-  const result = await adapter.identitySecurity.GET("/auth/me", {});
+  const result = await adapter.apiGatewayBff.GET("/me", {});
   const actor = result.data as ActorDto | undefined;
   if (!actor) {
     return {
@@ -63,7 +63,7 @@ export async function liveSecurityLoader(
       operators: [],
       roles: ALL_SECURITY_ROLES,
       degradedNote:
-        "Identity service returned no body for /auth/me.",
+        "API Gateway BFF returned no body for /me.",
     };
   }
   const consoleActor = mapActorDtoToConsole(actor);
@@ -72,6 +72,6 @@ export async function liveSecurityLoader(
     operators: [consoleActor],
     roles: ALL_SECURITY_ROLES,
     degradedNote:
-      "Identity service exposes /auth/me only. Operator list and role assignment ship with future identity-security-service contracts (read-only view).",
+      "API Gateway BFF exposes the current actor only. Operator list and role assignment ship with identity-security user-role endpoints.",
   };
 }

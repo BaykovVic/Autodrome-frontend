@@ -11,6 +11,7 @@ import type { ReportingDocumentPaths } from "./services/reporting-document";
 import type { DeploymentOperationsPaths } from "./services/deployment-operations";
 import type { VehicleTelemetryPaths } from "./services/vehicle-telemetry";
 import type { IdentitySecurityPaths } from "./services/identity-security";
+import type { ApiGatewayBffPaths } from "./services/api-gateway-bff";
 import type { AuditPaths } from "./services/audit";
 import type { CentralSyncPaths } from "./services/central-sync";
 import type { ReferenceDataPaths } from "./services/reference-data";
@@ -36,6 +37,7 @@ export interface AutodromeApi {
   deploymentOperations: AutodromeClient<DeploymentOperationsPaths>;
   vehicleTelemetry: AutodromeClient<VehicleTelemetryPaths>;
   identitySecurity: AutodromeClient<IdentitySecurityPaths>;
+  apiGatewayBff: AutodromeClient<ApiGatewayBffPaths>;
   audit: AutodromeClient<AuditPaths>;
   centralSync: AutodromeClient<CentralSyncPaths>;
   referenceData: AutodromeClient<ReferenceDataPaths>;

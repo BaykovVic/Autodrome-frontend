@@ -12,8 +12,7 @@ const ANNA_ADMIN: ConsoleSecurityActor = {
   label: "Anna Petrova",
   roles: ["admin", "techAdmin"],
   permissions: [
-    "user.read",
-    "user.assign",
+    "identity.manage",
     "role.read",
     "audit.read",
     "exam.read",
