@@ -42,3 +42,14 @@ export function useSession(): UseConsoleSession {
   }
   return ctx;
 }
+
+/**
+ * Reads the current session, returning `null` when used outside a
+ * `SessionProvider` instead of throwing. Used by RBAC gating
+ * primitives (nav filtering, `PermissionGate`) so a component can be
+ * rendered in isolation (unit tests, storybook) without a provider
+ * and fail open rather than crash.
+ */
+export function useOptionalSession(): UseConsoleSession | null {
+  return useContext(SessionContext);
+}

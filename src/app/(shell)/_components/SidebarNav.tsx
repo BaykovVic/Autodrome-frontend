@@ -3,12 +3,21 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { CONSOLE_PERMISSIONS, canAccess } from "../_session/consolePermissions";
+import { useOptionalSession } from "../_session/SessionProvider";
 import styles from "./SidebarNav.module.css";
 
 export type ShellRoute = {
   href: string;
   label: string;
   icon?: ReactNode;
+  /**
+   * Canonical permission required to see this entry. Undefined means
+   * the entry is available to every authenticated operator. Gating is
+   * data-driven from the session permissions — the backend still
+   * authorizes each route it serves.
+   */
+  requiredPermission?: string;
 };
 
 export type ShellNavGroup = {
@@ -433,8 +442,18 @@ export const SHELL_NAV_GROUPS: ShellNavGroup[] = [
       { href: "/devices", label: "Android Devices", icon: <DevicesIcon /> },
       { href: "/evidence", label: "Evidence", icon: <EvidenceIcon /> },
       { href: "/reporting", label: "Reporting", icon: <ReportingIcon /> },
-      { href: "/security", label: "Security", icon: <SecurityIcon /> },
-      { href: "/audit", label: "Audit", icon: <AuditIcon /> },
+      {
+        href: "/security",
+        label: "Security",
+        icon: <SecurityIcon />,
+        requiredPermission: CONSOLE_PERMISSIONS.identityRead,
+      },
+      {
+        href: "/audit",
+        label: "Audit",
+        icon: <AuditIcon />,
+        requiredPermission: CONSOLE_PERMISSIONS.auditRead,
+      },
       { href: "/central-sync", label: "Central sync", icon: <CentralSyncIcon /> },
       { href: "/operations", label: "Operations", icon: <OperationsIcon /> },
     ],
@@ -451,19 +470,28 @@ export const SHELL_ROUTES: ShellRoute[] = SHELL_NAV_GROUPS.flatMap(
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const session = useOptionalSession();
 
   return (
     <nav className={styles.nav} aria-label="Primary">
-      {SHELL_NAV_GROUPS.map((group, groupIndex) => (
-        <div
-          key={group.heading ?? `group-${groupIndex}`}
-          className={styles.group}
-        >
-          {group.heading ? (
-            <div className={styles.groupHeading}>{group.heading}</div>
-          ) : null}
-          <ul className={styles.list}>
-            {group.routes.map(({ href, label, icon }) => {
+      {SHELL_NAV_GROUPS.map((group, groupIndex) => {
+        // Role-aware navigation: drop entries the current actor lacks
+        // the permission for. Ungated entries and isolated renders
+        // (no SessionProvider) fall through as before.
+        const visibleRoutes = group.routes.filter((route) =>
+          canAccess(session, route.requiredPermission),
+        );
+        if (visibleRoutes.length === 0) return null;
+        return (
+          <div
+            key={group.heading ?? `group-${groupIndex}`}
+            className={styles.group}
+          >
+            {group.heading ? (
+              <div className={styles.groupHeading}>{group.heading}</div>
+            ) : null}
+            <ul className={styles.list}>
+              {visibleRoutes.map(({ href, label, icon }) => {
               const isActive =
                 pathname === href || pathname.startsWith(`${href}/`);
               const className = isActive
@@ -481,10 +509,11 @@ export function SidebarNav() {
                   </Link>
                 </li>
               );
-            })}
-          </ul>
-        </div>
-      ))}
+              })}
+            </ul>
+          </div>
+        );
+      })}
     </nav>
   );
 }

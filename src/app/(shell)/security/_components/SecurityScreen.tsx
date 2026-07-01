@@ -7,6 +7,8 @@ import {
   Skeleton,
   StatusBadge,
 } from "@/components";
+import { CONSOLE_PERMISSIONS } from "../../_session/consolePermissions";
+import { PermissionGate } from "../../_session/PermissionGate";
 import {
   useConsoleSecurity,
   type ConsoleSecurityLoader,
@@ -235,24 +237,33 @@ function renderSecurity(snap: ConsoleSecuritySnapshot) {
                         role="group"
                         aria-label={`Role actions for ${op.label}`}
                       >
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          type="button"
-                          disabled
-                          title={disabledTitle}
+                        <PermissionGate
+                          permission={CONSOLE_PERMISSIONS.identityManage}
+                          fallback={
+                            <span className={styles.notesText}>
+                              Requires {CONSOLE_PERMISSIONS.identityManage}
+                            </span>
+                          }
                         >
-                          Assign
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          type="button"
-                          disabled
-                          title={disabledTitle}
-                        >
-                          Revoke
-                        </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            type="button"
+                            disabled
+                            title={disabledTitle}
+                          >
+                            Assign
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            type="button"
+                            disabled
+                            title={disabledTitle}
+                          >
+                            Revoke
+                          </Button>
+                        </PermissionGate>
                       </div>
                     </td>
                   </tr>
