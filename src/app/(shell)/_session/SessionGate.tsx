@@ -1,10 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { classifyError } from "@/api/error-taxonomy";
 import {
   Button,
+  buttonClassName,
   DegradedState,
   ErrorState,
   LoadingState,
@@ -29,6 +32,7 @@ import styles from "./SessionGate.module.css";
  */
 export function SessionGate({ children }: { children: ReactNode }) {
   const session = useSession();
+  const pathname = usePathname();
 
   if (session.phase === "loading") {
     return (
@@ -71,6 +75,9 @@ export function SessionGate({ children }: { children: ReactNode }) {
   }
 
   if (session.phase === "unauthenticated") {
+    // Not a dead end: route the operator to /login, preserving where
+    // they were headed so login can send them back.
+    const loginHref = `/login?redirect=${encodeURIComponent(pathname)}`;
     return (
       <div className={styles.gate}>
         <State
@@ -81,9 +88,17 @@ export function SessionGate({ children }: { children: ReactNode }) {
             "No active operator session. Sign in to continue."
           }
           action={
-            <Button variant="secondary" onClick={session.reload}>
-              Retry
-            </Button>
+            <div className={styles.gateActions}>
+              <Link
+                href={loginHref}
+                className={buttonClassName({ variant: "primary" })}
+              >
+                Sign in
+              </Link>
+              <Button variant="secondary" onClick={session.reload}>
+                Retry
+              </Button>
+            </div>
           }
         />
       </div>
