@@ -13,6 +13,14 @@ export type ApiClientOptions = {
   defaultTimeoutMs?: number;
   /** Optional factory for a per-request correlation id (UUID v4 by default). */
   correlationIdFactory?: () => string;
+  /**
+   * Optional bearer-token provider. When set and it returns a non-empty
+   * token, the client adds `Authorization: Bearer <token>` to every
+   * request that does not already carry one. Live clients pass the
+   * session token store; mock clients omit it, so mock mode never sends
+   * an `Authorization` header.
+   */
+  authTokenProvider?: () => string | null | undefined;
   /** Optional `fetch` override (useful for tests / SSR). */
   fetch?: typeof fetch;
 };
@@ -32,11 +40,22 @@ export function createAutodromeClient<Paths extends object>(
   const correlationIdFactory =
     options.correlationIdFactory ?? newCorrelationId;
   const defaultTimeoutMs = options.defaultTimeoutMs ?? 30_000;
+  const authTokenProvider = options.authTokenProvider;
 
   const middleware: Middleware = {
     async onRequest({ request }) {
       if (!request.headers.has(CORRELATION_HEADER)) {
         request.headers.set(CORRELATION_HEADER, correlationIdFactory());
+      }
+      // Authenticate live requests with the current session bearer.
+      // A caller-set Authorization header is never overwritten; an
+      // absent/empty token leaves the request unauthenticated so the
+      // backend answers 401 and the session flow shows auth-required.
+      if (authTokenProvider && !request.headers.has("Authorization")) {
+        const token = authTokenProvider();
+        if (token) {
+          request.headers.set("Authorization", `Bearer ${token}`);
+        }
       }
       return request;
     },
