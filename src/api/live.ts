@@ -1,5 +1,6 @@
 import type { AutodromeApi } from "./adapter";
 import { createAutodromeClient } from "./client";
+import { getAccessToken } from "./session-tokens";
 import {
   DEFAULT_LIVE_BASE_URLS,
   type ServiceName,
@@ -29,73 +30,46 @@ import type { VehicleEdgeGatewayPaths } from "./services/vehicle-edge-gateway";
 
 export function createLiveAdapter(
   baseUrls: Record<ServiceName, string> = DEFAULT_LIVE_BASE_URLS,
+  authTokenProvider: () => string | null = getAccessToken,
 ): AutodromeApi {
+  // Every live client authenticates with the current session bearer.
+  const make = <Paths extends object>(baseUrl: string) =>
+    createAutodromeClient<Paths>({ baseUrl, authTokenProvider });
+
   return {
-    candidate: createAutodromeClient<CandidatePaths>({
-      baseUrl: baseUrls.candidate,
-    }),
-    vehicle: createAutodromeClient<VehiclePaths>({
-      baseUrl: baseUrls.vehicle,
-    }),
-    exam: createAutodromeClient<ExamPaths>({
-      baseUrl: baseUrls.exam,
-    }),
-    exercise: createAutodromeClient<ExercisePaths>({
-      baseUrl: baseUrls.exercise,
-    }),
-    violationRule: createAutodromeClient<ViolationRulePaths>({
-      baseUrl: baseUrls.violationRule,
-    }),
-    mediaArchive: createAutodromeClient<MediaArchivePaths>({
-      baseUrl: baseUrls.mediaArchive,
-    }),
-    androidDevice: createAutodromeClient<AndroidDevicePaths>({
-      baseUrl: baseUrls.androidDevice,
-    }),
-    virtualVehicle: createAutodromeClient<VirtualVehiclePaths>({
-      baseUrl: baseUrls.virtualVehicle,
-    }),
-    reportingDocument: createAutodromeClient<ReportingDocumentPaths>({
-      baseUrl: baseUrls.reportingDocument,
-    }),
-    deploymentOperations: createAutodromeClient<DeploymentOperationsPaths>({
-      baseUrl: baseUrls.deploymentOperations,
-    }),
-    vehicleTelemetry: createAutodromeClient<VehicleTelemetryPaths>({
-      baseUrl: baseUrls.vehicleTelemetry,
-    }),
-    identitySecurity: createAutodromeClient<IdentitySecurityPaths>({
-      baseUrl: baseUrls.identitySecurity,
-    }),
-    apiGatewayBff: createAutodromeClient<ApiGatewayBffPaths>({
-      baseUrl: baseUrls.apiGatewayBff,
-    }),
-    audit: createAutodromeClient<AuditPaths>({
-      baseUrl: baseUrls.audit,
-    }),
-    centralSync: createAutodromeClient<CentralSyncPaths>({
-      baseUrl: baseUrls.centralSync,
-    }),
-    referenceData: createAutodromeClient<ReferenceDataPaths>({
-      baseUrl: baseUrls.referenceData,
-    }),
-    autodromeGeometry: createAutodromeClient<AutodromeGeometryPaths>({
-      baseUrl: baseUrls.autodromeGeometry,
-    }),
-    schedulingIntegration: createAutodromeClient<SchedulingIntegrationPaths>({
-      baseUrl: baseUrls.schedulingIntegration,
-    }),
-    trafficControl: createAutodromeClient<TrafficControlPaths>({
-      baseUrl: baseUrls.trafficControl,
-    }),
-    biometry: createAutodromeClient<BiometryPaths>({
-      baseUrl: baseUrls.biometry,
-    }),
-    vehicleSimulatorRpi: createAutodromeClient<VehicleSimulatorRpiPaths>({
-      baseUrl: baseUrls.vehicleSimulatorRpi,
-    }),
-    vehicleEdgeGateway: createAutodromeClient<VehicleEdgeGatewayPaths>({
-      baseUrl: baseUrls.vehicleEdgeGateway,
-    }),
+    candidate: make<CandidatePaths>(baseUrls.candidate),
+    vehicle: make<VehiclePaths>(baseUrls.vehicle),
+    exam: make<ExamPaths>(baseUrls.exam),
+    exercise: make<ExercisePaths>(baseUrls.exercise),
+    violationRule: make<ViolationRulePaths>(baseUrls.violationRule),
+    mediaArchive: make<MediaArchivePaths>(baseUrls.mediaArchive),
+    androidDevice: make<AndroidDevicePaths>(baseUrls.androidDevice),
+    virtualVehicle: make<VirtualVehiclePaths>(baseUrls.virtualVehicle),
+    reportingDocument: make<ReportingDocumentPaths>(
+      baseUrls.reportingDocument,
+    ),
+    deploymentOperations: make<DeploymentOperationsPaths>(
+      baseUrls.deploymentOperations,
+    ),
+    vehicleTelemetry: make<VehicleTelemetryPaths>(baseUrls.vehicleTelemetry),
+    identitySecurity: make<IdentitySecurityPaths>(baseUrls.identitySecurity),
+    apiGatewayBff: make<ApiGatewayBffPaths>(baseUrls.apiGatewayBff),
+    audit: make<AuditPaths>(baseUrls.audit),
+    centralSync: make<CentralSyncPaths>(baseUrls.centralSync),
+    referenceData: make<ReferenceDataPaths>(baseUrls.referenceData),
+    autodromeGeometry: make<AutodromeGeometryPaths>(
+      baseUrls.autodromeGeometry,
+    ),
+    schedulingIntegration: make<SchedulingIntegrationPaths>(
+      baseUrls.schedulingIntegration,
+    ),
+    trafficControl: make<TrafficControlPaths>(baseUrls.trafficControl),
+    biometry: make<BiometryPaths>(baseUrls.biometry),
+    vehicleSimulatorRpi: make<VehicleSimulatorRpiPaths>(
+      baseUrls.vehicleSimulatorRpi,
+    ),
+    vehicleEdgeGateway: make<VehicleEdgeGatewayPaths>(
+      baseUrls.vehicleEdgeGateway,
+    ),
   };
 }
