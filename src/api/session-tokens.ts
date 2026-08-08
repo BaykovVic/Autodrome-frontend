@@ -76,6 +76,12 @@ function browserStorage(): Storage | null {
 let memoryFallback: SessionTokens | null = null;
 
 export function setSessionTokens(tokens: SessionTokens | null): void {
+  // Keep the in-memory layer in sync with every write — including a
+  // successful persist — so the two layers never diverge. Otherwise a
+  // token logged out via storage could resurface from stale memory if
+  // storage later becomes unavailable, and a token persisted while
+  // memory was empty would read as logged-out once storage is lost.
+  memoryFallback = tokens;
   const storage = browserStorage();
   if (storage) {
     try {
@@ -84,12 +90,11 @@ export function setSessionTokens(tokens: SessionTokens | null): void {
       } else {
         storage.removeItem(STORAGE_KEY);
       }
-      return;
     } catch {
-      // fall through to memory on quota / serialization failure
+      // Persist failed (quota / serialization): the in-memory layer
+      // above already holds the intended state.
     }
   }
-  memoryFallback = tokens;
 }
 
 export function getSessionTokens(): SessionTokens | null {

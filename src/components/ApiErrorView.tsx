@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ApiError } from "@/api/errors";
 import {
   classifyError,
   type ApiErrorCategory,
 } from "@/api/error-taxonomy";
-import { Button } from "./Button";
+import { Button, buttonClassName } from "./Button";
 import styles from "./ApiErrorView.module.css";
 
 type NormalizedError = {
@@ -68,6 +70,7 @@ export function ApiErrorView({
   retryLabel = "Retry",
 }: Props) {
   const info = normalize(error);
+  const pathname = usePathname();
   const [copyStatus, setCopyStatus] = useState<
     "idle" | "copied" | "failed"
   >("idle");
@@ -137,11 +140,23 @@ export function ApiErrorView({
           {info.url}
         </p>
       ) : null}
-      {onRetry ? (
+      {info.category === "unauthorized" || onRetry ? (
         <div className={styles.actions}>
-          <Button variant="secondary" size="sm" onClick={onRetry}>
-            {retryLabel}
-          </Button>
+          {info.category === "unauthorized" ? (
+            <Link
+              href={`/login?redirect=${encodeURIComponent(
+                pathname ?? "/dashboard",
+              )}`}
+              className={buttonClassName({ variant: "primary", size: "sm" })}
+            >
+              Sign in
+            </Link>
+          ) : null}
+          {onRetry ? (
+            <Button variant="secondary" size="sm" onClick={onRetry}>
+              {retryLabel}
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </section>
