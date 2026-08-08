@@ -15,7 +15,7 @@ import type {
   ConsoleSessionState,
 } from "./consoleSession";
 import { consoleSessionFor } from "./consoleSessionFixtures";
-import { liveSessionLoader } from "./liveSessionLoader";
+import { liveSessionWithRefresh } from "./sessionAuth";
 
 export type ConsoleSessionLoader = () =>
   | ConsoleSessionResult
@@ -27,7 +27,7 @@ export type UseConsoleSession = ConsoleSessionState & {
 
 async function defaultLoader(): Promise<ConsoleSessionResult> {
   if (resolveRuntimeMode() === "live") {
-    return liveSessionLoader(getApiAdapter({ mode: "live" }));
+    return liveSessionWithRefresh(getApiAdapter({ mode: "live" }));
   }
   const env = process.env.NEXT_PUBLIC_MOCK_SCENARIO;
   const scenario: MockScenario = isMockScenario(env)
