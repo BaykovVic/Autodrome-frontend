@@ -1,4 +1,4 @@
-import { StatusDot } from "@/components";
+import { Button, StatusDot } from "@/components";
 import styles from "./ConsoleTopbar.module.css";
 
 /**
@@ -25,6 +25,8 @@ type Props = {
   node?: TopbarNode;
   services?: TopbarService[];
   operator?: TopbarOperator;
+  /** When set, renders a Sign out action in the operator cluster. */
+  onLogout?: () => void;
 };
 
 const DEFAULT_NODE: TopbarNode = {
@@ -49,6 +51,7 @@ export function ConsoleTopbar({
   node = DEFAULT_NODE,
   services = DEFAULT_SERVICES,
   operator = DEFAULT_OPERATOR,
+  onLogout,
 }: Props) {
   return (
     <header className={styles.topbar} aria-label="Console topbar">
@@ -104,6 +107,16 @@ export function ConsoleTopbar({
             <span className={styles.operatorName}>{operator.name}</span>
             <span className={styles.operatorRole}>{operator.role}</span>
           </div>
+          {onLogout ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onLogout}
+              aria-label="Sign out"
+            >
+              Sign out
+            </Button>
+          ) : null}
         </div>
       </div>
     </header>
