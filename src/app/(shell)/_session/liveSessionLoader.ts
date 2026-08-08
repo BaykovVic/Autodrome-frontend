@@ -8,9 +8,16 @@
  *
  *   - 200 with actor body  → authenticated session.
  *   - 200 with empty body  → unauthenticated (no actor resolved).
- *   - 401 / 403            → unauthenticated (token missing/expired);
- *                            the API client throws `ApiError`, which
- *                            `classifyError` maps to `unauthorized`.
+ *   - 401                  → unauthenticated (token missing/expired):
+ *                            the API client throws `ApiError`,
+ *                            `classifyError` maps 401 to `unauthorized`,
+ *                            and the shell shows the session / sign-in
+ *                            state.
+ *   - 403                  → rethrown, NOT unauthenticated. `classifyError`
+ *                            maps 403 to `forbidden` (not `unauthorized`),
+ *                            so the session stays and the shell renders a
+ *                            forbidden panel. A 403 must never trigger a
+ *                            refresh or logout.
  *   - any other failure    → rethrown so the hook surfaces a transport
  *                            `error` phase rather than silently
  *                            signing the operator out.

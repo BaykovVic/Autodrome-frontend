@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   clearSessionTokens,
@@ -46,6 +46,37 @@ describe("session-tokens store", () => {
     expect(getSessionTokens()).toBeNull();
     expect(getAccessToken()).toBeNull();
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
+  it("keeps memory in sync with a successful persist (survives storage loss)", () => {
+    setSessionTokens(SAMPLE); // storage available → persisted
+    // Storage becomes unavailable (probe setItem throws) → reads fall
+    // back to memory, which must reflect the last successful write.
+    const spy = vi
+      .spyOn(window.localStorage, "setItem")
+      .mockImplementation(() => {
+        throw new Error("unavailable");
+      });
+    try {
+      expect(getSessionTokens()).toEqual(SAMPLE);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("does not resurface a logged-out token from stale memory", () => {
+    setSessionTokens(SAMPLE);
+    clearSessionTokens(); // clears storage AND memory
+    const spy = vi
+      .spyOn(window.localStorage, "setItem")
+      .mockImplementation(() => {
+        throw new Error("unavailable");
+      });
+    try {
+      expect(getSessionTokens()).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("drops a corrupt / foreign stored value instead of surfacing it", () => {

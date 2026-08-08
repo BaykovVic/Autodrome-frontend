@@ -61,10 +61,11 @@ export type ApiErrorCategory =
  *   - `form-field`          → caller-side handling. Validation
  *                              errors map onto inline field hints;
  *                              the global ApiErrorView is hidden.
- *   - `auth-block`          → render `<ApiErrorView />` with an
- *                              "authentication not configured for
- *                              this build" message. Real auth is
- *                              intentionally out of scope.
+ *   - `auth-block`          → render `<ApiErrorView />` for a missing /
+ *                              expired session: an operator-facing
+ *                              "session expired" message plus a
+ *                              sign-in action that routes to `/login`
+ *                              (preserving `redirect`). Used for 401.
  */
 export type ApiErrorUiKind =
   | "degraded-banner"
@@ -237,9 +238,9 @@ function defaultCopy(category: ApiErrorCategory): CopySpec {
       };
     case "unauthorized":
       return {
-        title: "Authentication is not configured",
+        title: "Session expired",
         description:
-          "This build does not ship a runtime auth layer. The request was rejected as unauthorized. Configure operator credentials at the deploy layer to proceed.",
+          "Your operator session is missing or has expired. Sign in again to continue.",
       };
     case "forbidden":
       return {

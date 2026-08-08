@@ -65,8 +65,9 @@ describe("error-taxonomy: classifyError() per-category", () => {
     expect(c.category).toBe("unauthorized");
     expect(c.uiKind).toBe("auth-block");
     expect(c.retryable).toBe(false);
-    expect(c.title).toMatch(/authentication is not configured/i);
-    expect(c.description).toMatch(/unauthorized/i);
+    // Honest expired/missing-session copy (not "auth not configured").
+    expect(c.title).toMatch(/session expired/i);
+    expect(c.description).toMatch(/sign in again|expired|session/i);
   });
 
   it("classifies 403 as forbidden → error-view, not retryable (distinct from 401)", () => {
