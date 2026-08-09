@@ -19,11 +19,17 @@ export type ConsoleGeometryEntry = {
   geometryId: string;
   /** Operator-facing name e.g. "Main parking circuit". */
   name: string;
-  status: ConsoleGeometryStatus;
+  /**
+   * `null` in live mode: `GET /geometry` returns geometry objects
+   * (type / name / srid / coordinates), not version or publication
+   * state. Those come from a version read; absent values render as
+   * "—" instead of a guessed status.
+   */
+  status: ConsoleGeometryStatus | null;
   statusLabel: string;
-  version: number;
+  version: number | null;
   publishedAt?: string;
-  checksumShort: string;
+  checksumShort: string | null;
 };
 
 export type ConsoleGeometrySnapshot = {

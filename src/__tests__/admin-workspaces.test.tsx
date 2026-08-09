@@ -13,14 +13,15 @@ import { SchedulingScreen } from "@/app/(shell)/scheduling-integration/_componen
 import { consoleSchedulingFor } from "@/app/(shell)/scheduling-integration/_components/consoleSchedulingFixtures";
 
 describe("ReferenceDataScreen", () => {
-  it("renders heading + dictionary picker + items table", () => {
+  it("renders heading + dictionary picker + items table", async () => {
     render(
       <ReferenceDataScreen
         snapshotOverride={consoleReferenceDataFor("normal")}
       />,
     );
+    // The screen resolves its snapshot through a loader now.
     expect(
-      screen.getByRole("heading", { level: 1, name: /reference data/i }),
+      await screen.findByRole("heading", { level: 1, name: /reference data/i }),
     ).toBeDefined();
     expect(
       screen.getByRole("group", { name: /dictionary picker/i }),
@@ -30,13 +31,13 @@ describe("ReferenceDataScreen", () => {
     ).toBeDefined();
   });
 
-  it("switching dictionary swaps the items table", () => {
+  it("switching dictionary swaps the items table", async () => {
     render(
       <ReferenceDataScreen
         snapshotOverride={consoleReferenceDataFor("normal")}
       />,
     );
-    const violationBtn = screen.getByRole("button", {
+    const violationBtn = await screen.findByRole("button", {
       name: /violation codes/i,
     });
     fireEvent.click(violationBtn);
@@ -46,27 +47,27 @@ describe("ReferenceDataScreen", () => {
     expect(within(table).getByText(/Over speed limit/i)).toBeDefined();
   });
 
-  it("service-degraded scenario surfaces degraded note", () => {
+  it("service-degraded scenario surfaces degraded note", async () => {
     render(
       <ReferenceDataScreen
         snapshotOverride={consoleReferenceDataFor("service-degraded")}
       />,
     );
     expect(
-      screen.getByLabelText(/reference data degraded note/i),
+      await screen.findByLabelText(/reference data degraded note/i),
     ).toBeDefined();
   });
 });
 
 describe("GeometryScreen", () => {
-  it("renders heading + geometry versions table with status badges", () => {
+  it("renders heading + geometry versions table with status badges", async () => {
     render(
       <GeometryScreen
         snapshotOverride={consoleGeometryFor("normal")}
       />,
     );
     expect(
-      screen.getByRole("heading", {
+      await screen.findByRole("heading", {
         level: 1,
         name: /autodrome geometry/i,
       }),
@@ -78,14 +79,14 @@ describe("GeometryScreen", () => {
     expect(within(table).getByText(/Highway merge mock/i)).toBeDefined();
   });
 
-  it("service-degraded scenario surfaces degraded note + only published", () => {
+  it("service-degraded scenario surfaces degraded note + only published", async () => {
     render(
       <GeometryScreen
         snapshotOverride={consoleGeometryFor("service-degraded")}
       />,
     );
     expect(
-      screen.getByLabelText(/geometry degraded note/i),
+      await screen.findByLabelText(/geometry degraded note/i),
     ).toBeDefined();
   });
 });

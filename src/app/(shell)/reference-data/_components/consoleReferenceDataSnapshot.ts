@@ -23,8 +23,14 @@ export type ConsoleReferenceDictionary = {
   /** Friendly label rendered alongside canonical name. */
   label: string;
   version: number;
-  publishedAt: string;
-  checksumShort: string;
+  /**
+   * `null` in live mode: `GET /reference/{dictionary}` returns the
+   * dictionary and its items only — publish metadata lives on
+   * `ReferenceVersion`, which this read does not carry. Rendered as
+   * "—" rather than invented.
+   */
+  publishedAt: string | null;
+  checksumShort: string | null;
   items: ConsoleReferenceItem[];
 };
 
