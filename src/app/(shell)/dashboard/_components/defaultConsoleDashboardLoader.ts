@@ -1,24 +1,35 @@
+import { getApiAdapter } from "@/api/get-api-adapter";
 import {
   DEFAULT_SCENARIO,
   isMockScenario,
   type MockScenario,
 } from "@/api/mock/scenarios";
+import { resolveRuntimeMode } from "@/api/runtime-config";
+
 import { consoleDashboardFor } from "./consoleDashboardFixtures";
 import type { ConsoleDashboardSnapshot } from "./consoleDashboardSnapshot";
+import { liveDashboardLoader } from "./liveDashboardLoader";
 
 /**
  * Returns a current snapshot for the Autodrome console dashboard.
  *
- * The backend does not yet expose a single dashboard read model;
- * each widget block lives behind its own service. Until those
- * read models land, the dashboard reads workspace-local fixtures
- * keyed by mock scenario. When the contracts ship, swap each
- * block's source for a typed adapter call without touching the
- * widget components.
+ * Live mode reads the canonical `api-gateway-bff` dashboard read
+ * models (`GET /dashboard/admin` / `GET /dashboard/dispatcher`),
+ * selected by the current session roles. Blocks the BFF does not
+ * expose (database readiness, media storage, telemetry, outbox)
+ * resolve to `null` and render an explicit "no data from backend"
+ * tile — live mode never falls back to fixtures.
+ *
+ * Mock mode keeps reading scenario-keyed fixtures unchanged, so
+ * scenario-driven tests and the browser smoke are unaffected.
  */
 export function defaultConsoleDashboardLoader(
+  roles: readonly string[] = [],
   scenario?: MockScenario,
-): ConsoleDashboardSnapshot {
+): ConsoleDashboardSnapshot | Promise<ConsoleDashboardSnapshot> {
+  if (resolveRuntimeMode() === "live") {
+    return liveDashboardLoader(getApiAdapter({ mode: "live" }), roles);
+  }
   const resolved = scenario ?? resolveScenarioFromEnv();
   return consoleDashboardFor(resolved);
 }
