@@ -5,6 +5,7 @@ import { ApiError } from "@/api/errors";
 import { isUuid } from "@/app/(shell)/devices/_components/androidAssignmentHelpers";
 import {
   liveVehicleAnchorOptions,
+  MOCK_VEHICLE_LIFECYCLE_UNKNOWN,
   mapConsoleVehicleToAnchorOption,
   mapVehicleDtoToAnchorOption,
   mockVehicleAnchorId,
@@ -142,17 +143,43 @@ describe("mockVehicleAnchorOptions", () => {
     ).toBe(true);
   });
 
-  it("marks a decommissioned fixture vehicle as not bindable", () => {
+  // Review finding LOW 1: the previous test here fed
+  // `device.label: "decommissioned"` into the mapper — a value no
+  // fixture produces — so it was green without covering anything.
+  // What mock mode actually does is the assertion worth making.
+  it("reports every fixture vehicle as bindable with an unknown lifecycle", () => {
+    const options = mockVehicleAnchorOptions("normal");
+    expect(options.every((o) => o.bindable)).toBe(true);
+    expect(
+      options.every(
+        (o) => o.statusLabel === MOCK_VEHICLE_LIFECYCLE_UNKNOWN,
+      ),
+    ).toBe(true);
+  });
+
+  it("does not read vehicle lifecycle out of the device-health label", () => {
     const option = mapConsoleVehicleToAnchorOption({
       id: "VEH-99",
       model: "Lada Granta 2019",
       plate: "С 001 АА 199",
       category: "Cat B",
-      device: { state: "offline", label: "decommissioned" },
+      // `offline` is a device-health state, not a decommissioned
+      // vehicle — the mapper must not conflate the two.
+      device: { state: "offline", label: "offline" },
       firmware: "—",
       lastSeen: "—",
       equipment: [],
     });
-    expect(option.bindable).toBe(false);
+    expect(option.bindable).toBe(true);
+    expect(option.statusLabel).toBe(MOCK_VEHICLE_LIFECYCLE_UNKNOWN);
+  });
+
+  it("keeps the not-bindable affordance reachable on the live path", () => {
+    // The affordance mock cannot reach is exercised where it is real:
+    // the canonical VehicleStatus from vehicle-service.
+    expect(
+      mapVehicleDtoToAnchorOption(vehicleDto({ status: "decommissioned" }))
+        .bindable,
+    ).toBe(false);
   });
 });
