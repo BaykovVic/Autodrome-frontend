@@ -20,7 +20,11 @@ export type ConsoleSchedule = {
   candidateRef: string;
   examRef: string;
   startsAt: string;
-  status: ConsoleScheduleStatus;
+  /**
+   * `null` in live mode: `Schedule` carries no lifecycle status —
+   * rendered as "—" rather than assumed "Scheduled".
+   */
+  status: ConsoleScheduleStatus | null;
   statusLabel: string;
 };
 
@@ -33,7 +37,8 @@ export type ConsoleIntegrationEntry = {
   statusLabel: string;
   lastImportAt: string;
   lastError?: string;
-  pendingItems: number;
+  /** `null` when the backend reports attempts but not a pending count. */
+  pendingItems: number | null;
 };
 
 export type ConsoleSchedulingSnapshot = {

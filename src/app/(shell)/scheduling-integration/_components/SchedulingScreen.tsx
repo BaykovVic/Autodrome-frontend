@@ -1,7 +1,18 @@
 "use client";
 
-import { StatusBadge, type StatusBadgeVariant } from "@/components";
-import { consoleSchedulingFor } from "./consoleSchedulingFixtures";
+import { useMemo } from "react";
+
+import {
+  ApiErrorView,
+  EmptyState,
+  Skeleton,
+  StatusBadge,
+  type StatusBadgeVariant,
+} from "@/components";
+import {
+  useConsoleScheduling,
+  type ConsoleSchedulingLoader,
+} from "./useConsoleScheduling";
 import type {
   ConsoleIntegrationStatus,
   ConsoleScheduleStatus,
@@ -9,7 +20,7 @@ import type {
 } from "./consoleSchedulingSnapshot";
 import styles from "../../reference-data/_components/ReferenceDataScreen.module.css";
 
-function scheduleBadge(s: ConsoleScheduleStatus): StatusBadgeVariant {
+function scheduleBadge(s: ConsoleScheduleStatus | null): StatusBadgeVariant {
   switch (s) {
     case "completed":
       return "success";
@@ -40,11 +51,54 @@ function integrationBadge(
 
 type Props = {
   snapshotOverride?: ConsoleSchedulingSnapshot;
+  /** Injected loader (tests). Live reads scheduling-integration-service. */
+  loader?: ConsoleSchedulingLoader;
 };
 
-export function SchedulingScreen({ snapshotOverride }: Props) {
-  const snap =
-    snapshotOverride ?? consoleSchedulingFor("normal");
+export function SchedulingScreen({ snapshotOverride, loader }: Props) {
+  // Memoised so a fresh identity per render cannot retrigger the hook.
+  const effectiveLoader = useMemo(
+    () => (snapshotOverride ? () => snapshotOverride : loader),
+    [snapshotOverride, loader],
+  );
+  const state = useConsoleScheduling(effectiveLoader);
+
+  if (state.loading) {
+    return (
+      <section
+        className={styles.screen}
+        aria-label="Scheduling integration workspace"
+      >
+        <Skeleton lines={6} label="Loading scheduling integration" />
+      </section>
+    );
+  }
+
+  if (state.fatalError) {
+    return (
+      <section
+        className={styles.screen}
+        aria-label="Scheduling integration workspace"
+      >
+        <ApiErrorView error={state.fatalError} onRetry={state.reload} />
+      </section>
+    );
+  }
+
+  const snap = state.snapshot;
+  if (!snap) {
+    return (
+      <section
+        className={styles.screen}
+        aria-label="Scheduling integration workspace"
+      >
+        <EmptyState
+          title="No scheduling data"
+          description="Live and mock loaders both returned no data."
+        />
+      </section>
+    );
+  }
 
   return (
     <section

@@ -92,14 +92,14 @@ describe("GeometryScreen", () => {
 });
 
 describe("SchedulingScreen", () => {
-  it("renders heading + schedules + integrations tables", () => {
+  it("renders heading + schedules + integrations tables", async () => {
     render(
       <SchedulingScreen
         snapshotOverride={consoleSchedulingFor("normal")}
       />,
     );
     expect(
-      screen.getByRole("heading", {
+      await screen.findByRole("heading", {
         level: 1,
         name: /scheduling & integration/i,
       }),
@@ -112,14 +112,14 @@ describe("SchedulingScreen", () => {
     ).toBeDefined();
   });
 
-  it("service-degraded scenario surfaces failed integration + degraded note", () => {
+  it("service-degraded scenario surfaces failed integration + degraded note", async () => {
     render(
       <SchedulingScreen
         snapshotOverride={consoleSchedulingFor("service-degraded")}
       />,
     );
     expect(
-      screen.getByLabelText(/scheduling degraded note/i),
+      await screen.findByLabelText(/scheduling degraded note/i),
     ).toBeDefined();
     expect(screen.getByText(/FleetExport/)).toBeDefined();
   });
