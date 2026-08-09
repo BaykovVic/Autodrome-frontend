@@ -19,6 +19,16 @@ export const CONSOLE_PERMISSIONS = {
   identityManage: "identity.manage",
   /** Read the audit workspace / verification exports. */
   auditRead: "audit.read",
+  /**
+   * Dispatch a runtime command to a traffic controller. The traffic
+   * contract does not name its permission key, so this follows the
+   * matrix vocabulary (`<domain>.manage`, as with `identity.manage` /
+   * `device.manage`) and must be reconciled with the canonical matrix
+   * if it differs — a one-constant change. Backend RBAC stays the
+   * security boundary: a mismatch surfaces as an honest 403, never as
+   * a silently allowed command.
+   */
+  trafficCommand: "traffic.manage",
 } as const;
 
 export type ConsolePermissionKey =

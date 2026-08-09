@@ -1,17 +1,28 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
+  ApiErrorView,
   Button,
+  EmptyState,
+  Skeleton,
   StatusBadge,
   type StatusBadgeVariant,
 } from "@/components";
+import {
+  canAccess,
+  CONSOLE_PERMISSIONS,
+} from "../../_session/consolePermissions";
+import { useOptionalSession } from "../../_session/SessionProvider";
 import { ConfirmDestructiveDialog } from "../../operations/_components/ConfirmDestructiveDialog";
-import { consoleTrafficFor } from "./consoleTrafficFixtures";
+import {
+  useConsoleTrafficControl,
+  type ConsoleTrafficLoader,
+} from "./useConsoleTrafficControl";
+import type { TrafficCommandSender } from "./liveTrafficControl";
 import {
   isDestructiveCommand,
-  type ConsoleCommandAccepted,
   type ConsoleCommandType,
   type ConsoleControllerStatus,
   type ConsoleTrafficSnapshot,
@@ -35,22 +46,36 @@ function controllerBadge(
 
 type Props = {
   snapshotOverride?: ConsoleTrafficSnapshot;
+  /** Injected loader (tests). Live reads traffic-control-service. */
+  loader?: ConsoleTrafficLoader;
+  /** Injected command sender (tests). Live posts /traffic/commands. */
+  commandSender?: TrafficCommandSender;
 };
 
-export function TrafficControlScreen({ snapshotOverride }: Props) {
-  const initial =
-    snapshotOverride ?? consoleTrafficFor("normal");
-  const [snapshot, setSnapshot] =
-    useState<ConsoleTrafficSnapshot>(initial);
+/** Shown on a disabled control so the reason is never silent. */
+const NO_COMMAND_PERMISSION = `Requires ${CONSOLE_PERMISSIONS.trafficCommand}`;
+
+export function TrafficControlScreen({
+  snapshotOverride,
+  loader,
+  commandSender,
+}: Props) {
+  const session = useOptionalSession();
+  const canCommand = canAccess(
+    session,
+    CONSOLE_PERMISSIONS.trafficCommand,
+  );
+  // Memoised so a fresh identity per render cannot retrigger the hook.
+  const effectiveLoader = useMemo(
+    () => (snapshotOverride ? () => snapshotOverride : loader),
+    [snapshotOverride, loader],
+  );
+  const state = useConsoleTrafficControl(effectiveLoader, commandSender);
   const [confirm, setConfirm] = useState<{
     controllerId: string;
     address: string;
     commandType: ConsoleCommandType;
   } | null>(null);
-  // Counter-based command id keeps the screen component
-  // body pure; impurity (Date.now / new Date) stays inside
-  // event handlers below, per React Compiler purity rule.
-  const commandCounter = useRef(0);
 
   function dispatchCommand(
     controllerId: string,
@@ -61,31 +86,42 @@ export function TrafficControlScreen({ snapshotOverride }: Props) {
       setConfirm({ controllerId, address, commandType });
       return;
     }
-    const entry: ConsoleCommandAccepted = {
-      commandId: `mock-cmd-${++commandCounter.current}`,
-      controllerId,
-      commandType,
-      acceptedAt: new Date().toISOString(),
-    };
-    setSnapshot((prev) => ({
-      ...prev,
-      recentCommands: [entry, ...prev.recentCommands],
-    }));
+    // Result comes from the backend acceptance — no optimistic entry.
+    void state.sendCommand(controllerId, commandType);
   }
 
   function onConfirm() {
     if (!confirm) return;
-    const entry: ConsoleCommandAccepted = {
-      commandId: `mock-cmd-${++commandCounter.current}`,
-      controllerId: confirm.controllerId,
-      commandType: confirm.commandType,
-      acceptedAt: new Date().toISOString(),
-    };
-    setSnapshot((prev) => ({
-      ...prev,
-      recentCommands: [entry, ...prev.recentCommands],
-    }));
+    void state.sendCommand(confirm.controllerId, confirm.commandType);
     setConfirm(null);
+  }
+
+  if (state.loading) {
+    return (
+      <section className={styles.screen} aria-label="Traffic control workspace">
+        <Skeleton lines={6} label="Loading traffic control" />
+      </section>
+    );
+  }
+
+  if (state.fatalError) {
+    return (
+      <section className={styles.screen} aria-label="Traffic control workspace">
+        <ApiErrorView error={state.fatalError} onRetry={state.reload} />
+      </section>
+    );
+  }
+
+  const snapshot = state.snapshot;
+  if (!snapshot) {
+    return (
+      <section className={styles.screen} aria-label="Traffic control workspace">
+        <EmptyState
+          title="No traffic control data"
+          description="Live and mock loaders both returned no data."
+        />
+      </section>
+    );
   }
 
   return (
@@ -102,6 +138,17 @@ export function TrafficControlScreen({ snapshotOverride }: Props) {
           commands; backend talks to hardware.
         </p>
       </header>
+
+      {state.commandError ? (
+        <div style={{ margin: "12px 20px 0" }}>
+          {/* A rejected command (e.g. backend 403) is never silent. */}
+          <ApiErrorView
+            error={state.commandError}
+            onRetry={state.clearCommandError}
+            retryLabel="Dismiss"
+          />
+        </div>
+      ) : null}
 
       {snapshot.degradedNote ? (
         <p
@@ -166,6 +213,11 @@ export function TrafficControlScreen({ snapshotOverride }: Props) {
                         aria-label={`Commands for ${c.controllerId}`}
                         style={{ display: "flex", gap: 4, flexWrap: "wrap" }}
                       >
+                        {!canCommand ? (
+                          <span className={styles.notesText}>
+                            {NO_COMMAND_PERMISSION}
+                          </span>
+                        ) : null}
                         {(
                           ["setProgram", "setState", "reset", "blink"] as ConsoleCommandType[]
                         )
@@ -180,7 +232,9 @@ export function TrafficControlScreen({ snapshotOverride }: Props) {
                                 }
                                 size="sm"
                                 type="button"
-                                disabled={c.status === "offline"}
+                                disabled={
+                                  c.status === "offline" || !canCommand
+                                }
                                 onClick={() =>
                                   dispatchCommand(
                                     c.controllerId,
@@ -189,9 +243,11 @@ export function TrafficControlScreen({ snapshotOverride }: Props) {
                                   )
                                 }
                                 title={
-                                  danger
-                                    ? "Dangerous: requires confirmation."
-                                    : undefined
+                                  !canCommand
+                                    ? NO_COMMAND_PERMISSION
+                                    : danger
+                                      ? "Dangerous: requires confirmation."
+                                      : undefined
                                 }
                               >
                                 {cmd}

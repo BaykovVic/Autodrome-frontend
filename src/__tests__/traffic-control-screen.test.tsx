@@ -9,14 +9,14 @@ import { TrafficControlScreen } from "@/app/(shell)/traffic-control/_components/
 import { consoleTrafficFor } from "@/app/(shell)/traffic-control/_components/consoleTrafficFixtures";
 
 describe("TrafficControlScreen", () => {
-  it("renders controllers + lights tables on normal scenario", () => {
+  it("renders controllers + lights tables on normal scenario", async () => {
     render(
       <TrafficControlScreen
         snapshotOverride={consoleTrafficFor("normal")}
       />,
     );
     expect(
-      screen.getByRole("heading", { level: 1, name: /traffic control/i }),
+      await screen.findByRole("heading", { level: 1, name: /traffic control/i }),
     ).toBeDefined();
     expect(
       screen.getByRole("table", { name: /traffic controllers/i }),
@@ -26,28 +26,29 @@ describe("TrafficControlScreen", () => {
     ).toBeDefined();
   });
 
-  it("non-destructive setProgram command is recorded without confirmation", () => {
+  it("non-destructive setProgram command is recorded without confirmation", async () => {
     render(
       <TrafficControlScreen
         snapshotOverride={consoleTrafficFor("normal")}
       />,
     );
-    const programBtns = screen.getAllByRole("button", {
+    const programBtns = await screen.findAllByRole("button", {
       name: /^setProgram$/i,
     });
     fireEvent.click(programBtns[0]!);
+    // Acceptance is awaited (mock sender resolves asynchronously).
     expect(
-      screen.getByRole("list", { name: /recent traffic commands/i }),
+      await screen.findByRole("list", { name: /recent traffic commands/i }),
     ).toBeDefined();
   });
 
-  it("destructive reset command opens confirmation dialog", () => {
+  it("destructive reset command opens confirmation dialog", async () => {
     render(
       <TrafficControlScreen
         snapshotOverride={consoleTrafficFor("normal")}
       />,
     );
-    const resetBtns = screen.getAllByRole("button", {
+    const resetBtns = await screen.findAllByRole("button", {
       name: /^reset/i,
     });
     fireEvent.click(resetBtns[0]!);
@@ -58,7 +59,7 @@ describe("TrafficControlScreen", () => {
     expect(screen.getByText(/destructive command/i)).toBeDefined();
   });
 
-  it("offline controller buttons are disabled (cannot dispatch)", () => {
+  it("offline controller buttons are disabled (cannot dispatch)", async () => {
     render(
       <TrafficControlScreen
         snapshotOverride={consoleTrafficFor("normal")}
@@ -66,20 +67,20 @@ describe("TrafficControlScreen", () => {
     );
     // 3rd controller is offline; its setProgram button is
     // disabled (only capability it has).
-    const allSetProgram = screen.getAllByRole("button", {
+    const allSetProgram = (await screen.findAllByRole("button", {
       name: /^setProgram$/i,
-    }) as HTMLButtonElement[];
+    })) as HTMLButtonElement[];
     expect(allSetProgram.some((b) => b.disabled)).toBe(true);
   });
 
-  it("service-degraded scenario surfaces degraded note + drops offline controller", () => {
+  it("service-degraded scenario surfaces degraded note + drops offline controller", async () => {
     render(
       <TrafficControlScreen
         snapshotOverride={consoleTrafficFor("service-degraded")}
       />,
     );
     expect(
-      screen.getByLabelText(/traffic degraded note/i),
+      await screen.findByLabelText(/traffic degraded note/i),
     ).toBeDefined();
   });
 });
