@@ -1,14 +1,25 @@
 "use client";
 
-import { StatusBadge, type StatusBadgeVariant } from "@/components";
-import { consoleGeometryFor } from "./consoleGeometryFixtures";
+import { useMemo } from "react";
+
+import {
+  ApiErrorView,
+  EmptyState,
+  Skeleton,
+  StatusBadge,
+  type StatusBadgeVariant,
+} from "@/components";
 import type {
   ConsoleGeometrySnapshot,
   ConsoleGeometryStatus,
 } from "./consoleGeometrySnapshot";
+import {
+  useConsoleGeometry,
+  type ConsoleGeometryLoader,
+} from "./useConsoleGeometry";
 import styles from "../../reference-data/_components/ReferenceDataScreen.module.css";
 
-function statusBadge(s: ConsoleGeometryStatus): StatusBadgeVariant {
+function statusBadge(s: ConsoleGeometryStatus | null): StatusBadgeVariant {
   switch (s) {
     case "published":
       return "success";
@@ -22,10 +33,55 @@ function statusBadge(s: ConsoleGeometryStatus): StatusBadgeVariant {
 
 type Props = {
   snapshotOverride?: ConsoleGeometrySnapshot;
+  /** Injected loader (tests). Live mode reads autodrome-geometry-service. */
+  loader?: ConsoleGeometryLoader;
 };
 
-export function GeometryScreen({ snapshotOverride }: Props) {
-  const snap = snapshotOverride ?? consoleGeometryFor("normal");
+export function GeometryScreen({ snapshotOverride, loader }: Props) {
+  // Memoised: see ReferenceDataScreen — a new loader identity each
+  // render would retrigger the hook effect in a loop.
+  const effectiveLoader = useMemo(
+    () => (snapshotOverride ? () => snapshotOverride : loader),
+    [snapshotOverride, loader],
+  );
+  const state = useConsoleGeometry(effectiveLoader);
+
+  if (state.loading) {
+    return (
+      <section
+        className={styles.screen}
+        aria-label="Autodrome geometry workspace"
+      >
+        <Skeleton lines={6} label="Loading autodrome geometry" />
+      </section>
+    );
+  }
+
+  if (state.fatalError) {
+    return (
+      <section
+        className={styles.screen}
+        aria-label="Autodrome geometry workspace"
+      >
+        <ApiErrorView error={state.fatalError} onRetry={state.reload} />
+      </section>
+    );
+  }
+
+  const snap = state.snapshot;
+  if (!snap) {
+    return (
+      <section
+        className={styles.screen}
+        aria-label="Autodrome geometry workspace"
+      >
+        <EmptyState
+          title="No geometry data"
+          description="Live and mock loaders both returned no data."
+        />
+      </section>
+    );
+  }
 
   return (
     <section
@@ -95,11 +151,15 @@ export function GeometryScreen({ snapshotOverride }: Props) {
                         {e.statusLabel}
                       </StatusBadge>
                     </td>
-                    <td className={styles.cellMono}>v{e.version}</td>
+                    <td className={styles.cellMono}>
+                      {e.version === null ? "—" : `v${e.version}`}
+                    </td>
                     <td className={styles.cellMono}>
                       {e.publishedAt ?? "—"}
                     </td>
-                    <td className={styles.cellMono}>{e.checksumShort}</td>
+                    <td className={styles.cellMono}>
+                      {e.checksumShort ?? "—"}
+                    </td>
                   </tr>
                 ))}
               </tbody>

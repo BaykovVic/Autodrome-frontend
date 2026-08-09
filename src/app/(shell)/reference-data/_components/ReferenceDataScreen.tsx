@@ -1,28 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { StatusBadge } from "@/components";
-import {
-  consoleReferenceDataFor,
-} from "./consoleReferenceDataFixtures";
+import { ApiErrorView, EmptyState, Skeleton, StatusBadge } from "@/components";
 import type {
   ConsoleReferenceDataSnapshot,
 } from "./consoleReferenceDataSnapshot";
+import {
+  useConsoleReferenceData,
+  type ConsoleReferenceDataLoader,
+} from "./useConsoleReferenceData";
 import styles from "./ReferenceDataScreen.module.css";
 
 type Props = {
   snapshotOverride?: ConsoleReferenceDataSnapshot;
+  /** Injected loader (tests). Live mode reads reference-data-service. */
+  loader?: ConsoleReferenceDataLoader;
 };
 
-export function ReferenceDataScreen({ snapshotOverride }: Props) {
-  const snap =
-    snapshotOverride ?? consoleReferenceDataFor("normal");
-  const [selected, setSelected] = useState<string>(
-    snap.selectedDictionary,
+export function ReferenceDataScreen({ snapshotOverride, loader }: Props) {
+  // Memoised: a fresh loader identity on every render would retrigger
+  // the hook effect in a loop.
+  const effectiveLoader = useMemo(
+    () => (snapshotOverride ? () => snapshotOverride : loader),
+    [snapshotOverride, loader],
   );
+  const state = useConsoleReferenceData(effectiveLoader);
+  const snap = state.snapshot;
+  // Null until the operator picks one: the active dictionary then
+  // derives from the snapshot, so no effect is needed to sync it.
+  const [selected, setSelected] = useState<string | null>(null);
+
+  if (state.loading) {
+    return (
+      <section className={styles.screen} aria-label="Reference data workspace">
+        <Skeleton lines={6} label="Loading reference data" />
+      </section>
+    );
+  }
+
+  if (state.fatalError) {
+    return (
+      <section className={styles.screen} aria-label="Reference data workspace">
+        <ApiErrorView error={state.fatalError} onRetry={state.reload} />
+      </section>
+    );
+  }
+
+  if (!snap) {
+    return (
+      <section className={styles.screen} aria-label="Reference data workspace">
+        <EmptyState
+          title="No reference data"
+          description="Live and mock loaders both returned no data."
+        />
+      </section>
+    );
+  }
+  const activeKey = selected ?? snap.selectedDictionary;
   const current = snap.dictionaries.find(
-    (d) => d.dictionary === selected,
+    (d) => d.dictionary === activeKey,
   );
 
   return (
@@ -82,12 +119,12 @@ export function ReferenceDataScreen({ snapshotOverride }: Props) {
                   key={d.dictionary}
                   type="button"
                   onClick={() => setSelected(d.dictionary)}
-                  aria-pressed={d.dictionary === selected}
+                  aria-pressed={d.dictionary === activeKey}
                   style={{
                     padding: "4px 10px",
                     borderRadius: "var(--radius-sm)",
                     border:
-                      d.dictionary === selected
+                      d.dictionary === activeKey
                         ? "2px solid var(--color-text)"
                         : "var(--border-width) solid var(--color-border)",
                     background: "var(--color-surface)",
@@ -126,11 +163,11 @@ export function ReferenceDataScreen({ snapshotOverride }: Props) {
                 </StatusBadge>{" "}
                 · checksum{" "}
                 <span className={styles.cellMono}>
-                  {current.checksumShort}
+                  {current.checksumShort ?? "—"}
                 </span>{" "}
                 · published at{" "}
                 <span className={styles.cellMono}>
-                  {current.publishedAt}
+                  {current.publishedAt ?? "—"}
                 </span>
               </p>
             </section>
