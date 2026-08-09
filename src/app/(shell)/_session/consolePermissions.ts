@@ -29,6 +29,12 @@ export const CONSOLE_PERMISSIONS = {
    * a silently allowed command.
    */
   trafficCommand: "traffic.manage",
+  /**
+   * Manage Android devices (assign role/binding, retire). Canonical
+   * key from the RBAC matrix — the backend guards the same endpoints
+   * with `Permissions.DeviceManage`.
+   */
+  deviceManage: "device.manage",
 } as const;
 
 export type ConsolePermissionKey =

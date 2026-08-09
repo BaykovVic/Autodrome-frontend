@@ -69,6 +69,16 @@
   letter-spacing: 0;
 }
 
+.pickerProblem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  letter-spacing: 0;
+}
+
 .select,
 .input,
 .textarea {

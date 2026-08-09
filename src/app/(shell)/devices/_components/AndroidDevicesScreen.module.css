@@ -312,6 +312,45 @@
   letter-spacing: 0;
 }
 
+.permissionNote {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
+.commandError {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--color-surface-muted);
+  border-left: 3px solid var(--color-danger);
+  letter-spacing: 0;
+}
+
+.commandErrorTitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.commandErrorText {
+  margin: 4px 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  max-width: 70ch;
+}
+
+.commandErrorActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 900px) {
   .body {
     grid-template-columns: 1fr;
