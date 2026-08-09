@@ -124,6 +124,30 @@ export function mockVehicleAnchorId(fixtureId: string): string {
   ].join("-");
 }
 
+/**
+ * Label used for every mock option's `statusLabel`.
+ *
+ * `ConsoleVehicle` carries no canonical `VehicleStatus` — its
+ * `device.label` describes *device health* (`ok`, `degraded`,
+ * `offline`, `stale`, …), which is a different fact about a different
+ * thing. Mock mode therefore cannot know whether a vehicle is
+ * decommissioned, and says so instead of guessing.
+ */
+export const MOCK_VEHICLE_LIFECYCLE_UNKNOWN =
+  "lifecycle not modelled in fixtures";
+
+/**
+ * Fixture vehicle → anchor option.
+ *
+ * Every mock option is bindable. Deriving `bindable` from
+ * `device.label` would read like a working rule while in fact always
+ * evaluating to `true` — no fixture ever carries a vehicle-lifecycle
+ * value — so the not-bindable affordance is live-only by
+ * construction, driven by the canonical `VehicleStatus` in
+ * `mapVehicleDtoToAnchorOption`. Making mock exercise it would mean
+ * teaching the vehicles-workspace fixtures the canonical status
+ * first; that belongs to the vehicles workspace, not here.
+ */
 export function mapConsoleVehicleToAnchorOption(
   vehicle: ConsoleVehicle,
 ): VehicleAnchorOption {
@@ -131,8 +155,8 @@ export function mapConsoleVehicleToAnchorOption(
     vehicleId: mockVehicleAnchorId(vehicle.id),
     plateNumber: vehicle.plate,
     model: vehicle.model,
-    statusLabel: vehicle.device.label,
-    bindable: vehicle.device.label !== "decommissioned",
+    statusLabel: MOCK_VEHICLE_LIFECYCLE_UNKNOWN,
+    bindable: true,
   };
 }
 
