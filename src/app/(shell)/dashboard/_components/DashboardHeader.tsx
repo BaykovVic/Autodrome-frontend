@@ -4,11 +4,15 @@ import { Button, RefreshIcon } from "@/components";
 import styles from "./DashboardHeader.module.css";
 
 type Props = {
-  nodeId: string;
-  site: string;
+  /** `null` when the backend read model does not report node identity. */
+  nodeId: string | null;
+  site: string | null;
   lastRefresh: string;
   onReload: () => void;
 };
+
+/** Honest placeholder for an identity the backend did not report. */
+const NOT_REPORTED = "Not reported by backend";
 
 export function DashboardHeader({
   nodeId,
@@ -21,9 +25,9 @@ export function DashboardHeader({
       <div className={styles.titles}>
         <h1 className={styles.title}>Local Node Dashboard</h1>
         <p className={styles.subtitle}>
-          <span>{nodeId}</span>
+          <span>{nodeId ?? NOT_REPORTED}</span>
           <span aria-hidden="true"> · </span>
-          <span>{site}</span>
+          <span>{site ?? NOT_REPORTED}</span>
           <span aria-hidden="true"> · </span>
           <span>last refresh </span>
           <span className={styles.mono}>{lastRefresh}</span>

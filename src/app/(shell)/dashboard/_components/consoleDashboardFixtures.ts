@@ -1,6 +1,7 @@
 import type { MockScenario } from "@/api/mock/scenarios";
 import type {
   ConsoleDashboardSnapshot,
+  PopulatedConsoleDashboardSnapshot,
   DashboardServiceRow,
 } from "./consoleDashboardSnapshot";
 
@@ -65,7 +66,7 @@ const BASE_SERVICE_HEALTHY: DashboardServiceRow[] = [
   },
 ];
 
-const NORMAL: ConsoleDashboardSnapshot = {
+const NORMAL: PopulatedConsoleDashboardSnapshot = {
   node: BASE_NODE,
   serviceHealth: BASE_SERVICE_HEALTHY,
   database: {
@@ -111,7 +112,7 @@ const NORMAL: ConsoleDashboardSnapshot = {
   ],
 };
 
-const VIOLATIONS_DETECTED: ConsoleDashboardSnapshot = {
+const VIOLATIONS_DETECTED: PopulatedConsoleDashboardSnapshot = {
   ...NORMAL,
   vehicleTelemetry: {
     tiles: [
@@ -136,7 +137,7 @@ const VIOLATIONS_DETECTED: ConsoleDashboardSnapshot = {
   },
 };
 
-const EXAM_IN_PROGRESS: ConsoleDashboardSnapshot = {
+const EXAM_IN_PROGRESS: PopulatedConsoleDashboardSnapshot = {
   ...NORMAL,
   vehicleTelemetry: {
     tiles: [
@@ -156,7 +157,7 @@ const EXAM_IN_PROGRESS: ConsoleDashboardSnapshot = {
   },
 };
 
-const SERVICE_DEGRADED: ConsoleDashboardSnapshot = {
+const SERVICE_DEGRADED: PopulatedConsoleDashboardSnapshot = {
   ...NORMAL,
   degradedNotice: {
     title: "Vehicle telemetry broker degraded",
@@ -217,7 +218,7 @@ const SERVICE_DEGRADED: ConsoleDashboardSnapshot = {
   ],
 };
 
-const EMPTY: ConsoleDashboardSnapshot = {
+const EMPTY: PopulatedConsoleDashboardSnapshot = {
   ...NORMAL,
   serviceHealth: BASE_SERVICE_HEALTHY.map((row) => ({
     ...row,

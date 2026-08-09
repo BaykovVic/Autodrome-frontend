@@ -1,8 +1,20 @@
 /**
- * Console dashboard snapshot shape. All fields are derived from
- * mock fixtures (per `MockScenario`). When backend ships real
- * dashboard read models, each block can be swapped for a typed
- * adapter call without touching the widget components.
+ * Console dashboard snapshot shape.
+ *
+ * Two sources fill this shape:
+ *
+ *   - mock mode — scenario-keyed fixtures (every block populated);
+ *   - live mode — the `api-gateway-bff` dashboard read models
+ *     (`GET /dashboard/admin`, `GET /dashboard/dispatcher`).
+ *
+ * The BFF read models cover service health and alerts (plus the
+ * dispatcher exam / vehicle / equipment summary). They do NOT carry a
+ * database-readiness, media-storage, telemetry or outbox read model.
+ * Those blocks are therefore nullable: in live mode they are `null`
+ * and the dashboard renders an explicit "no data from backend" tile
+ * instead of inventing a plausible value. Widgets keep receiving
+ * fully-populated data — the null check happens once, in the
+ * dashboard composer.
  */
 
 export type ServiceHealthState =
@@ -78,12 +90,36 @@ export type NodeOperationsItem = {
 
 export type ConsoleDashboardSnapshot = {
   node: {
-    id: string;
-    site: string;
+    /** `null` when the backend read model does not report node identity. */
+    id: string | null;
+    site: string | null;
     lastRefresh: string;
   };
   degradedNotice?: DashboardDegradedNotice;
   serviceHealth: DashboardServiceRow[];
+  /** `null` — no backend read model for this block (see file docstring). */
+  database: DatabaseReadiness | null;
+  media: MediaStorage | null;
+  vehicleTelemetry: VehicleTelemetry | null;
+  outbox: OutboxBacklog | null;
+  nodeOps: NodeOperationsItem[] | null;
+};
+
+/**
+ * A snapshot with every block populated — the shape mock fixtures
+ * produce. Assignable to `ConsoleDashboardSnapshot`; used so fixture
+ * spreads keep their non-nullable field types.
+ */
+export type PopulatedConsoleDashboardSnapshot = Omit<
+  ConsoleDashboardSnapshot,
+  | "node"
+  | "database"
+  | "media"
+  | "vehicleTelemetry"
+  | "outbox"
+  | "nodeOps"
+> & {
+  node: { id: string; site: string; lastRefresh: string };
   database: DatabaseReadiness;
   media: MediaStorage;
   vehicleTelemetry: VehicleTelemetry;
