@@ -12,10 +12,17 @@ import {
   StatusDot,
   type StatusDotVariant,
 } from "@/components";
+import { classifyError } from "@/api/error-taxonomy";
+import {
+  CONSOLE_PERMISSIONS,
+  canAccess,
+} from "../../_session/consolePermissions";
+import { useOptionalSession } from "../../_session/SessionProvider";
 import {
   useConsoleAndroidDevices,
   type ConsoleAndroidDevicesLoader,
 } from "./useConsoleAndroidDevices";
+import type { VehicleAnchorOptionsLoader } from "./useVehicleAnchorOptions";
 import {
   ANDROID_CAPABILITY_LABELS,
   type ConsoleAndroidDevice,
@@ -37,7 +44,18 @@ type Props = {
    * live wiring lands.
    */
   policyEditorNow?: string;
+  /** Test seam for the assign dialog's vehicle picker source. */
+  vehicleOptionsLoader?: VehicleAnchorOptionsLoader;
 };
+
+/**
+ * Shown next to disabled command controls. The frontend is not the
+ * security boundary — the backend guards the same endpoints with
+ * `Permissions.DeviceManage`; this only stops the console from
+ * offering an action that would come back as a 403.
+ */
+const NO_DEVICE_MANAGE_PERMISSION =
+  "You need the device.manage permission to assign or retire devices.";
 
 const DEFAULT_POLICY_EDITOR_NOW = "2026-06-24T00:00:00Z";
 
@@ -104,7 +122,13 @@ function capabilityLabel(cap: ConsoleAndroidDeviceCapability): string {
 export function AndroidDevicesScreen({
   loader,
   policyEditorNow = DEFAULT_POLICY_EDITOR_NOW,
+  vehicleOptionsLoader,
 }: Props) {
+  const session = useOptionalSession();
+  const canManageDevices = canAccess(
+    session,
+    CONSOLE_PERMISSIONS.deviceManage,
+  );
   const state = useConsoleAndroidDevices({
     loader,
     now: policyEditorNow,
@@ -182,6 +206,15 @@ export function AndroidDevicesScreen({
   const isRetired = selected?.status === "retired";
   const isPending = selected?.status === "pending";
 
+  // A rejected command leaves the list intact, so it is surfaced as a
+  // banner over the workspace rather than replacing it. `409` in
+  // particular means the operator's view is stale — the offered
+  // action is a reload, and the stale list stays visible for
+  // comparison.
+  const commandProblem = state.commandError
+    ? classifyError(state.commandError)
+    : null;
+
   return (
     <section className={styles.screen} aria-label="Android Devices">
       <header className={styles.header}>
@@ -197,8 +230,8 @@ export function AndroidDevicesScreen({
             variant="primary"
             size="sm"
             type="button"
-            disabled
-            title="Live admin commands land in the upcoming android device live API integration feature."
+            onClick={state.reload}
+            title="Reload the device list from the backend."
           >
             Refresh
           </Button>
@@ -232,6 +265,56 @@ export function AndroidDevicesScreen({
           })}
         </div>
       </header>
+
+      {commandProblem ? (
+        <div
+          className={styles.commandError}
+          role="alert"
+          aria-label="Device command failed"
+        >
+          <div>
+            <div className={styles.commandErrorTitle}>
+              {commandProblem.title}
+            </div>
+            <p className={styles.commandErrorText}>
+              {commandProblem.description}
+            </p>
+            {commandProblem.category === "conflict" ? (
+              <p className={styles.commandErrorText}>
+                The device changed on the backend since this list was
+                loaded. Reload to see its current state before
+                retrying.
+              </p>
+            ) : null}
+            {commandProblem.correlationId ? (
+              <p className={styles.commandErrorText}>
+                Correlation-Id:{" "}
+                <span className={styles.mono}>
+                  {commandProblem.correlationId}
+                </span>
+              </p>
+            ) : null}
+          </div>
+          <div className={styles.commandErrorActions}>
+            <Button
+              variant="primary"
+              size="sm"
+              type="button"
+              onClick={state.reload}
+            >
+              Reload devices
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              type="button"
+              onClick={state.dismissCommandError}
+            >
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className={styles.body}>
         <div className={styles.tableColumn}>
@@ -512,15 +595,22 @@ export function AndroidDevicesScreen({
             </div>
 
             <div className={styles.detailActions}>
+              {!canManageDevices ? (
+                <p className={styles.permissionNote}>
+                  {NO_DEVICE_MANAGE_PERMISSION}
+                </p>
+              ) : null}
               <Button
                 variant="primary"
                 size="sm"
                 type="button"
-                disabled={isRetired}
+                disabled={isRetired || !canManageDevices}
                 title={
-                  isRetired
-                    ? "Retired devices cannot be reassigned."
-                    : "Assign role + binding for this device."
+                  !canManageDevices
+                    ? NO_DEVICE_MANAGE_PERMISSION
+                    : isRetired
+                      ? "Retired devices cannot be reassigned."
+                      : "Assign role + binding for this device."
                 }
                 onClick={() => setAssignDialogOpen(true)}
               >
@@ -530,13 +620,15 @@ export function AndroidDevicesScreen({
                 variant="secondary"
                 size="sm"
                 type="button"
-                disabled={isPending || isRetired}
+                disabled={isPending || isRetired || !canManageDevices}
                 title={
-                  isPending
-                    ? "Capability policy is set once the device transitions pending → active."
-                    : isRetired
-                      ? "Capability policy is read-only for retired devices."
-                      : "Open the mock-first capability policy editor for this device."
+                  !canManageDevices
+                    ? NO_DEVICE_MANAGE_PERMISSION
+                    : isPending
+                      ? "Capability policy is set once the device transitions pending → active."
+                      : isRetired
+                        ? "Capability policy is read-only for retired devices."
+                        : "Open the capability policy editor for this device."
                 }
                 onClick={() => setPolicyEditorOpen(true)}
               >
@@ -546,11 +638,13 @@ export function AndroidDevicesScreen({
                 variant="secondary"
                 size="sm"
                 type="button"
-                disabled={isRetired}
+                disabled={isRetired || !canManageDevices}
                 title={
-                  isRetired
-                    ? "Device is already retired."
-                    : "Retire this device (terminal lifecycle transition)."
+                  !canManageDevices
+                    ? NO_DEVICE_MANAGE_PERMISSION
+                    : isRetired
+                      ? "Device is already retired."
+                      : "Retire this device (terminal lifecycle transition)."
                 }
                 onClick={() => setRetireDialogOpen(true)}
               >
@@ -574,6 +668,7 @@ export function AndroidDevicesScreen({
       <AndroidDeviceAssignDialog
         open={assignDialogOpen}
         device={selected ?? null}
+        vehicleOptionsLoader={vehicleOptionsLoader}
         onSubmit={(deviceId, assignment) => {
           state.assignDevice(deviceId, assignment);
         }}

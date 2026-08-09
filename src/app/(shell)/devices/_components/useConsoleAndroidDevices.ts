@@ -36,7 +36,23 @@ export type ConsoleAndroidDevicesLoader = () =>
 export type ConsoleAndroidDevicesState = {
   loading: boolean;
   snapshot: ConsoleAndroidDevicesSnapshot | null;
+  /**
+   * The device list itself could not be loaded — nothing to show, so
+   * the screen replaces its body with an error surface.
+   */
   fatalError: unknown | null;
+  /**
+   * A command (assign / retire / policy) was rejected. Kept separate
+   * from `fatalError` on purpose: the list is still valid and still
+   * worth showing, so the screen renders a banner over it rather than
+   * wiping the workspace. `403`, `409` and degraded backends all
+   * arrive here and are classified by the shared error taxonomy —
+   * `409` in particular means "your view is stale", which is only
+   * actionable while the stale view is still on screen next to a
+   * reload control.
+   */
+  commandError: unknown | null;
+  dismissCommandError: () => void;
   reload: () => void;
   /**
    * Apply a capability-policy edit to the target device.
@@ -52,8 +68,7 @@ export type ConsoleAndroidDevicesState = {
    * write shape — backend owns `policyVersion`/`updatedAt`). On
    * success replaces the snapshot device with the
    * backend-stamped result. On failure surfaces the `ApiError`
-   * through the standard fatal-error path (degraded
-   * `<ApiErrorView>`).
+   * through `commandError` (banner over the still-valid list).
    *
    * Returns `void` so callers don't need to await; the snapshot
    * update is observed via React state.
@@ -74,8 +89,9 @@ export type ConsoleAndroidDevicesState = {
    *
    * Live mode: dispatches
    * `POST /admin/devices/{deviceId}/assign` and replaces the
-   * snapshot device with the backend-stamped response. On
-   * failure surfaces `ApiError` through `setFatalError` (incl.
+   * snapshot device with the backend-stamped response — never an
+   * optimistic guess. On failure surfaces `ApiError` through
+   * `commandError` (`403` forbidden / `409` stale-view conflict /
    * `503 ANDROID_DEVICE_NOT_IMPLEMENTED` backend-lag).
    */
   assignDevice: (
@@ -92,7 +108,7 @@ export type ConsoleAndroidDevicesState = {
    * Live mode: dispatches
    * `POST /admin/devices/{deviceId}/retire` and replaces the
    * snapshot device with the backend-stamped response. On
-   * failure surfaces `ApiError` through `setFatalError`.
+   * failure surfaces `ApiError` through `commandError`.
    */
   retireDevice: (
     deviceId: string,
@@ -149,9 +165,14 @@ export function useConsoleAndroidDevices(
   const [snapshot, setSnapshot] =
     useState<ConsoleAndroidDevicesSnapshot | null>(null);
   const [fatalError, setFatalError] = useState<unknown | null>(null);
+  const [commandError, setCommandError] = useState<unknown | null>(null);
   const [tick, setTick] = useState(0);
 
   const reload = useCallback(() => setTick((t) => t + 1), []);
+  const dismissCommandError = useCallback(
+    () => setCommandError(null),
+    [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -159,6 +180,9 @@ export function useConsoleAndroidDevices(
     async function load() {
       setLoading(true);
       setFatalError(null);
+      // A fresh list answers whatever the previous command failure
+      // was about — keeping the banner would be stale by definition.
+      setCommandError(null);
       try {
         const value = await (loader ? loader() : defaultLoader());
         if (cancelled) return;
@@ -215,6 +239,7 @@ export function useConsoleAndroidDevices(
             target!,
             nextPolicy,
           );
+          setCommandError(null);
           setSnapshot((prev) => {
             if (!prev) return prev;
             return {
@@ -226,12 +251,11 @@ export function useConsoleAndroidDevices(
           });
         } catch (error) {
           // Backend rejected (incl. 503 ANDROID_DEVICE_NOT_IMPLEMENTED
-          // while backend lag persists) — surface a degraded state
-          // through the standard fatal-error path. The screen
-          // re-renders ApiErrorView with retry; the operator can
-          // re-open the editor and try again once the backend
-          // ships application support.
-          setFatalError(error);
+          // while backend lag persists) — surface it as a command
+          // error banner over the still-valid device list, not as a
+          // full-screen error: the list the operator was looking at
+          // is unaffected by a rejected write.
+          setCommandError(error);
         }
       })();
     },
@@ -300,6 +324,7 @@ export function useConsoleAndroidDevices(
             deviceId,
             assignment,
           );
+          setCommandError(null);
           setSnapshot((prev) => {
             if (!prev) return prev;
             const devices = prev.devices.map((d) =>
@@ -320,10 +345,9 @@ export function useConsoleAndroidDevices(
             };
           });
         } catch (error) {
-          // 503 ANDROID_DEVICE_NOT_IMPLEMENTED while backend lag
-          // persists — surface degraded state through the
-          // standard fatal-error path.
-          setFatalError(error);
+          // 403 forbidden / 409 stale view / 503 backend lag — all
+          // classified by the shared taxonomy in the command banner.
+          setCommandError(error);
         }
       })();
     },
@@ -382,6 +406,7 @@ export function useConsoleAndroidDevices(
             deviceId,
             request,
           );
+          setCommandError(null);
           setSnapshot((prev) => {
             if (!prev) return prev;
             const devices = prev.devices.map((d) =>
@@ -402,7 +427,7 @@ export function useConsoleAndroidDevices(
             };
           });
         } catch (error) {
-          setFatalError(error);
+          setCommandError(error);
         }
       })();
     },
@@ -413,6 +438,8 @@ export function useConsoleAndroidDevices(
     loading,
     snapshot,
     fatalError,
+    commandError,
+    dismissCommandError,
     reload,
     applyPolicyEdit,
     assignDevice,
